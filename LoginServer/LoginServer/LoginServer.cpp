@@ -48,8 +48,8 @@ LoginServer::LoginServer()
 		__debugbreak();
 	}
 
-	InitMySQLConnection();
-	InitRedisConnection();
+	//InitMySQLConnection();
+	//InitRedisConnection();
 
 	_hMonitorThread = (HANDLE)_beginthreadex(NULL, 0, MonitorThreadStatic, this, 0, NULL);
 	if (_hMonitorThread == NULL)
@@ -101,6 +101,7 @@ void LoginServer::OnAccept(int64 sessionId)
 
 void LoginServer::OnAccept(int64 sessionId, WCHAR* ip)
 {
+	printf("accept\n");
 	LOG(L"Develop", LogLevel::Debug, L"Accept Client");
 	
 	PRO_BEGIN(L"OnAccept");
@@ -130,6 +131,7 @@ void LoginServer::OnAccept(int64 sessionId, WCHAR* ip)
 
 void LoginServer::OnDisconnect(int64 sessionId)
 {
+	printf("disconnect\n");
 	LOG(L"Develop", LogLevel::Debug, L"Disconnect Client");
 	PRO_BEGIN(L"OnDisconnect");
 	Player* player = nullptr;
@@ -333,6 +335,8 @@ void LoginServer::HandleLogin(Player* player, CPacket* packet)
 	MP_SC_LOGIN(resPacket, player->accountNo, status, gameServerIP, gameServerPort, chatServerIP, chatServerPort);
 
 	SendPacket_Unicast(player, resPacket);
+	printf("send login packet\n");
+
 	CPacket::Free(resPacket);
 }
 
@@ -341,6 +345,7 @@ void LoginServer::HandleEcho(Player* player, CPacket* packet)
 	CPacket* resPacket = CPacket::Alloc();
 	MP_SC_ECHO(resPacket);
 	SendPacket_Unicast(player, resPacket);
+	printf("send echo packet\n");
 	CPacket::Free(resPacket);
 
 }

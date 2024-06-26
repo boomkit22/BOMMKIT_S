@@ -34,7 +34,7 @@ void LoginServer::MP_SC_ECHO(CPacket* packet)
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_LOGIN_RES_ECHO;
-
+	*packet << type;
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
