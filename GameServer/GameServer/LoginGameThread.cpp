@@ -45,6 +45,12 @@ void LoginGameThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 	}
 	break;
 
+	case PACKET_CS_GAME_REQ_FIELD_MOVE:
+	{
+		HandleFieldMove(player, packet);
+	}
+	break;
+
 	default:
 		__debugbreak();
 	}
@@ -122,6 +128,14 @@ void LoginGameThread::HandleLogin(Player* player, CPacket* packet)
 	//	// 인증 실패
 	//	// Disconnect
 	//}
+}
+
+void LoginGameThread::HandleFieldMove(Player* player, CPacket* packet)
+{
+	uint16 fieldID;
+	*packet >> fieldID;
+
+	MoveGameThread(fieldID, player->_sessionId, player);
 }
 
 void LoginGameThread::HandleRecvPacket(int64 sessionId, std::vector<CPacket*>& packets)

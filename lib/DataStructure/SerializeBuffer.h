@@ -252,6 +252,14 @@ public:
 		return *this;
 	}
 
+	CPacket& operator << (FVector& vValue)
+	{
+		memcpy(&_buffer[_writePos], &vValue, sizeof(double) * 3);
+		_writePos += sizeof(FVector);
+		_dataSize += sizeof(FVector);
+		return *this;
+	}
+
 	
 	CPacket& operator << (WCHAR* wCharValue)
 	{
@@ -265,6 +273,7 @@ public:
 		return *this;
 	}
 
+	
 
 
 	//////////////////////////////////////////////////////////////////////////
@@ -350,6 +359,15 @@ public:
 		_readPos += sizeof(double);
 
 		_dataSize -= sizeof(double);
+		return *this;
+	}
+
+	CPacket& operator >> (FVector& vValue)
+	{
+		memcpy(&vValue, &_buffer[_readPos], sizeof(FVector));
+		_readPos += sizeof(FVector);
+		_dataSize -= sizeof(FVector);
+
 		return *this;
 	}
 

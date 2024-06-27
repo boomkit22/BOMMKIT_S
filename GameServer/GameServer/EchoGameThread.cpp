@@ -105,13 +105,26 @@ void EchoGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		__debugbreak();
 	}
 
+	// 필드 이동 응답 보내고
 	CPacket* packet = CPacket::Alloc();
 	uint8 status = true;
-	int64 accountNo = p->accountNo;
-	MP_SC_LOGIN(packet, status, accountNo);
+	MP_SC_FIELD_MOVE(packet, status);
 	//TODO: send
 	SendPacket_Unicast(p->_sessionId, packet);
 	CPacket::Free(packet);
+
+	// 내 캐릭터 소환 패킷 보내고
+	CPacket* spawnCharacterPacket = CPacket::Alloc();
+	FVector spawnLocation{ 0,0,0 };
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, spawnLocation);
+	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
+	CPacket::Free(spawnCharacterPacket);
+
+	//TODO: 다른 컈릭터들 소환 패킷 보내고
+
+
+
+	//TODO: 몬스터들 소환 패킷 보내고 
 }
 
 

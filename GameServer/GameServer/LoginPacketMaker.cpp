@@ -17,3 +17,7 @@ void LoginGameThread::MP_SC_LOGIN(CPacket* packet, int64& accountNo, uint8& stat
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
+
+void LoginGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
+{
+}

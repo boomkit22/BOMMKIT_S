@@ -10,3 +10,9 @@ using uint32 = unsigned int;
 using uint16 = unsigned short;
 using uint64 = unsigned long long;
 using uint8 = unsigned char;
+using FVector = struct FVector
+{
+	double X;
+	double Y;
+	double Z;
+};
