@@ -203,7 +203,6 @@ unsigned __stdcall CNetServer::WorkerThread()
 			continue;
 		}
 
-		printf("cbtransfereed : %d\n", cbTransferred);
 
 		if (overlapped == &(s->_sendOverlapped))
 		{

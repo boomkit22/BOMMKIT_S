@@ -335,7 +335,7 @@ void LoginServer::HandleLogin(Player* player, CPacket* packet)
 	MP_SC_LOGIN(resPacket, player->accountNo, status, gameServerIP, gameServerPort, chatServerIP, chatServerPort);
 
 	SendPacket_Unicast(player, resPacket);
-	printf("send login packet\n");
+	//printf("send login packet\n");
 
 	CPacket::Free(resPacket);
 }
@@ -345,7 +345,7 @@ void LoginServer::HandleEcho(Player* player, CPacket* packet)
 	CPacket* resPacket = CPacket::Alloc();
 	MP_SC_ECHO(resPacket);
 	SendPacket_Unicast(player, resPacket);
-	printf("send echo packet\n");
+	//printf("send echo packet\n");
 	CPacket::Free(resPacket);
 
 }

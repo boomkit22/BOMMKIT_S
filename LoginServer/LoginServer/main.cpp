@@ -77,7 +77,7 @@ int main()
 		if (now - logTime > logDuration)
 		{
 			//1초당 로그찍기
-			//loginServer->LogServerInfo();
+			loginServer->LogServerInfo();
 			// Packet TLS풀 로그찍기
 			//loginServer->ObjectPoolLog();
 			logTime += logDuration;
