@@ -7,8 +7,7 @@
 //#define PACKET_CODE 0x77
 //#define PACKET_KEY 0x32
 
-#define ID_LEN 20
-#define NICKNAME_LEN 20
+
 #define SESSION_KEY_LEN 64
 #define TIMEOUT_DISCONNECT 40000
 #define GAME_SERVER_NO 3
@@ -85,10 +84,7 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		INT64	AccountNo // 캐릭터 ID 캐릭터 PASSWORD
-	//		uint8	Status
-	//		uint16  CharacterLevel
-	//      TODO: 캐릭터 닉네임 및 기타정보
+	//		ResLoginInfo resLoginInfo
 	// 
 	//	}
 	//------------------------------------------------------------
@@ -115,10 +111,51 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		FVector SpawnLocation
+	//		SpawnMyCharacterInfo spawnMyCharacteRInfo
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_MY_CHARACTER = 1005,
 
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		SpawnOtherCharacterInfo spawnOtherCharacterInfo
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_SPAWN_OTHER_CHAACTER = 1006,
+
+	//------------------------------------------------------------
+	//	 이거 필요한가
+	//		WORD	Type
+	//------------------------------------------------------------
+	PACKET_SC_GAME_DESPAWN_MY_CHARACTER = 1007,
+
+
+	//------------------------------------------------------------
+	//	 
+	//	WORD	Type
+	//  int64 CharacterNO
+	//------------------------------------------------------------
+	PACKET_SC_GAME_DESPAWN_OTHER_CHARACTER = 1008,
+
+
+	//------------------------------------------------------------
+	// {
+	//		WORD	Type
+	//		FVector Destination
+	//	}
+	//------------------------------------------------------------
+	PACKET_CS_GAME_REQ_CHARACTER_MOVE = 1009,
+
+
+	//------------------------------------------------------------
+	// {
+	//		WORD	Type
+	//		int64 CharacterNO
+	//		FVector Destination
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_CHARACTER_MOVE = 1010,
 };
 

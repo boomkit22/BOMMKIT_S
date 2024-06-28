@@ -127,6 +127,9 @@
     <ClCompile Include="LoginPacketMaker.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\lib\Type\Type.cpp">
+      <Filter>lib\Type</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\GameServerLib\Session.h">

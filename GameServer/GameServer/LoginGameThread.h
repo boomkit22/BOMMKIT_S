@@ -29,12 +29,11 @@ private:
 	void HandleLogin(Player* player, CPacket* packet);
 	void HandleFieldMove(Player* player, CPacket* packet);
 	
-	void MP_SC_LOGIN(CPacket* packet, int64& accountNo, uint8& status, uint16& characterLevel);
+	void MP_SC_LOGIN(CPacket* packet, ResGameLoginInfo& resLoginInfo);
 	void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
 private:
 	std::unordered_map<int64, Player*> _playerMap;
 
-	virtual void HandleRecvPacket(int64 sessionId, std::vector<CPacket*>& packets) override;
 	uint16 serverPacketCode = Data::serverPacketCode;
 
 };

@@ -1,17 +1,24 @@
+#pragma once
 #include "Type.h"
 #include <stdlib.h>
 #include "LockFreeObjectPool.h"
 #include "TlsObjectPool.h"
 #include "PacketHeader.h"
 
-#ifndef  __PACKET__
-#define  __PACKET__
-
 
 
 #define TLS_POOL
 class CPacket
 {
+	friend CPacket& operator<<(CPacket& packet, FVector& vec);
+	friend CPacket& operator>>(CPacket& packet, FVector& vec);
+	friend CPacket& operator<<(CPacket& packet, ResGameLoginInfo& resLoginInfo);
+	friend CPacket& operator>>(CPacket& packet, ResGameLoginInfo& resLoginInfo);
+	friend CPacket& operator<<(CPacket& packet, SpawnMyCharacterInfo& spawnMyCharacterInfo);
+	friend CPacket& operator>>(CPacket& packet, SpawnMyCharacterInfo& spawnMyCharacterInfo);
+	friend CPacket& operator<<(CPacket& packet, SpawnOtherCharacterInfo& spawnOtherCharacterInfo);
+	friend CPacket& operator>>(CPacket& packet, SpawnOtherCharacterInfo& spawnOtherCharacterInfo);
+
 	friend class TlsObjectPool<CPacket, false>;
 	friend class LockFreeObjectPool<CPacket, false>;
 
@@ -252,13 +259,13 @@ public:
 		return *this;
 	}
 
-	CPacket& operator << (FVector& vValue)
-	{
-		memcpy(&_buffer[_writePos], &vValue, sizeof(double) * 3);
-		_writePos += sizeof(FVector);
-		_dataSize += sizeof(FVector);
-		return *this;
-	}
+	//CPacket& operator << (FVector& vValue)
+	//{
+	//	memcpy(&_buffer[_writePos], &vValue, sizeof(double) * 3);
+	//	_writePos += sizeof(FVector);
+	//	_dataSize += sizeof(FVector);
+	//	return *this;
+	//}
 
 	
 	CPacket& operator << (WCHAR* wCharValue)
@@ -362,14 +369,7 @@ public:
 		return *this;
 	}
 
-	CPacket& operator >> (FVector& vValue)
-	{
-		memcpy(&vValue, &_buffer[_readPos], sizeof(FVector));
-		_readPos += sizeof(FVector);
-		_dataSize -= sizeof(FVector);
 
-		return *this;
-	}
 
 	CPacket& operator >> (WCHAR* wCharValue)
 	{
@@ -609,11 +609,10 @@ public:
 
 	
 
-public:
-	char* _buffer;
-	int64 _refCount = 0;
 
-protected:
+private:
+	int64 _refCount = 0;
+	char* _buffer;
 	//int64 _refCount = 0;
 	//
 	int	_bufferSize;
@@ -628,7 +627,6 @@ protected:
 	int _writePos = 0;
 	int _readPos = 0;
 
-private:
 
 #ifdef TLS_POOL
 	static inline TlsObjectPool<CPacket, false> _packetPool{ 5000, 4000 };
@@ -639,4 +637,3 @@ private:
 
 };
 
-#endif

@@ -105,6 +105,9 @@ void LoginGameThread::OnEnterThread(int64 sessionId, void* ptr)
 
 void LoginGameThread::HandleLogin(Player* player, CPacket* packet)
 {
+	static long playerId = 0;
+	long pId = InterlockedIncrement(&playerId);
+
 	//TODO: EchoGroup으로 옮기고
 	// EchoGroup에서 ResMessage보내기
 
@@ -113,10 +116,24 @@ void LoginGameThread::HandleLogin(Player* player, CPacket* packet)
 	//TODO:
 	//mysql에서 조회
 	CPacket* resPacket = CPacket::Alloc();
-	uint8 status = true;
+	ResGameLoginInfo resLoginInfo;
+	resLoginInfo.Status = true;
+	resLoginInfo.AccountNo = accountNo;
+	resLoginInfo.Level = 1;
+
+	TCHAR characterID[NICKNAME_LEN];
+	swprintf_s(characterID, L"ID%ld", pId);
+	wmemcpy(player->NickName, characterID, NICKNAME_LEN);
+	wmemcpy(resLoginInfo.NickName, characterID, NICKNAME_LEN);
+	//resLoginInfo.NickName= characterID;
+	//uint8 status = true;
 	uint16 characterLevel = 1;
-	MP_SC_LOGIN(resPacket, accountNo, status, characterLevel);
+	player->Level = characterLevel;
+	player->playerID = playerId;
+
+	MP_SC_LOGIN(resPacket, resLoginInfo);
 	SendPacket_Unicast(player->_sessionId, resPacket);
+	printf("send login\n");
 	CPacket::Free(resPacket);
 	//if (true) // 인증 성공
 	//{
@@ -138,9 +155,5 @@ void LoginGameThread::HandleFieldMove(Player* player, CPacket* packet)
 	MoveGameThread(fieldID, player->_sessionId, player);
 }
 
-void LoginGameThread::HandleRecvPacket(int64 sessionId, std::vector<CPacket*>& packets)
-{
-	__debugbreak();
-}
 
 

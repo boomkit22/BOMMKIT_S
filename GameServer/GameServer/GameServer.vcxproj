@@ -147,6 +147,7 @@
     <ClCompile Include="..\..\lib\GameServerLib\CNetServer.cpp" />
     <ClCompile Include="..\..\lib\GameServerLib\GameThread.cpp" />
     <ClCompile Include="..\..\lib\GameServerLib\Session.cpp" />
+    <ClCompile Include="..\..\lib\Type\Type.cpp" />
     <ClCompile Include="..\..\lib\Util\CpuUsage.cpp" />
     <ClCompile Include="..\..\lib\Util\Log.cpp" />
     <ClCompile Include="..\..\lib\Util\PerformanceMonitor.cpp" />

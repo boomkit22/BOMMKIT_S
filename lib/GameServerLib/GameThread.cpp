@@ -113,13 +113,9 @@ unsigned __stdcall GameThread::UpdateThread()
 				//HandleRecvPacket(sessionId, packet);
 			}
 
-			if (packets.size() == 1)
-			{
-				HandleRecvPacket(sessionId, packets[0]);
-			}
-			else {
-				HandleRecvPacket(sessionId, packets);
-			}
+	
+			HandleRecvPacket(sessionId, packets[0]);
+		
 			_netServer->PutBackSession(s);
 		}
 		//ReleaseSRWLockShared(&_sessionArrLock);
