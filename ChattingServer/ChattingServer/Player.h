@@ -17,8 +17,6 @@ private:
 	int64 accountNo = 0;
 	uint32 _lastRecvTime = 0;
 	bool _bLogined = false;
-
-	WCHAR id[20];
-	WCHAR nickName[20];
+	TCHAR NickName[20];
 };
 

@@ -72,8 +72,8 @@ int main()
 	{
 		Sleep(999);
 
-		chattingServer->LogServerInfo();
-		chattingServer->ObjectPoolLog();
+		//chattingServer->LogServerInfo();
+		//chattingServer->ObjectPoolLog();
 
 		/*int now = timeGetTime();
 		if (now - logTime > logDuration)

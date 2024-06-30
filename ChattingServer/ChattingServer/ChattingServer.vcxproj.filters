@@ -79,9 +79,6 @@
     <ClCompile Include="main.cpp">
       <Filter>ChattingServer\Source</Filter>
     </ClCompile>
-    <ClCompile Include="PacketMaker.cpp">
-      <Filter>ChattingServer\Source</Filter>
-    </ClCompile>
     <ClCompile Include="ServerPacketMaker.cpp">
       <Filter>ChattingServer\Source</Filter>
     </ClCompile>
@@ -142,9 +139,6 @@
       <Filter>ChattingServer\Header</Filter>
     </ClInclude>
     <ClInclude Include="Packet.h">
-      <Filter>ChattingServer\Header</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketMaker.h">
       <Filter>ChattingServer\Header</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
