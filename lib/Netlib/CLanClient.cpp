@@ -455,10 +455,7 @@ void CLanClient::ReqWSASend(Session* session)
 		wsaSendBuf[dequeuedSize].len = ptr->GetDataSize();
 		dequeuedSize++;
 
-		if (ptr->_refCount == 0)
-		{
-			__debugbreak();
-		}
+	
 		session->_sendedQueue.push(ptr);
 	}
 
