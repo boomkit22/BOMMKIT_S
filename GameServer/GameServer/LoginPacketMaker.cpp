@@ -2,7 +2,7 @@
 #include "Packet.h"
 #include "SerializeBuffer.h"
 #include "Type.h"
-#include "EchoGameThread.h"
+#include "GameGameThread.h"
 
 void LoginGameThread::MP_SC_LOGIN(CPacket* packet, ResGameLoginInfo& resLoginInfo)
 {

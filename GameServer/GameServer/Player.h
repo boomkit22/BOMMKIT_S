@@ -8,7 +8,7 @@
 class Player
 {
 	friend class GameServer;
-	friend class EchoGameThread;
+	friend class GameGameThread;
 	friend class LoginGameThread;
 
 private:

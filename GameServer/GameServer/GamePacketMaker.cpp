@@ -2,11 +2,11 @@
 #include "Packet.h"
 #include "SerializeBuffer.h"
 #include "Type.h"
-#include "EchoGameThread.h"
+#include "GameGameThread.h"
 
 
 
-void EchoGameThread::MP_SC_LOGIN(CPacket* packet, uint8& status, int64& accountNo)
+void GameGameThread::MP_SC_LOGIN(CPacket* packet, uint8& status, int64& accountNo)
 {
 	//NetHeader header;
 	//header._code = serverPacketCode;
@@ -26,7 +26,7 @@ void EchoGameThread::MP_SC_LOGIN(CPacket* packet, uint8& status, int64& accountN
 
 
 
-void  EchoGameThread::MP_SC_ECHO(CPacket* packet, CPacket* echoPacket)
+void  GameGameThread::MP_SC_ECHO(CPacket* packet, CPacket* echoPacket)
 {
 	//uint16 packetType;
 	//int64 recvAccountNo;
@@ -47,7 +47,7 @@ void  EchoGameThread::MP_SC_ECHO(CPacket* packet, CPacket* echoPacket)
 	//memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void EchoGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
+void GameGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -62,7 +62,7 @@ void EchoGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 }
 
 
-void EchoGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, SpawnMyCharacterInfo& spawnMyCharacterInfo)
+void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, SpawnMyCharacterInfo& spawnMyCharacterInfo)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -76,7 +76,7 @@ void EchoGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, SpawnMyCharacterI
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void EchoGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, SpawnOtherCharacterInfo& spawnOtherCharacterInfo)
+void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, SpawnOtherCharacterInfo& spawnOtherCharacterInfo)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -90,7 +90,7 @@ void EchoGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, SpawnOtherChar
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void EchoGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination)
+void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -99,6 +99,48 @@ void EchoGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& chara
 
 	uint16 type = PACKET_SC_GAME_RES_CHARACTER_MOVE;
 	*packet << type << charaterNo << Destination;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void GameGameThread::MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, int64& TargetID, int32& Damage)
+{
+	NetHeader header;
+	header._code = serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_DAMAGE;
+	*packet << type << AttackerType << AttackerID << targetType << TargetID << Damage;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FRotator& StartRotation, int32& SkillID)
+{
+	NetHeader header;
+	header._code = serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_CHARACTER_SKILL;
+	*packet << type << CharacterID << StartRotation << SkillID;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void GameGameThread::MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID)
+{
+	NetHeader header;
+	header._code = serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_MONSTER_SKILL;
+	*packet << type << MonsterNO << SkillID;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

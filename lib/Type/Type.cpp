@@ -17,6 +17,22 @@ CPacket& operator>>(CPacket& packet, FVector& vec)
 	return packet;
 }
 
+CPacket& operator<<(CPacket& packet, FRotator& rot)
+{
+	memcpy(&packet._buffer[packet._writePos], &rot, sizeof(FRotator));
+	packet._writePos += sizeof(FRotator);
+	packet._dataSize += sizeof(FRotator);
+	return packet;
+}
+
+CPacket& operator>>(CPacket& packet, FRotator& rot)
+{
+	memcpy(&rot, &packet._buffer[packet._readPos], sizeof(FRotator));
+	packet._readPos += sizeof(FRotator);
+	packet._dataSize -= sizeof(FRotator);
+	return packet;
+}
+
 CPacket& operator<<(CPacket& packet, ResGameLoginInfo& resLoginInfo)
 {
 	int copySize = sizeof(int64) + sizeof(uint8) + sizeof(uint16) + sizeof(TCHAR) * ID_LEN;

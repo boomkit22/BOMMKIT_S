@@ -1,4 +1,4 @@
-#include "EchoGameThread.h"
+#include "GameGameThread.h"
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
@@ -8,19 +8,19 @@
 using namespace std;
 
 
-EchoGameThread::EchoGameThread(GameServer* gameServer,int threadId) : GameThread(threadId, 1)
+GameGameThread::GameGameThread(GameServer* gameServer,int threadId) : GameThread(threadId, 1)
 {
 	_gameServer = gameServer;
 	SetGameServer((CNetServer*)gameServer);
 }
 
-void EchoGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
+void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 {
 	Player* player = nullptr;
 	auto it = _playerMap.find(sessionId);
 	if (it == _playerMap.end())
 	{
-		LOG(L"EchoGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
+		LOG(L"GameGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
 		return;
 	}
 	player = it->second;
@@ -33,14 +33,22 @@ void EchoGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 
 	case PACKET_CS_GAME_REQ_CHARACTER_MOVE:
 	{
-		LOG(L"Develop", LogLevel::Debug, L"Login Recv");
-
-		// 로그인  메시지
-		PRO_BEGIN(L"HandleLogin");
 		HandleCharacterMove(player, packet);
-		PRO_END(L"HandleLogin");
 	}
 	break;
+
+	case PACKET_CS_GAME_REQ_CHARACTER_ATTACK:
+	{
+		HandleCharacterAttack(player, packet);
+	}
+	break;
+
+	case PACKET_CS_GAME_REQ_CHARACTER_SKILL:
+	{
+		HandleCharacterSkill(player, packet);
+	}
+	break;
+
 
 	default:
 		LOG(L"Packet", LogLevel::Error, L"Packet Type Not Exist");
@@ -53,7 +61,7 @@ void EchoGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 
 
 
-void EchoGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
+void GameGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
 	if (disconnect)
 	{
@@ -61,7 +69,7 @@ void EchoGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	}
 	else
 	{
-		LOG(L"EchoGameThread", LogLevel::Error, L"no disconnect : %lld, OnLeaveThread", sessionId);
+		LOG(L"GameGameThread", LogLevel::Error, L"no disconnect : %lld, OnLeaveThread", sessionId);
 	}
 
 	int deletedNum = _playerMap.erase(sessionId);
@@ -69,12 +77,12 @@ void EchoGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	{
 		// 이미 삭제된 경우
 		// 더미 기준에서는 발생하면 안됨
-		LOG(L"EchoGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
+		LOG(L"GameGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
 }
 
 
-void EchoGameThread::OnEnterThread(int64 sessionId, void* ptr)
+void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 {
 	//TODO: map에 추가
 	//TODO: 플레이어 생성
@@ -160,7 +168,7 @@ void EchoGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	//TODO: 몬스터들 소환 패킷 보내고 
 }
 
-void EchoGameThread::HandleCharacterMove(Player* p, CPacket* packet)
+void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 {
 	//TODO: 모든 유저에게 패킷 브로드캐스팅
 	int64 characterNo = p->playerID;
@@ -173,6 +181,49 @@ void EchoGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
 		SendPacket_Unicast(it->first, movePacket);
+	}
+}
+
+void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
+{
+	//브로드 캐스팅
+	//TODO: 서버에서 검증하기
+	
+	int32 attackerType;
+	int64 attackerID;
+	int32 targetType;
+	int64 targetID;
+	int32 damage;
+
+	*packet >> attackerType >> attackerID >> targetType >> targetID >> damage;
+
+	 CPacket* resDamagePacket = CPacket::Alloc();
+	 MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
+
+	 for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	 {
+		 printf("send attack to :%lld\n", it->first);
+		 SendPacket_Unicast(it->first, resDamagePacket);
+	 }
+}
+
+void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
+{
+	//이건 플레이어 빼고 브로드캐스팅
+	int64 CharacterId = p->playerID;
+	FRotator startRotation;
+	int32 skillID;
+
+	*packet >> startRotation >> skillID;
+
+	CPacket* resSkillPacket = CPacket::Alloc();
+	MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, CharacterId, startRotation, skillID);
+
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		if (it->first == p->_sessionId)
+			continue;
+		SendPacket_Unicast(it->first, resSkillPacket);
 	}
 }
 

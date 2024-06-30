@@ -4,7 +4,7 @@
 #include "Player.h"
 #include "MonitorClient.h"
 #include "PerformanceMonitor.h"
-#include "EchoGameThread.h"
+#include "GameGameThread.h"
 #include "LoginGameThread.h"
 #include <map>
 #include "Log.h"
@@ -57,7 +57,7 @@ private: // 플레이어
 	SRWLOCK _playerMapLock;
 	LockFreeObjectPool<class Player, false> _playerPool;
 	std::unordered_map<int64, Player*> _playerMap;
-	EchoGameThread* _echoGameThread = nullptr;
+	GameGameThread* _gameGameThread = nullptr;
 	LoginGameThread* _loginGameThread = nullptr;
 
 public:

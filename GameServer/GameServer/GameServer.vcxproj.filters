@@ -100,10 +100,10 @@
     <ClCompile Include="ClientPacketMaker.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
-    <ClCompile Include="EchoGameThread.cpp">
+    <ClCompile Include="GameGameThread.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
-    <ClCompile Include="EchoPacketMaker.cpp">
+    <ClCompile Include="GamePacketMaker.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
     <ClCompile Include="GameServer.cpp">
@@ -195,7 +195,7 @@
     <ClInclude Include="..\..\lib\Util\Util.h">
       <Filter>lib\Util\Header</Filter>
     </ClInclude>
-    <ClInclude Include="EchoGameThread.h">
+    <ClInclude Include="GameGameThread.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
     <ClInclude Include="GameServer.h">

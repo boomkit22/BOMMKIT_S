@@ -155,8 +155,8 @@
     <ClCompile Include="..\..\lib\Util\TextParser.cpp" />
     <ClCompile Include="..\..\lib\Util\Util.cpp" />
     <ClCompile Include="ClientPacketMaker.cpp" />
-    <ClCompile Include="EchoGameThread.cpp" />
-    <ClCompile Include="EchoPacketMaker.cpp" />
+    <ClCompile Include="GameGameThread.cpp" />
+    <ClCompile Include="GamePacketMaker.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="LoginGameThread.cpp" />
     <ClCompile Include="LoginPacketMaker.cpp" />
@@ -187,7 +187,7 @@
     <ClInclude Include="..\..\lib\Util\Profiler.h" />
     <ClInclude Include="..\..\lib\Util\TextParser.h" />
     <ClInclude Include="..\..\lib\Util\Util.h" />
-    <ClInclude Include="EchoGameThread.h" />
+    <ClInclude Include="GameGameThread.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="GameThreadInfo.h" />
     <ClInclude Include="LoginGameThread.h" />

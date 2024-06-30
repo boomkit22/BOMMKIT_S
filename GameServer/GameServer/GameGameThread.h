@@ -4,10 +4,10 @@
 #include "Player.h"
 #include "GameServer.h"
 
-class EchoGameThread : public GameThread
+class GameGameThread : public GameThread
 {
 public:
-	EchoGameThread(GameServer* gameServer, int threadId);
+	GameGameThread(GameServer* gameServer, int threadId);
 
 public:
 	int64 GetPlayerSize() override
@@ -29,6 +29,9 @@ private:
 
 private:
 	void HandleCharacterMove(Player* p, CPacket* packet);
+	void HandleCharacterAttack(Player* p, CPacket* packet);
+	void HandleCharacterSkill(Player* p, CPacket* packet);
+
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
 	void MP_SC_ECHO(CPacket* packet, CPacket* echoPacket);
@@ -39,7 +42,14 @@ private:
 	void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, SpawnOtherCharacterInfo& spawnOtherCharacterInfo);
 	void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination);
 
+	
+	void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, 
+		int64& TargetID, int32& Damage);
 
+	void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID,
+		FRotator& StartRotation, int32& SkillID);
+
+	void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID);
 
 };
 

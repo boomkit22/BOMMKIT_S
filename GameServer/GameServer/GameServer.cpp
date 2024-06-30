@@ -13,20 +13,20 @@
 #include "MonitorPacketMaker.h"
 #include "PerformanceMonitor.h"
 #include "algorithm"
-#include "EchoGameThread.h"
+#include "GameGameThread.h"
 #include "LoginGameThread.h"
 #include "GameThreadInfo.h"
 #include "CpuUsage.h"
 #include <time.h>
 //#define _LOG
-//같은쓰레드를 여러개 만들면?
+//같은쓰레드를 여러개 만들면?sssssss
 
 
 using namespace std;
 GameServer::GameServer()
 {
 	InitializeSRWLock(&_playerMapLock);
-	_echoGameThread = new EchoGameThread(this, ECHO_THREAD);
+	_gameGameThread = new GameGameThread(this, ECHO_THREAD);
 	_loginGameThread = new LoginGameThread(this, LOGIN_THREAD);
 	RegisterDefaultGameThread(_loginGameThread);
 	LOG(L"System", LogLevel::System, L"GameServer()");
@@ -36,16 +36,16 @@ GameServer::~GameServer()
 {
 
 
-	_echoGameThread->Stop();
+	_gameGameThread->Stop();
 	_loginGameThread->Stop();
 
 	Sleep(1000);
-	bool bEchoDead = _echoGameThread->CheckDead();
+	bool bEchoDead = _gameGameThread->CheckDead();
 	if (!bEchoDead)
 	{
-		int64 sessionNum = _echoGameThread->GetSessionNum();
+		int64 sessionNum = _gameGameThread->GetSessionNum();
 		LOG(L"EchoThread", LogLevel::Error, L"Session :%lld (num) is left", sessionNum);
-		_echoGameThread->Kill();
+		_gameGameThread->Kill();
 	}
 	
 	bool bLoginDead = _loginGameThread->CheckDead();
@@ -56,7 +56,7 @@ GameServer::~GameServer()
 		_loginGameThread->Kill();
 	}
 
-	delete _echoGameThread;
+	delete _gameGameThread;
 	delete _loginGameThread;
 	LOG(L"System", LogLevel::System, L"~GameServer()");
 }
@@ -85,10 +85,10 @@ void GameServer::LogServerInfo()
 	int networkRecv = _networkRecv;
 
 	int loginPlayerNum = _loginGameThread->GetPlayerSize();
-	int gamePlayerNum = _echoGameThread->GetPlayerSize();
+	int gamePlayerNum = _gameGameThread->GetPlayerSize();
 	int64 totalPlayerNum = _playerMap.size();
 	int loginTps = _loginGameThread->GetFps();
-	int echoTps = _echoGameThread->GetFps();
+	int echoTps = _gameGameThread->GetFps();
 
 	printf("Total Accept : %lld\n\
 Accept TPS : % lld\n\
