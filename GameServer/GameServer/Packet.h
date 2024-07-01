@@ -84,7 +84,11 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		ResLoginInfo resLoginInfo
+	//		INT64	AccountNo // 멀티플레이어 게임 식별용
+	//		uint8	Status
+	//		uint16  CharacterLevel
+	//	    TCHAR   NickName[20] // null포함
+	//      TODO: 캐릭터 닉네임 및 기타정보
 	// 
 	//	}
 	//------------------------------------------------------------
@@ -97,13 +101,13 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_FIELD_MOVE = 1003,
-	
-	
-	
+
+
+
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		uint8   Status    
+	//		uint8  Status
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_FIELD_MOVE = 1004,
@@ -111,7 +115,7 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		SpawnMyCharacterInfo spawnMyCharacteRInfo
+	//		SpawnMyCharacterInfo spawnMyCharacterInfo
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_MY_CHARACTER = 1005,
@@ -144,6 +148,7 @@ enum PACKET_TYPE
 	// {
 	//		WORD	Type
 	//		FVector Destination
+	//      FVector StartRotation
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_CHARACTER_MOVE = 1009,
@@ -154,6 +159,7 @@ enum PACKET_TYPE
 	//		WORD	Type
 	//		int64 CharacterNO
 	//		FVector Destination
+	//		FVector StartRotation
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_CHARACTER_MOVE = 1010,
@@ -204,6 +210,7 @@ enum PACKET_TYPE
 	PACKET_SC_GAME_RES_CHARACTER_SKILL = 1014,
 
 	//------------------------------------------------------------
+	// 몬스터  공격 및 스킬
 	// {
 	//		WORD	Type
 	//		int64   MonsterNO
@@ -211,5 +218,70 @@ enum PACKET_TYPE
 	// }
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_MONSTER_SKILL = 1015,
+
+
+	//------------------------------------------------------------
+	// 몬스터 이동
+	// {
+	//		WORD	Type
+	//		int64   MonsterNO
+	//		int32   SkillID
+	// }
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_MONSTER_MOVE = 1015,
+
+
+	//------------------------------------------------------------
+	// 채팅 서버 패킷
+	//------------------------------------------------------------
+	PACKET_CHATTING_SERVER = 5000,
+
+	//------------------------------------------------------------
+	// {
+	//		WORD	Type
+	//		INT64	AccountNo           
+	//		WCHAR	Nickname[20]		// null 포함
+	// }
+	//------------------------------------------------------------
+	PACKET_CS_CHAT_REQ_LOGIN = 5001,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		INT64	AccountNo // 멀티플레이어 게임 식별용
+	//		uint8	Status
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_CHAT_RES_LOGIN = 5002,
+
+	//------------------------------------------------------------
+	// 채팅서버 채팅보내기 요청
+	//
+	//	{
+	//		WORD	Type
+	//
+	//		INT64	AccountNo
+	//		WORD	MessageLen
+	//		WCHAR	Message[MessageLen / 2]		// null 미포함
+	//	}
+	//
+	//------------------------------------------------------------
+	PACKET_CS_CHAT_REQ_MESSAGE = 5003,
+
+	//------------------------------------------------------------
+	// 채팅서버 채팅보내기 응답  (다른 클라가 보낸 채팅도 이걸로 받음)
+	//
+	//	{
+	//		WORD	Type
+	//
+	//		INT64	AccountNo
+	//		WCHAR	Nickname[20]				// null 포함
+	//		
+	//		WORD	MessageLen
+	//		WCHAR	Message[MessageLen / 2]		// null 미포함
+	//	}
+	//
+	//------------------------------------------------------------
+	PACKET_SC_CHAT_RES_MESSAGE = 5004,
 };
 

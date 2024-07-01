@@ -23,9 +23,11 @@ private:
 
 	TCHAR NickName[20];
 	uint16 Level;
-	FVector Postion;
 
 	int64 playerID; // 클라이언트에서 캐릭터 식별용
+
+public:
+	FVector Position;
 
 };
 
