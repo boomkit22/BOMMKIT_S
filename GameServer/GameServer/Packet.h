@@ -16,58 +16,6 @@
 enum PACKET_TYPE
 {
 	//------------------------------------------------------
-	// Login Server
-	//------------------------------------------------------
-	PACKET_LOGIN_SERVER = 0,
-
-	//------------------------------------------------------------
-	// 로그인 서버로 클라이언트 로그인 요청
-	//
-	//	{
-	//		WORD	Type
-	//
-	//		TCHAR   ID[20]
-	//		TCHAR	PassWord[20]     //사용자 PassWord. null포함
-	//	}
-	//------------------------------------------------------------
-	PACKET_CS_LOGIN_REQ_LOGIN,
-
-	//------------------------------------------------------------
-	// 로그인 서버에서 클라이언트로 로그인 응답
-	//
-	//	{
-	//		WORD	Type
-	//
-	//		INT64	AccountNo
-	//		BYTE	Status				// 0 (세션오류) / 1 (성공) ...  하단 defines 사용
-	//
-	// 
-	//		WCHAR	GameServerIP[16]	//	접속대상 게임,채팅 서버 정보
-	//		USHORT	GameServerPort
-	//		WCHAR	ChatServerIP[16]
-	//		USHORT	ChatServerPort
-	//	}
-	//
-	//------------------------------------------------------------
-	PACKET_SC_LOGIN_RES_LOGIN,
-
-
-	//------------------------------------------------------------
-	//
-	//	{
-	//		WORD	Type
-	//	}
-	//------------------------------------------------------------
-	PACKET_CS_LOGIN_REQ_ECHO,
-
-	//------------------------------------------------------------
-	//	{
-	//		WORD	Type
-	//	}
-	//------------------------------------------------------------
-	PACKET_SC_LOGIN_RES_ECHO,
-
-	//------------------------------------------------------
 	// Game Server
 	//------------------------------------------------------
 	PACKET_GAME_SERVER = 1000,
@@ -75,7 +23,8 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		INT64	AccountNo
+	// 		TCHAR   ID[20]
+	//		TCHAR	PassWord[20]     //사용자 PassWord. null포함
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_LOGIN = 1001,
@@ -84,8 +33,9 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		ResLoginInfo resLoginInfo
-	// 
+	//		uint8	Status
+	//		uint16  CharacterLevel
+	//	    TCHAR   NickName[20] // null포함
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_LOGIN = 1002,
@@ -97,13 +47,13 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_FIELD_MOVE = 1003,
-	
-	
-	
+
+
+
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		uint8   Status    
+	//		uint8  Status
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_FIELD_MOVE = 1004,
@@ -111,7 +61,10 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		SpawnMyCharacterInfo spawnMyCharacteRInfo
+	// 		int64 PlayerID
+	//		FVector SpawnLocation
+	// 		uint16 Level
+	// 		TCHAR NickName[20] // null포함
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_MY_CHARACTER = 1005,
@@ -120,7 +73,10 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		SpawnOtherCharacterInfo spawnOtherCharacterInfo
+	//		int64 PlayerID
+	// 		FVector SpawnLocation
+	// 		uint16 Level
+	// 		TCHAR NickName[20] // null포함
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_OTHER_CHAACTER = 1006,
@@ -144,6 +100,7 @@ enum PACKET_TYPE
 	// {
 	//		WORD	Type
 	//		FVector Destination
+	//      FVector StartRotation
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_CHARACTER_MOVE = 1009,
@@ -154,6 +111,7 @@ enum PACKET_TYPE
 	//		WORD	Type
 	//		int64 CharacterNO
 	//		FVector Destination
+	//		FVector StartRotation
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_CHARACTER_MOVE = 1010,
@@ -211,5 +169,59 @@ enum PACKET_TYPE
 	// }
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_MONSTER_SKILL = 1015,
-};
 
+
+
+
+	//------------------------------------------------------------
+	// 채팅 서버 패킷
+	//------------------------------------------------------------
+	PACKET_CHATTING_SERVER = 5000,
+
+	//------------------------------------------------------------
+	// {
+	//		WORD	Type
+	//		INT64	PlayerId           
+	//		WCHAR	Nickname[20]		// null 포함
+	// }
+	//------------------------------------------------------------
+	PACKET_CS_CHAT_REQ_LOGIN = 5001,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		uint8	Status
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_CHAT_RES_LOGIN = 5002,
+
+	//------------------------------------------------------------
+	// 채팅서버 채팅보내기 요청
+	//
+	//	{
+	//		WORD	Type
+	//
+	//		INT64	AccountNo
+	//		WORD	MessageLen
+	//		WCHAR	Message[MessageLen / 2]		// null 미포함
+	//	}
+	//
+	//------------------------------------------------------------
+	PACKET_CS_CHAT_REQ_MESSAGE = 5003,
+
+	//------------------------------------------------------------
+	// 채팅서버 채팅보내기 응답  (다른 클라가 보낸 채팅도 이걸로 받음)
+	//
+	//	{
+	//		WORD	Type
+	//
+	//		INT64	AccountNo
+	//		WCHAR	Nickname[20]				// null 포함
+	//		
+	//		WORD	MessageLen
+	//		WCHAR	Message[MessageLen / 2]		// null 미포함
+	//	}
+	//
+	//------------------------------------------------------------
+	PACKET_SC_CHAT_RES_MESSAGE = 5004,
+};
