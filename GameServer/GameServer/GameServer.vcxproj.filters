@@ -130,6 +130,9 @@
     <ClCompile Include="..\..\lib\Type\Type.cpp">
       <Filter>lib\Type</Filter>
     </ClCompile>
+    <ClCompile Include="Monster.cpp">
+      <Filter>GameServer\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\GameServerLib\Session.h">
@@ -221,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="MonitorClient.h">
       <Filter>MonitorClient\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster.h">
+      <Filter>GameServer\Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -163,6 +163,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MonitorClient.cpp" />
     <ClCompile Include="MonitorPacketMaker.cpp" />
+    <ClCompile Include="Monster.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -194,6 +195,7 @@
     <ClInclude Include="MonitorClient.h" />
     <ClInclude Include="MonitorPacket.h" />
     <ClInclude Include="MonitorPacketMaker.h" />
+    <ClInclude Include="Monster.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
