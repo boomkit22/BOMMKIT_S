@@ -50,6 +50,7 @@ void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 	break;
 
 
+
 	default:
 		LOG(L"Packet", LogLevel::Error, L"Packet Type Not Exist");
 		__debugbreak();//TODO: 악의적인 유저가 이상한 패킷을 보냈다-> 세션 끊는다

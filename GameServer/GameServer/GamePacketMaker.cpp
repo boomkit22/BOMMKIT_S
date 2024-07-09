@@ -65,6 +65,8 @@ void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& chara
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+
+
 void GameGameThread::MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, int64& TargetID, int32& Damage)
 {
 	NetHeader header;
