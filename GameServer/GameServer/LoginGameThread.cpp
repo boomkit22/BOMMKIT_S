@@ -107,51 +107,37 @@ void LoginGameThread::HandleLogin(Player* player, CPacket* packet)
 {
 	static long playerId = 0;
 	long pId = InterlockedIncrement(&playerId);
+	player->playerID = pId;
 
-	//TODO: EchoGroup으로 옮기고
-	// EchoGroup에서 ResMessage보내기
 
-	int64 accountNo;
-	*packet >> accountNo;
-	//TODO:
-	//mysql에서 조회
+	TCHAR ID[NICKNAME_LEN];
+	TCHAR PasssWord[PASS_LEN];
+	
+	//TODO : id랑 password로 mysql에서 조회
+	packet->GetData((char*)ID, NICKNAME_LEN * sizeof(TCHAR));
+	packet->GetData((char*)PasssWord, PASS_LEN * sizeof(TCHAR));
+
+	// id랑 password로 mysql에서 조회할거
+	// AccountNo, NickName, Level, Exp
 	CPacket* resPacket = CPacket::Alloc();
-	ResGameLoginInfo resLoginInfo;
-	resLoginInfo.Status = true;
-	resLoginInfo.AccountNo = accountNo;
-	resLoginInfo.Level = 1;
-
-	TCHAR characterID[NICKNAME_LEN];
-	swprintf_s(characterID, L"ID%ld", pId);
-	wmemcpy(player->NickName, characterID, NICKNAME_LEN);
-	wmemcpy(resLoginInfo.NickName, characterID, NICKNAME_LEN);
-	//resLoginInfo.NickName= characterID;
-	//uint8 status = true;
-	uint16 characterLevel = 1;
-	player->Level = characterLevel;
-	player->playerID = playerId;
-
-	MP_SC_LOGIN(resPacket, resLoginInfo);
+	TCHAR NickName[NICKNAME_LEN];
+	swprintf_s(NickName, L"ID%ld", pId);
+	//TODO : 조회된 NickName
+	wmemcpy(player->NickName, NickName, NICKNAME_LEN);
+	int64 AccountNo = 1;
+	uint8 Status = true;
+	uint16 CharacterLevel = 1;
+	uint32 Exp = 50;
+	MP_SC_LOGIN(resPacket, AccountNo, Status, CharacterLevel, NickName, Exp);
 	SendPacket_Unicast(player->_sessionId, resPacket);
 	printf("send login\n");
 	CPacket::Free(resPacket);
-	//if (true) // 인증 성공
-	//{
-	//	player->accountNo = accountNo;
-	//	MoveGameThread(ECHO_THREAD, player->_sessionId, player);
-	//} 
-	//else
-	//{
-	//	// 인증 실패
-	//	// Disconnect
-	//}
 }
 
 void LoginGameThread::HandleFieldMove(Player* player, CPacket* packet)
 {
 	uint16 fieldID;
 	*packet >> fieldID;
-
 	MoveGameThread(fieldID, player->_sessionId, player);
 }
 

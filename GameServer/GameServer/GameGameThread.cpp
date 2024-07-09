@@ -106,16 +106,16 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	int spawnX = rand() % 400;
 	int spawnY = rand() % 400;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
+	
+	int64 PlayerID = p->playerID;
 	FVector spawnLocation{ spawnX, spawnY, 100 };
-	SpawnMyCharacterInfo spawnMyCharacteRInfo;
-	spawnMyCharacteRInfo.SpawnLocation = spawnLocation;
-	wmemcpy(spawnMyCharacteRInfo.NickName, p->NickName, NICKNAME_LEN);
-	spawnMyCharacteRInfo.Level = p->Level;
-	spawnMyCharacteRInfo.PlayerID = p->playerID;
+	uint16 Level = p->Level;
+	TCHAR NickName[20];
+	wmemcpy(NickName, p->NickName, NICKNAME_LEN);
+	p->Position = spawnLocation;
 
-	p->Postion = spawnLocation;
-
-	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, spawnMyCharacteRInfo);
+	
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, PlayerID, spawnLocation, Level, NickName);
 	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
@@ -128,15 +128,15 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		Player* other = it->second;
 
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		SpawnOtherCharacterInfo spawnOtherCharacterInfo;
-		spawnOtherCharacterInfo.SpawnLocation = p->Postion;
-		printf("to other Spawn Location : %f, %f, %f\n", p->Postion.X, p->Postion.Y, p->Postion.Z);
+		int64 PlayerID = p->playerID;
+		FVector SpawnLocation2 = p->Position;
+		uint16 Level = p->Level;
+		TCHAR NickName[NICKNAME_LEN];
+		wmemcpy(NickName, p->NickName, NICKNAME_LEN);
 
-		wmemcpy(spawnOtherCharacterInfo.NickName, p->NickName, NICKNAME_LEN);
+		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		spawnOtherCharacterInfo.Level = p->Level;
-		spawnOtherCharacterInfo.PlayerID = p->playerID;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, spawnOtherCharacterInfo);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, PlayerID, SpawnLocation2, Level, NickName);
 		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
 		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -150,15 +150,16 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		Player* other = it->second;
 
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		SpawnOtherCharacterInfo spawnOtherCharacterInfo;
-		spawnOtherCharacterInfo.SpawnLocation = other->Postion;
-		printf("to me Spawn Location : %f, %f, %f\n", other->Postion.X, other->Postion.Y, other->Postion.Z);
+		FVector SpawnLocation3 = other->Position;
+		uint16 Level = other->Level;
+		TCHAR NickName[NICKNAME_LEN];
+		wmemcpy(NickName, other->NickName, NICKNAME_LEN);
+		int PlayerId = other->playerID;
 
-		wmemcpy(spawnOtherCharacterInfo.NickName, other->NickName, NICKNAME_LEN);
+		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
+
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		spawnOtherCharacterInfo.Level = other->Level;
-		spawnOtherCharacterInfo.PlayerID = other->playerID;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, spawnOtherCharacterInfo);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, PlayerID, SpawnLocation3, Level, NickName);
 		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);

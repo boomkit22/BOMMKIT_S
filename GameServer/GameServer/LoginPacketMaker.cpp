@@ -4,7 +4,9 @@
 #include "Type.h"
 #include "GameGameThread.h"
 
-void LoginGameThread::MP_SC_LOGIN(CPacket* packet, uint8 Status, int64 PlayerId, uint16 CharacterLevel, TCHAR* NickName)
+
+
+void LoginGameThread::MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status, uint16 CharacterLevel, TCHAR* NickName, uint32 Exp)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -12,7 +14,7 @@ void LoginGameThread::MP_SC_LOGIN(CPacket* packet, uint8 Status, int64 PlayerId,
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_LOGIN;
-	*packet << type << Status << PlayerId << CharacterLevel << NickName;
+	*packet << type << AccountNo << Status << CharacterLevel << NickName << Exp;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

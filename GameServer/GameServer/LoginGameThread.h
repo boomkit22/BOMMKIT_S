@@ -29,7 +29,7 @@ private:
 	void HandleLogin(Player* player, CPacket* packet);
 	void HandleFieldMove(Player* player, CPacket* packet);
 	
-	void MP_SC_LOGIN(CPacket* packet, uint8 Status, int64 PlayerId, uint16 CharacterLevel, TCHAR* NickName);
+	void MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status, uint16 CharacterLevel, TCHAR* NickName, uint32 Exp);
 	void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
 private:
 	std::unordered_map<int64, Player*> _playerMap;

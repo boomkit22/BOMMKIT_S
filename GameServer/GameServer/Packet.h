@@ -13,6 +13,7 @@
 #define GAME_SERVER_NO 3
 
 
+
 enum PACKET_TYPE
 {
 	//------------------------------------------------------
@@ -33,9 +34,11 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
+	//		int64   AccountNo;
 	//		uint8	Status
 	//		uint16  CharacterLevel
 	//	    TCHAR   NickName[20] // null포함
+	//		uint32  Exp
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_LOGIN = 1002,
@@ -61,7 +64,7 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	// 		int64 PlayerID
+	// 		int64 PlayerID // 한 계정에 플레이어가 여러개 있어도 PlayerID는 고유하다
 	//		FVector SpawnLocation
 	// 		uint16 Level
 	// 		TCHAR NickName[20] // null포함
@@ -73,7 +76,7 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		int64 PlayerID
+	//		int64 PlayerID // 한 계정에 플레이어가 여러개 있어도 PlayerID는 고유하다
 	// 		FVector SpawnLocation
 	// 		uint16 Level
 	// 		TCHAR NickName[20] // null포함
@@ -181,7 +184,7 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	// {
 	//		WORD	Type
-	//		INT64	PlayerId           
+	//		INT64	AccountNo           
 	//		WCHAR	Nickname[20]		// null 포함
 	// }
 	//------------------------------------------------------------

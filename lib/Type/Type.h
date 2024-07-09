@@ -5,6 +5,7 @@
 
 #define ID_LEN 20
 #define NICKNAME_LEN 20
+#define PASS_LEN 20
 
 class CPacket;
 using int64 = signed long long;

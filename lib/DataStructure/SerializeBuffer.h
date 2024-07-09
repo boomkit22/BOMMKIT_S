@@ -220,12 +220,12 @@ public:
 		return *this;
 	}
 
-	CPacket& operator <<(DWORD dwValue)
+	CPacket& operator <<(uint32 dwValue)
 	{
-		*((DWORD*)(&_buffer[_writePos])) = dwValue;
-		_writePos += sizeof(DWORD);
+		*((uint32*)(&_buffer[_writePos])) = dwValue;
+		_writePos += sizeof(uint32);
 
-		_dataSize += sizeof(DWORD);
+		_dataSize += sizeof(uint32);
 		return *this;
 	}
 
@@ -330,12 +330,12 @@ public:
 		return *this;
 	}
 
-	CPacket& operator >> (DWORD& dwValue)
+	CPacket& operator >> (uint32& dwValue)
 	{
-		dwValue = *(DWORD*)(&_buffer[_readPos]);
-		_readPos += sizeof(DWORD);
+		dwValue = *(uint32*)(&_buffer[_readPos]);
+		_readPos += sizeof(uint32);
 
-		_dataSize -= sizeof(DWORD);
+		_dataSize -= sizeof(uint32);
 		return *this;
 	}
 
