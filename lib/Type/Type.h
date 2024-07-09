@@ -38,6 +38,17 @@ struct FRotator
 CPacket& operator<<(CPacket& packet, FRotator& rot);
 CPacket& operator>>(CPacket& packet, FRotator& rot);
 
+struct PlayerInfo
+{
+	int64 PlayerID;
+	TCHAR NickName[NICKNAME_LEN];
+	uint16 Class;
+	uint16 Level;
+	uint32 Exp;
+};
+
+CPacket& operator<<(CPacket& packet, PlayerInfo& info);
+CPacket& operator>>(CPacket& packet, PlayerInfo& info);
 
 
 

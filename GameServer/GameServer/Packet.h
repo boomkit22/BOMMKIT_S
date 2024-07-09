@@ -36,9 +36,6 @@ enum PACKET_TYPE
 	//		WORD	Type
 	//		int64   AccountNo;
 	//		uint8	Status
-	//		uint16  CharacterLevel
-	//	    TCHAR   NickName[20] // null포함
-	//		uint32  Exp
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_LOGIN = 1002,
@@ -50,6 +47,7 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_FIELD_MOVE = 1003,
+
 
 
 
@@ -186,10 +184,58 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		int64 Status
+	//		uint8 Status
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_SIGN_UP = 1017,
+
+
+
+	/*
+	struct PlayerInfo
+	{
+		int64 PlayerID;
+		TCHAR NickName[NICKNAME_LEN];
+		uint16 Class;
+		uint16 Level;
+		uint32 Exp;
+	};
+	*/
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//	}
+	//------------------------------------------------------------
+	PACKET_CS_GAME_REQ_PLAYER_LIST = 1018,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//      uint8   PlayerCount
+	//		vector<PlayerInfo> PlayerInfos
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_PLAYER_LIST = 1019,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		int64   PlayerID
+	//	}
+	//------------------------------------------------------------
+	PACKET_CS_GAME_REQ_SELECT_PLAYER = 1020,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		uint8	Status
+	//  이거 받으면 Field Move요청하고
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_SELECT_PLAYER = 1021,
+
+
 
 	//------------------------------------------------------------
 	// 채팅 서버 패킷

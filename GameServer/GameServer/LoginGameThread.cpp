@@ -7,6 +7,7 @@
 #include "Log.h"
 #include <process.h>
 #include "Packet.h"
+using namespace std;
 
 LoginGameThread::LoginGameThread(GameServer* gameServer, int threadId) : GameThread(threadId, 100)
 {
@@ -121,9 +122,6 @@ void LoginGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	}
 }
 
-
-
-
 void LoginGameThread::HandleLogin(Player * player, CPacket * packet)
 {
 	// ID와 Password 추출
@@ -140,7 +138,10 @@ void LoginGameThread::HandleLogin(Player * player, CPacket * packet)
 
 	// 쿼리 문자열 생성
 	char query[1024];
-	sprintf(query, "SELECT a.AccountNo, p.PlayerID, p.CharacterLevel, p.NickName, p.Exp FROM Account a LEFT JOIN Player p ON a.AccountNo = p.AccountNo WHERE a.ID = '%s' AND a.PassWord = '%s'", id, password);
+	sprintf(query, "SELECT a.AccountNo, p.PlayerID, p.NickName, p.Class, p.Level, p.Exp \
+		FROM Account a \
+		LEFT JOIN Player p ON a.AccountNo = p.AccountNo \
+		WHERE a.ID = '%s' AND a.PassWord = '%s'", id, password);
 
 	// 쿼리 실행
 	if (mysql_query(&_conn, query))
@@ -157,36 +158,26 @@ void LoginGameThread::HandleLogin(Player * player, CPacket * packet)
 		return;
 	}
 
+	int64 AccountNo = -1;
 	// 결과 처리
 	MYSQL_ROW row;
+
 	while ((row = mysql_fetch_row(result)))
 	{
-		printf("yes");
-		//// 결과로부터 각 필드 값을 추출하고 적절한 타입으로 변환
-		//int64 AccountNo = atoll(row[0]); // 계정 번호
-		//int64 PlayerID = atoll(row[1]); // 플레이어 ID
-		//uint16 CharacterLevel = static_cast<uint16>(atoi(row[2])); // 캐릭터 레벨
-		//char* NickName = row[3]; // 닉네임
-		//uint32 Exp = static_cast<uint32>(atoi(row[4])); // 경험치
-
-		//// 추출한 데이터를 사용하여 필요한 작업 수행
-		//// 예: 플레이어 객체에 데이터 설정
-		//player->AccountNo = AccountNo;
-		//player->PlayerID = PlayerID;
-		//player->CharacterLevel = CharacterLevel;
-		//mbstowcs(player->NickName, NickName, strlen(NickName) + 1); // char*를 TCHAR로 변환
-		//player->Exp = Exp;
-
-		//// 로그인 성공 처리 로직
-		//// 예: 클라이언트에 로그인 성공 메시지 전송
-		//CPacket* resPacket = CPacket::Alloc();
-		//uint8 Status = true; // 로그인 성공 상태
-		//MP_SC_LOGIN(resPacket, AccountNo, Status, CharacterLevel, player->NickName, Exp);
-		//SendPacket_Unicast(player->_sessionId, resPacket);
-		//printf("로그인 성공 전송\n");
-		//CPacket::Free(resPacket);
+		AccountNo = atoll(row[0]); // 계정 번호
+		PlayerInfo playerInfo;
+		playerInfo.PlayerID = atoll(row[1]); // 플레이어 ID
+		mbstowcs(playerInfo.NickName, row[2], NICKNAME_LEN);
+		playerInfo.Class = static_cast<uint16>(atoi(row[3])); // 클래스
+		playerInfo.Level = static_cast<uint16>(atoi(row[4])); // 레벨
+		playerInfo.Exp = static_cast<uint32>(atoi(row[5])); // 경험치
+		player->playerInfos.push_back(playerInfo);
 	}
-
+	CPacket* resPacket = CPacket::Alloc();
+	uint8 status = AccountNo != -1 ? 1 : 0;
+	MP_SC_LOGIN(resPacket, AccountNo, status);
+	SendPacket_Unicast(player->_sessionId, resPacket);
+	CPacket::Free(resPacket);
 	// 정리
 	mysql_free_result(result);
 }
@@ -202,83 +193,53 @@ void LoginGameThread::HandleSignUp(Player* player, CPacket* packet)
 {
 	printf("HandleSignUp \n");
 	//------------------------------------------------------------
-//	{
-//		WORD	Type
-// 		TCHAR   ID[20]
-//		TCHAR	PassWord[20]     //사용자 PassWord. null포함
-//	}
-//------------------------------------------------------------
+	//  {
+	//      WORD    Type
+	//      TCHAR   ID[20]
+	//      TCHAR   PassWord[20]     //사용자 PassWord. null포함
+	//  }
+	//------------------------------------------------------------
 	TCHAR ID[20];
 	TCHAR PassWord[20];
 	packet->GetData((char*)ID, 20 * sizeof(TCHAR));
 	packet->GetData((char*)PassWord, 20 * sizeof(TCHAR));
 
-	bool signUpSuccees = false;
 	// TCHAR를 char로 변환
 	char id[40];
 	char password[40];
 	wcstombs(id, ID, 20 * sizeof(TCHAR));
 	wcstombs(password, PassWord, 20 * sizeof(TCHAR));
 
-	// 쿼리 준비
-	const char* query = "INSERT INTO Account(ID, PassWord) VALUES(?, ?)";
-
-	MYSQL_STMT* stmt = mysql_stmt_init(&_conn);
-	if (mysql_stmt_prepare(stmt, query, strlen(query)))
-	{
-		fprintf(stderr, "mysql_stmt_prepare() failed\n");
-		signUpSuccees = false;
-	}
-
-	// 파라미터 바인딩
-	MYSQL_BIND bind[2];
-	memset(bind, 0, sizeof(bind));
-
-	bind[0].buffer_type = MYSQL_TYPE_STRING;
-	bind[0].buffer = (char*)id;
-	bind[0].buffer_length = strlen(id);
-
-	bind[1].buffer_type = MYSQL_TYPE_STRING;
-	bind[1].buffer = (char*)password;
-	bind[1].buffer_length = strlen(password);
-
-	if (mysql_stmt_bind_param(stmt, bind))
-	{
-		fprintf(stderr, "mysql_stmt_bind_param() failed\n");
-		signUpSuccees = false;
-	}
+	// 쿼리 문자열 생성
+	char query[1024];
+	sprintf(query, "INSERT INTO Account(ID, PassWord) VALUES('%s', '%s')", id, password);
 
 	// 쿼리 실행
-	if (mysql_stmt_execute(stmt))
+	bool signUpSuccess = true;
+	if (mysql_query(&_conn, query))
 	{
 		unsigned int errCode = mysql_errno(&_conn);
 		if (errCode == 1062) // Duplicate entry for key 'PRIMARY'
 		{
 			// 중복 ID로 인한 삽입 실패 처리
 			fprintf(stderr, "Duplicate ID: %s\n", id);
-			signUpSuccees = false;
+			signUpSuccess = false;
 		}
 		else
 		{
-			fprintf(stderr, "mysql_stmt_execute() failed: %s\n", mysql_error(&_conn));
-			signUpSuccees = false;
+			fprintf(stderr, "쿼리 실행 실패: %s\n", mysql_error(&_conn));
+			signUpSuccess = false;
 		}
 	}
-	else
-	{
-		signUpSuccees = true;
-	}
-
-	mysql_stmt_free_result(stmt);
-	mysql_stmt_close(stmt);
 
 	CPacket* resPacket = CPacket::Alloc();
-	uint8 Status = signUpSuccees;
+	uint8 Status = signUpSuccess ? 1 : 0;
 	MP_SC_GAME_RES_SIGN_UP(resPacket, Status);
 	SendPacket_Unicast(player->_sessionId, resPacket);
 	printf("send sign up\n");
 	CPacket::Free(resPacket);
 }
+
 
 
 

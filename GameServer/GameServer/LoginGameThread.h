@@ -5,6 +5,7 @@
 #include "LockFreeObjectPool.h"
 #include "GameServer.h"
 #include "mysql.h"
+#include <vector>
 
 class LoginGameThread : public GameThread
 {
@@ -30,7 +31,7 @@ private:
 	void HandleLogin(Player* player, CPacket* packet);
 	void HandleFieldMove(Player* player, CPacket* packet);
 	void HandleSignUp(Player* player, CPacket* packet);
-	void MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status, uint16 CharacterLevel, TCHAR* NickName, uint32 Exp);
+	void MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status);
 	void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
 	void MP_SC_GAME_RES_SIGN_UP(CPacket* packet, uint8& Status);
 

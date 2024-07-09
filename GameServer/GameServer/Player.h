@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include "Type.h"
-
+#include <map>
 
 class Player
 {
@@ -26,8 +26,9 @@ private:
 
 	int64 playerID; // 클라이언트에서 캐릭터 식별용
 
+
 public:
 	FVector Position;
-
+	std::vector<PlayerInfo> playerInfos;
 };
 
