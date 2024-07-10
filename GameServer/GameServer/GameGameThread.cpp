@@ -87,7 +87,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 {
 	//TODO: map에 추가
 	//TODO: 플레이어 생성
-	Player* p = (Player*)ptr;
+	Player* p = (Player*)ptr; 
 	auto result = _playerMap.insert({ sessionId, p });
 	if (!result.second)
 	{
@@ -108,15 +108,11 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	int spawnY = rand() % 400;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 	
-	int64 PlayerID = p->playerID;
 	FVector spawnLocation{ spawnX, spawnY, 100 };
-	uint16 Level = p->Level;
-	TCHAR NickName[20];
-	wmemcpy(NickName, p->NickName, NICKNAME_LEN);
 	p->Position = spawnLocation;
 
-	
-	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, PlayerID, spawnLocation, Level, NickName);
+	PlayerInfo myPlayerInfo = p->playerInfo;
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
 	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
@@ -129,15 +125,9 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		Player* other = it->second;
 
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		int64 PlayerID = p->playerID;
-		FVector SpawnLocation2 = p->Position;
-		uint16 Level = p->Level;
-		TCHAR NickName[NICKNAME_LEN];
-		wmemcpy(NickName, p->NickName, NICKNAME_LEN);
-
 		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, PlayerID, SpawnLocation2, Level, NickName);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
 		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
 		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -151,16 +141,13 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		Player* other = it->second;
 
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		FVector SpawnLocation3 = other->Position;
-		uint16 Level = other->Level;
-		TCHAR NickName[NICKNAME_LEN];
-		wmemcpy(NickName, other->NickName, NICKNAME_LEN);
-		int PlayerId = other->playerID;
+		FVector OtherSpawnLocation = other->Position;
+		PlayerInfo otherPlayerInfo = other->playerInfo;
 
 		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
 
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, PlayerID, SpawnLocation3, Level, NickName);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
 		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -173,7 +160,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 {
 	//TODO: 모든 유저에게 패킷 브로드캐스팅
-	int64 characterNo = p->playerID;
+	int64 characterNo = p->playerInfo.PlayerID;
 	FVector destination;
 	*packet >> destination;
 
@@ -204,7 +191,7 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 
 	 for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	 {
-		 printf("send attack to :%lld\n", it->first);
+		 printf("send attack to :%lld damage : %d\n", it->first, damage);
 		 SendPacket_Unicast(it->first, resDamagePacket);
 	 }
 }
@@ -212,7 +199,7 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 {
 	//이건 플레이어 빼고 브로드캐스팅
-	int64 CharacterId = p->playerID;
+	int64 CharacterId = p->playerInfo.PlayerID;
 	FRotator startRotation;
 	int32 skillID;
 

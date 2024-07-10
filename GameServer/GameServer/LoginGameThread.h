@@ -31,9 +31,17 @@ private:
 	void HandleLogin(Player* player, CPacket* packet);
 	void HandleFieldMove(Player* player, CPacket* packet);
 	void HandleSignUp(Player* player, CPacket* packet);
+	void HandleRequestPlayerList(Player* player, CPacket* packet);
+	void HandleSelectPlayer(Player* player, CPacket* packet);
+	void HandleCreatePlayer(Player* player, CPacket* packet);
+
+
 	void MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status);
 	void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
 	void MP_SC_GAME_RES_SIGN_UP(CPacket* packet, uint8& Status);
+	void MP_SC_PLAYER_LIST(CPacket* packet, std::vector<PlayerInfo>& playerInfos);
+	void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
+	void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, uint16& Class, TCHAR* NickName);
 
 
 private:

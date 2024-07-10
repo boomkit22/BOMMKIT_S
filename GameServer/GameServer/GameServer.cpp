@@ -19,7 +19,7 @@
 #include "CpuUsage.h"
 #include <time.h>
 //#define _LOG
-//같은쓰레드를 여러개 만들면?sssssss
+//같은쓰레드를 여러개 만들면?
 
 
 using namespace std;

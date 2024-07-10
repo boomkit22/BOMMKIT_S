@@ -64,6 +64,7 @@ public:
 	Player* AllocPlayer(int64 sessionId)
 	{
 		Player* p = _playerPool.Alloc();
+		p->Init(sessionId);
 		AcquireSRWLockExclusive(&_playerMapLock);
 		auto ret = _playerMap.insert({ sessionId, p });
 		if (ret.second == false)

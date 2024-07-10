@@ -20,11 +20,7 @@ private:
 	int64 accountNo = 0;
 	uint32 _lastRecvTime = 0;
 	bool _bLogined = false;
-
-	TCHAR NickName[20];
-	uint16 Level;
-
-	int64 playerID; // 클라이언트에서 캐릭터 식별용
+	PlayerInfo playerInfo;
 
 
 public:

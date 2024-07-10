@@ -12,8 +12,6 @@
 #define TIMEOUT_DISCONNECT 40000
 #define GAME_SERVER_NO 3
 
-
-
 enum PACKET_TYPE
 {
 	//------------------------------------------------------
@@ -29,6 +27,7 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_LOGIN = 1001,
+
 
 
 	//------------------------------------------------------------
@@ -62,10 +61,8 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	// 		int64 PlayerID // 한 계정에 플레이어가 여러개 있어도 PlayerID는 고유하다
-	//		FVector SpawnLocation
-	// 		uint16 Level
-	// 		TCHAR NickName[20] // null포함
+	//		PlayerInfo playerInfo
+	//		SpawnLocation spawnLocation
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_MY_CHARACTER = 1005,
@@ -74,10 +71,8 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	//	{
 	//		WORD	Type
-	//		int64 PlayerID // 한 계정에 플레이어가 여러개 있어도 PlayerID는 고유하다
-	// 		FVector SpawnLocation
-	// 		uint16 Level
-	// 		TCHAR NickName[20] // null포함
+	//		PlayerInfo playerInfo
+	//		SpawnLocation spawnLocation
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_SPAWN_OTHER_CHAACTER = 1006,
@@ -234,6 +229,26 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_SELECT_PLAYER = 1021,
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		uint16 Class;
+	//		TCHAR NickName[NICKNAME_LEN];
+	//	}
+	//------------------------------------------------------------
+	PACKET_CS_GAME_REQ_CREATE_PLAYER = 1022,
+
+
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	// 		uint8	Status
+	//		uint16  Class;
+	//		TCHAR   yNickName[NICKNAME_LEN];
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_CREATE_PLAYER = 1023,
 
 
 

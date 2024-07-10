@@ -36,8 +36,8 @@ private:
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
 	void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
-	void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, int64 PlayerID, FVector SpawnLocation, uint16 Level, TCHAR* NickName);
-	void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, int64 PlayerID, FVector SpawnLocation, uint16 Level, TCHAR* NickName);
+	void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation);
+	void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation);
 	void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination);
 	
 	void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, 

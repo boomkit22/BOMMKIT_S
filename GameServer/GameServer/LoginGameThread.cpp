@@ -72,6 +72,24 @@ void LoginGameThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 	}
 	break;
 
+	case PACKET_CS_GAME_REQ_PLAYER_LIST:
+	{
+		HandleRequestPlayerList(player, packet);
+	}
+	break;
+
+	case PACKET_CS_GAME_REQ_SELECT_PLAYER:
+	{
+		HandleSelectPlayer(player, packet);
+	}
+	break;
+
+	case PACKET_CS_GAME_REQ_CREATE_PLAYER:
+	{
+		HandleCreatePlayer(player, packet);
+	}
+	break;
+
 	default:
 		__debugbreak();
 	}
@@ -165,16 +183,26 @@ void LoginGameThread::HandleLogin(Player * player, CPacket * packet)
 	while ((row = mysql_fetch_row(result)))
 	{
 		AccountNo = atoll(row[0]); // 계정 번호
-		PlayerInfo playerInfo;
-		playerInfo.PlayerID = atoll(row[1]); // 플레이어 ID
-		mbstowcs(playerInfo.NickName, row[2], NICKNAME_LEN);
-		playerInfo.Class = static_cast<uint16>(atoi(row[3])); // 클래스
-		playerInfo.Level = static_cast<uint16>(atoi(row[4])); // 레벨
-		playerInfo.Exp = static_cast<uint32>(atoi(row[5])); // 경험치
-		player->playerInfos.push_back(playerInfo);
+		if (row[1] != NULL)
+		{
+			PlayerInfo playerInfo;
+			playerInfo.PlayerID = atoll(row[1]); // 플레이어 ID
+			mbstowcs(playerInfo.NickName, row[2], NICKNAME_LEN);
+			playerInfo.Class = static_cast<uint16>(atoi(row[3])); // 클래스
+			playerInfo.Level = static_cast<uint16>(atoi(row[4])); // 레벨
+			playerInfo.Exp = static_cast<uint32>(atoi(row[5])); // 경험치
+			player->playerInfos.push_back(playerInfo);
+		}
+
 	}
 	CPacket* resPacket = CPacket::Alloc();
-	uint8 status = AccountNo != -1 ? 1 : 0;
+	uint8 status = false;
+	if (AccountNo != -1)
+	{
+		status = true;
+		player->accountNo = AccountNo;
+	}
+
 	MP_SC_LOGIN(resPacket, AccountNo, status);
 	SendPacket_Unicast(player->_sessionId, resPacket);
 	CPacket::Free(resPacket);
@@ -191,7 +219,6 @@ void LoginGameThread::HandleFieldMove(Player* player, CPacket* packet)
 
 void LoginGameThread::HandleSignUp(Player* player, CPacket* packet)
 {
-	printf("HandleSignUp \n");
 	//------------------------------------------------------------
 	//  {
 	//      WORD    Type
@@ -236,8 +263,99 @@ void LoginGameThread::HandleSignUp(Player* player, CPacket* packet)
 	uint8 Status = signUpSuccess ? 1 : 0;
 	MP_SC_GAME_RES_SIGN_UP(resPacket, Status);
 	SendPacket_Unicast(player->_sessionId, resPacket);
-	printf("send sign up\n");
 	CPacket::Free(resPacket);
+
+	printf("HandleSignUp \n");
+}
+
+void LoginGameThread::HandleRequestPlayerList(Player* player, CPacket* packet)
+{
+	//TODO : player vector에 있는거 보내주기
+	CPacket* resPacket = CPacket::Alloc();
+	MP_SC_PLAYER_LIST(resPacket, player->playerInfos);
+	SendPacket_Unicast(player->_sessionId, resPacket);
+	CPacket::Free(resPacket);
+
+	printf("HandleRequestPlayerList \n");
+}
+
+void LoginGameThread::HandleSelectPlayer(Player* player, CPacket* packet)
+{
+	// 여기서 예외처리 할게 뭐가있을까
+	int64 playerID;
+	*packet >> playerID;
+	//TODO : 플레이어 선택
+	for (auto playerInfo : player->playerInfos)
+	{
+		if (playerInfo.PlayerID == playerID)
+		{
+			player->playerInfo = playerInfo;
+			break;
+		}
+	}
+
+	uint8 Status = true;
+	CPacket* resPacket = CPacket::Alloc();
+	MP_SC_SELECT_PLAYER(resPacket, Status);
+	SendPacket_Unicast(player->_sessionId, resPacket);
+	CPacket::Free(resPacket);
+	printf("HandleSelectPlayer \n");
+}
+
+
+
+/*
+CREATE TABLE Player (
+	PlayerID BIGINT NOT NULL AUTO_INCREMENT,
+	AccountNo BIGINT NOT NULL,
+	NickName CHAR(40) NOT NULL,
+	Class SMALLINT unsigned NOT NULL,
+	Level SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+	Exp INT UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (PlayerID),
+	FOREIGN KEY (AccountNo) REFERENCES Account(AccountNo)
+);
+*/
+void LoginGameThread::HandleCreatePlayer(Player* player, CPacket* packet)
+{
+		//TODO : 캐릭터 생성
+	// 캐릭터 생성
+	//------------------------------------------------------------
+	//  {
+	//      WORD    Type
+	//      TCHAR   NickName[NICKNAME_LEN]
+	//      uint16  Class
+	//  }
+	//------------------------------------------------------------
+	TCHAR NickName[NICKNAME_LEN];
+	uint16 Class;
+	*packet >> Class;
+	packet->GetData((char*)NickName, NICKNAME_LEN * sizeof(TCHAR));
+
+	// TCHAR를 char로 변환
+	char nickName[NICKNAME_LEN * sizeof(TCHAR)];
+	wcstombs(nickName, NickName, NICKNAME_LEN * sizeof(TCHAR));
+
+	// 쿼리 문자열 생성
+	char query[1024];
+	sprintf(query, "INSERT INTO Player(AccountNo, NickName, Class) VALUES(%lld, '%s', %d)", player->accountNo, nickName, Class);
+
+	// 쿼리 실행
+	bool createSuccess = true;
+	if (mysql_query(&_conn, query))
+	{
+		fprintf(stderr, "쿼리 실행 실패: %s\n", mysql_error(&_conn));
+		createSuccess = false;
+	}
+
+	CPacket* resPacket = CPacket::Alloc();
+	uint8 Status = createSuccess ? 1 : 0;
+	MP_SC_CREATE_PLAYER(resPacket, Status, Class, NickName);
+	SendPacket_Unicast(player->_sessionId, resPacket);
+	CPacket::Free(resPacket);
+	
+
+	printf("HandleCreatePlayer \n");
 }
 
 

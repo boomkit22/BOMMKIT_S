@@ -21,7 +21,7 @@ void GameGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 }
 
 
-void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, int64 PlayerID, FVector SpawnLocation, uint16 Level, TCHAR* NickName)
+void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -29,14 +29,13 @@ void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, int64 PlayerID, F
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_MY_CHARACTER;
-	*packet << type << PlayerID << SpawnLocation << Level;
-	packet->PutData((char*)NickName, NICKNAME_LEN * sizeof(TCHAR));
+	*packet << type << playerInfo << spawnLocation;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, int64 PlayerID, FVector SpawnLocation, uint16 Level, TCHAR* NickName)
+void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -44,8 +43,8 @@ void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, int64 PlayerID
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_OTHER_CHAACTER;
-	*packet << type << PlayerID << SpawnLocation << Level;
-	packet->PutData((char*)NickName, NICKNAME_LEN * sizeof(TCHAR));
+	*packet << type << playerInfo << spawnLocation;
+
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
