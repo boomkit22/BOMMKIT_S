@@ -50,7 +50,7 @@ void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo pla
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination)
+void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -58,7 +58,7 @@ void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& chara
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_CHARACTER_MOVE;
-	*packet << type << charaterNo << Destination;
+	*packet << type << charaterNo << Destination << StartRotation;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
@@ -80,7 +80,7 @@ void GameGameThread::MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType,
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FRotator& StartRotation, int32& SkillID)
+void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FVector& StartLocation, FRotator& StartRotation, int32& SkillID)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -88,7 +88,7 @@ void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& Char
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_CHARACTER_SKILL;
-	*packet << type << CharacterID << StartRotation << SkillID;
+	*packet << type << CharacterID << StartLocation << StartRotation << SkillID;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

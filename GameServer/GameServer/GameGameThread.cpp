@@ -162,10 +162,13 @@ void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 	//TODO: 모든 유저에게 패킷 브로드캐스팅
 	int64 characterNo = p->playerInfo.PlayerID;
 	FVector destination;
-	*packet >> destination;
+	FRotator startRotation;
+	*packet >> destination >> startRotation;
+
+	printf("startRotation : %f, %f, %f\n", startRotation.Pitch, startRotation.Yaw, startRotation.Roll);
 
 	CPacket* movePacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination);
+	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination, startRotation);
 
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
@@ -200,13 +203,14 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 {
 	//이건 플레이어 빼고 브로드캐스팅
 	int64 CharacterId = p->playerInfo.PlayerID;
+	FVector startLocation;
 	FRotator startRotation;
 	int32 skillID;
 
-	*packet >> startRotation >> skillID;
+	*packet >> startLocation >> startRotation >> skillID;
 
 	CPacket* resSkillPacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, CharacterId, startRotation, skillID);
+	MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, CharacterId, startLocation, startRotation, skillID);
 
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{

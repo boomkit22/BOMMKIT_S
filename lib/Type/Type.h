@@ -30,9 +30,9 @@ CPacket& operator>>(CPacket& packet, FVector& vec);
 
 struct FRotator
 {
-	float Pitch;
-	float Yaw;
-	float Roll;
+	double Pitch;
+	double Yaw;
+	double Roll;
 };
 
 CPacket& operator<<(CPacket& packet, FRotator& rot);
