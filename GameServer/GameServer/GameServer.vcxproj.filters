@@ -231,6 +231,9 @@
     <ClInclude Include="GameData.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
+    <ClInclude Include="GamePacketMaker.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ServerConfig.txt">

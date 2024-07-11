@@ -2,14 +2,14 @@
 #include "Packet.h"
 #include "SerializeBuffer.h"
 #include "Type.h"
-#include "GameGameThread.h"
+#include "GamePacketMaker.h"
+#include "Data.h"
 
 
-
-void GameGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
+void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -21,10 +21,10 @@ void GameGameThread::MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 }
 
 
-void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
+void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -35,10 +35,10 @@ void GameGameThread::MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo player
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
+void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -50,10 +50,10 @@ void GameGameThread::MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo pla
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation)
+void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -66,10 +66,10 @@ void GameGameThread::MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& chara
 
 
 
-void GameGameThread::MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, int64& TargetID, int32& Damage)
+void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, int64& TargetID, int32& Damage)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -80,10 +80,10 @@ void GameGameThread::MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType,
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FVector& StartLocation, FRotator& StartRotation, int32& SkillID)
+void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FVector& StartLocation, FRotator& StartRotation, int32& SkillID)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -94,10 +94,10 @@ void GameGameThread::MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& Char
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID)
+void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
@@ -108,15 +108,29 @@ void GameGameThread::MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& Monste
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void GameGameThread::MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation)
+void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation)
 {
 	NetHeader header;
-	header._code = serverPacketCode;
+	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_MONSTER;
 	*packet << type << monsterInfo << spawnLocation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& Destination, FRotator& StartRotation)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_MONSTER_MOVE;
+	*packet << type << monsterId << Destination << StartRotation;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

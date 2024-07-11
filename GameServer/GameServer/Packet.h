@@ -160,7 +160,9 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	// {
 	//		WORD	Type
-	//		int64   MonsterNO
+	//		int64   MonsterID
+	//		FVector StartPosition
+	//		FRotator StartRotation
 	//		int32   SkillID
 	// }
 	//------------------------------------------------------------
@@ -261,6 +263,18 @@ enum PACKET_TYPE
 	PACKET_SC_GAME_SPAWN_MONSTER = 1024,
 	
 
+	//------------------------------------------------------------
+	// {
+	//		WORD		Type
+	//		int64		MonsterID
+	//		FVector		Destination
+	//		FRotator	StartRotation
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_MONSTER_MOVE = 1025,
+
+
+	
 
 
 	//------------------------------------------------------------

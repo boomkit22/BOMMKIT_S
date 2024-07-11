@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 class Player;
-
+class GameGameThread;
 enum class MonsterState {
 	MS_IDLE,
 	MS_MOVING,
@@ -20,7 +20,7 @@ class Monster
 public:
 	Monster();
 
-	void Init(std::unordered_map<int64, Player*>* playerMap,
+	void Init(GameGameThread* gameGameThread,
 	FVector position,
 	uint16 type);
  
@@ -44,7 +44,7 @@ public:
 
 	
 private:
-	std::unordered_map<int64, Player*>* _playerMap;
+	GameGameThread* _gameGameThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
 	FRotator _rotation;

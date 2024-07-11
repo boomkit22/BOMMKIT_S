@@ -3,21 +3,22 @@
 #include "Player.h"
 #include "GameData.h"
 #include <algorithm>
-
-
+#include "GamePacketMaker.h"
+#include "SerializeBuffer.h"
+#include "GameGameThread.h"
 
 Monster::Monster()
 {
 }
 
-void Monster::Init(std::unordered_map<int64, Player*>* playerMap,
+void Monster::Init(GameGameThread* gameGameThread,
 	FVector position, uint16 type)
 {
 	// monsterId : 1씩 증가
 	static int64 monsterIdGenerator = 0;
 	_monsterInfo.MonsterID = ++monsterIdGenerator;
 	_monsterInfo.Type = type;
-	_playerMap = playerMap;
+	_gameGameThread = gameGameThread;
 	_position = position;
 }
 
@@ -155,6 +156,10 @@ void Monster::SetDestination(FVector dest)
 {
 	_destination = dest;
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
+	CPacket* packet = CPacket::Alloc();
+	MP_SC_SPAWN_MONSTER(packet, _monsterInfo, _position);
+	_gameGameThread->SendPacket_BroadCast(packet);
+	CPacket::Free(packet);
 }
 
 void Monster::SetRandomDestination()

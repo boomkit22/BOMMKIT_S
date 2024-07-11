@@ -7,6 +7,8 @@
 #include "Packet.h"
 #include "GameData.h"
 #include <algorithm>
+#include "GamePacketMaker.h"
+
 using namespace std;
 
 //이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
@@ -105,7 +107,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	uint8 status = true;
 	MP_SC_FIELD_MOVE(packet, status);
 	//TODO: send
-	SendPacket_Unicast(p->_sessionId, packet);
+	SendPacket(p->_sessionId, packet);
 	printf("send field move\n");
 	CPacket::Free(packet);
 
@@ -119,7 +121,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
 	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
-	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
+	SendPacket(p->_sessionId, spawnCharacterPacket);
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
 
@@ -134,7 +136,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
 		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
-		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
+		SendPacket(other->_sessionId, spawnOtherCharacterPacket);
 		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
 	}
@@ -154,7 +156,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 
 		//spawnOtherCharacterInfo.NickName = p->NickName;
 		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
-		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
+		SendPacket(p->_sessionId, spawnOtherCharacterPacket);
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
 	}
@@ -165,7 +167,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	{
 		CPacket* spawnMonsterPacket = CPacket::Alloc();
 		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
-		SendPacket_Unicast(p->_sessionId, spawnMonsterPacket);
+		SendPacket(p->_sessionId, spawnMonsterPacket);
 		printf("send spawn monster location : %f %f %f", (*it)->_position.X, (*it)->_position.Y, (*it)->_position.Z);
 		CPacket::Free(spawnMonsterPacket);
 	}
@@ -183,10 +185,8 @@ void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 	CPacket* movePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination, startRotation);
 
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		SendPacket_Unicast(it->first, movePacket);
-	}
+	SendPacket_BroadCast(movePacket);
+	CPacket::Free(movePacket);
 }
 
 void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
@@ -205,11 +205,8 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	 CPacket* resDamagePacket = CPacket::Alloc();
 	 MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
 
-	 for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	 {
-		 printf("send attack to :%lld damage : %d\n", it->first, damage);
-		 SendPacket_Unicast(it->first, resDamagePacket);
-	 }
+	 SendPacket_BroadCast(resDamagePacket);
+	 CPacket::Free(resDamagePacket);
 }
 
 void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
@@ -229,8 +226,10 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 	{
 		if (it->first == p->_sessionId)
 			continue;
-		SendPacket_Unicast(it->first, resSkillPacket);
+		SendPacket(it->first, resSkillPacket);
 	}
+
+	CPacket::Free(resSkillPacket);
 }
 
 
@@ -255,16 +254,26 @@ void GameGameThread::SpawnMonster()
 	std::clamp(randomLocation.X, double(100), double(2000));
 	std::clamp(randomLocation.Y, double(100), double(2000));
 
-	monster->Init(&_playerMap, randomLocation, MONSTER_TYPE_GUARDIAN);
+	monster->Init(this, randomLocation, MONSTER_TYPE_GUARDIAN);
 	_monsters.push_back(monster);
 
 	//TODO: 몬스터 스폰 패킷 날리기
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation);
 	
-	for(auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	SendPacket_BroadCast(packet);
+	CPacket::Free(packet);
+}
+
+void GameGameThread::SendPacket(int64 sessionId, CPacket* packet)
+{
+	SendPacket_Unicast(sessionId, packet);
+}
+
+void GameGameThread::SendPacket_BroadCast(CPacket* packet)
+{
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
 		SendPacket_Unicast(it->first, packet);
-		printf("send spawn monster location : %f %f %f", randomLocation.X, randomLocation.Y, randomLocation.Z);
 	}
 }
