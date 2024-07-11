@@ -189,6 +189,7 @@
     <ClInclude Include="..\..\lib\Util\Profiler.h" />
     <ClInclude Include="..\..\lib\Util\TextParser.h" />
     <ClInclude Include="..\..\lib\Util\Util.h" />
+    <ClInclude Include="GameData.h" />
     <ClInclude Include="GameGameThread.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="GameThreadInfo.h" />

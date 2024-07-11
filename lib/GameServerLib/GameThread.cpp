@@ -44,82 +44,29 @@ unsigned __stdcall GameThread::UpdateThread()
 	DWORD time = timeGetTime();
 	DWORD lastLogicProcess = time;
 	int delay = 0;
+	
+	
+	
 	while (_running)
 	{
-		delay = timeGetTime() - lastLogicProcess;
-		if (delay < 0)
-		{
-			Sleep(abs(delay));
-		}
+		DWORD currentTime = timeGetTime();
+		delay = currentTime - lastLogicProcess;
 
+		// deltaTime을 밀리초 단위로 계산
+		int deltaTime = delay; // 밀리초 단위
+
+		NetworkRun();
+		GameRun(deltaTime); // deltaTime을 인자로 전달
 		_updateTps++;
-		if (_enterQueue.Size() != 0)
+
+		lastLogicProcess = currentTime;
+
+		// 주기적으로 일정 시간 동안 대기하여 CPU 사용률 조절
+		DWORD frameTime = timeGetTime() - currentTime;
+		if (frameTime < _msPerFrame)
 		{
-			ProcessEnter();
+			Sleep(_msPerFrame - frameTime);
 		}
-		if (_leaveQueue.Size() != 0)
-		{
-			ProcessLeave();
-		}
-		
-		int sessionNum = _sessionArr.size();
-		if (sessionNum == 0)
-		{
-			_msPerFrame = 1000;
-		}
-		else
-		{
-			_msPerFrame = _originalMsPerFrame;
-		}
-
-		//if (sessionNum == 0)
-		//{
-		//	WaitForSingleObject(_hUpdateEvent, INFINITE);
-		//	continue;
-		//}
-
-		// devidedSessionNum이 2500이면
-		for (int i = 0; i < sessionNum; i++)
-		{
-			int64 sessionId = _sessionArr[i];
-			Session* s = _netServer->GetSession(sessionId);
-			if (s == nullptr)
-			{
-				continue;
-			}
-
-			if (s->_packetQueue.Size() == 0)
-			{
-				_netServer->PutBackSession(s);
-				continue;
-			}
-
-			std::vector<CPacket*> packets;
-			packets.reserve(500);
-
-			while (true)
-			{
-				CPacket* packet = nullptr;
-				
-				bool dequeueSucceed = s->_packetQueue.Dequeue(packet);
-				if (!dequeueSucceed)
-				{
-					break;
-				}
-				
-				packets.push_back(packet);
-				// 패킷 처리
-				// 패킷 처리후 반납
-				//HandleRecvPacket(sessionId, packet);
-			}
-
-	
-			HandleRecvPacket(sessionId, packets[0]);
-		
-			_netServer->PutBackSession(s);
-		}
-		//ReleaseSRWLockShared(&_sessionArrLock);
-		lastLogicProcess += _msPerFrame;
 	}
 
 	_runningThread--;
@@ -140,6 +87,78 @@ unsigned int __stdcall GameThread::MonitorThread()
 	_runningThread--;
 	return 0;
 }
+
+
+void GameThread::NetworkRun()
+{
+	if (_enterQueue.Size() != 0)
+	{
+		ProcessEnter();
+	}
+	if (_leaveQueue.Size() != 0)
+	{
+		ProcessLeave();
+	}
+
+	int sessionNum = _sessionArr.size();
+	if (sessionNum == 0)
+	{
+		_msPerFrame = 1000;
+	}
+	else
+	{
+		_msPerFrame = _originalMsPerFrame;
+	}
+
+	//if (sessionNum == 0)
+	//{
+	//	WaitForSingleObject(_hUpdateEvent, INFINITE);
+	//	continue;
+	//}
+
+	// devidedSessionNum이 2500이면
+	for (int i = 0; i < sessionNum; i++)
+	{
+		int64 sessionId = _sessionArr[i];
+		Session* s = _netServer->GetSession(sessionId);
+		if (s == nullptr)
+		{
+			continue;
+		}
+
+		if (s->_packetQueue.Size() == 0)
+		{
+			_netServer->PutBackSession(s);
+			continue;
+		}
+
+		std::vector<CPacket*> packets;
+		packets.reserve(500);
+
+		while (true)
+		{
+			CPacket* packet = nullptr;
+
+			bool dequeueSucceed = s->_packetQueue.Dequeue(packet);
+			if (!dequeueSucceed)
+			{
+				break;
+			}
+
+			packets.push_back(packet);
+			// 패킷 처리
+			// 패킷 처리후 반납
+			//HandleRecvPacket(sessionId, packet);
+		}
+
+
+		HandleRecvPacket(sessionId, packets[0]);
+
+		_netServer->PutBackSession(s);
+	}
+}
+
+
 
 
 // 이미 끊어졌으면 return fale

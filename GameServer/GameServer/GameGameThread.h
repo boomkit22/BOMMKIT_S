@@ -3,6 +3,9 @@
 #include <map>
 #include "Player.h"
 #include "GameServer.h"
+#include <vector>
+#include "Monster.h"
+#include "ObjectPool.h"
 
 class GameGameThread : public GameThread
 {
@@ -17,6 +20,17 @@ public:
 
 private:
 	GameServer* _gameServer;
+	std::unordered_map<int64, Player*> _playerMap;
+	
+private:
+	//몬스터
+	std::vector<Monster*> _monsters;
+	virtual void GameRun(int deltaTime) override;
+	void SpawnMonster();
+	CObjectPool<Monster, false> _monsterPool;
+	int32 _maxMonsterNum = 10;
+	
+
 
 public:
 	// GameThread을(를) 통해 상속됨
@@ -24,8 +38,6 @@ public:
 	void OnLeaveThread(int64 sessionId, bool disconnect) override;
 	void OnEnterThread(int64 sessionId, void* ptr) override;
 
-private:
-	std::unordered_map<int64, Player*> _playerMap;
 
 private:
 	void HandleCharacterMove(Player* p, CPacket* packet);
@@ -48,5 +60,7 @@ private:
 
 	void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID);
 
+
+	void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation);
 };
 

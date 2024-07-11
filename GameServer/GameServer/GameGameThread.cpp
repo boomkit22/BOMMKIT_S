@@ -5,7 +5,11 @@
 #include "GameThreadInfo.h"
 #include "Log.h"
 #include "Packet.h"
+#include "GameData.h"
+
 using namespace std;
+
+//이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
 
 
 GameGameThread::GameGameThread(GameServer* gameServer,int threadId) : GameThread(threadId, 1)
@@ -13,6 +17,8 @@ GameGameThread::GameGameThread(GameServer* gameServer,int threadId) : GameThread
 	_gameServer = gameServer;
 	SetGameServer((CNetServer*)gameServer);
 }
+
+
 
 void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 {
@@ -220,3 +226,33 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 	}
 }
 
+
+void GameGameThread::GameRun(int deltaTime)
+{
+	//TODO: 몬스터 갯수 확인하기
+	// 몬스터 없으면 Spawn 하고
+	int currentMonsterSize = _monsters.size();
+	if (currentMonsterSize < _maxMonsterNum)
+	{
+		SpawnMonster();
+	}
+
+
+}
+
+void GameGameThread::SpawnMonster()
+{
+	Monster*  monster = _monsterPool.Alloc();
+	FVector randomLocation{ rand() % 400, rand() % 4000, 100 };
+	monster->Init(&_playerMap, randomLocation, MONSTER_TYPE_GUARDIAN);
+	_monsters.push_back(monster);
+
+	//TODO: 몬스터 스폰 패킷 날리기
+	CPacket* packet = CPacket::Alloc();
+	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation);
+	
+	for(auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		SendPacket_Unicast(it->first, packet);
+	}
+}

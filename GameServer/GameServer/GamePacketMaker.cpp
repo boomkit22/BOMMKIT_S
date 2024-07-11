@@ -108,4 +108,19 @@ void GameGameThread::MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& Monste
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+void GameGameThread::MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation)
+{
+	NetHeader header;
+	header._code = serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_SPAWN_MONSTER;
+	*packet << type << monsterInfo << spawnLocation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+
 

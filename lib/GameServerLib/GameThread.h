@@ -81,10 +81,14 @@ private:
 
 private:
 	//TODO: fram 처리
+	void NetworkRun();
+	virtual void GameRun(int deltaTime);
 
 private:
 	bool EnterSession(int64 sessionId, void* ptr);
 	void LeaveSession(int64 sessionId, bool disconnect);
+	
+
 
 public:
 	//TODO: 게임쓰레드 이동 처리

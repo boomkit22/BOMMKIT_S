@@ -228,6 +228,9 @@
     <ClInclude Include="Monster.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
+    <ClInclude Include="GameData.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ServerConfig.txt">

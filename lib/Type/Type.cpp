@@ -27,6 +27,18 @@ CPacket& operator>>(CPacket& packet, PlayerInfo& info)
 	return packet;
 }
 
+CPacket& operator<<(CPacket& packet, MonsterInfo& info)
+{
+	packet << info.MonsterID << info.Type;
+	return packet;
+}
+
+CPacket& operator>>(CPacket& packet, MonsterInfo& info)
+{
+	packet >> info.MonsterID >> info.Type;
+	return packet;
+}
+
 CPacket& operator<<(CPacket& packet, FVector& vec)
 {
 	packet << vec.X << vec.Y << vec.Z;

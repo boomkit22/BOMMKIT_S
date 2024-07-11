@@ -56,7 +56,7 @@ private: // 모니터 서버로 보낼 거 (하드웨어)
 private: // 플레이어
 	SRWLOCK _playerMapLock;
 	LockFreeObjectPool<class Player, false> _playerPool;
-	std::unordered_map<int64, Player*> _playerMap;
+	std::unordered_map<int64, Player*> _globalPlayerMap;
 	GameGameThread* _gameGameThread = nullptr;
 	LoginGameThread* _loginGameThread = nullptr;
 
@@ -66,7 +66,7 @@ public:
 		Player* p = _playerPool.Alloc();
 		p->Init(sessionId);
 		AcquireSRWLockExclusive(&_playerMapLock);
-		auto ret = _playerMap.insert({ sessionId, p });
+		auto ret = _globalPlayerMap.insert({ sessionId, p });
 		if (ret.second == false)
 		{
 			// already exist
@@ -82,15 +82,15 @@ public:
 	{
 		Player* p;
 		AcquireSRWLockExclusive(&_playerMapLock);
-		auto it = _playerMap.find(sessionId);
-		if (it == _playerMap.end())
+		auto it = _globalPlayerMap.find(sessionId);
+		if (it == _globalPlayerMap.end())
 		{
 			LOG(L"GameServer", LogLevel::Error, L"Cannot find sessionId : %lld, FreePlayer", sessionId);
 			ReleaseSRWLockExclusive(&_playerMapLock);
 			return;
 		}
 		p = (*it).second;
-		_playerMap.erase(it);
+		_globalPlayerMap.erase(it);
 		ReleaseSRWLockExclusive(&_playerMapLock);
 		_playerPool.Free(p);
 	}

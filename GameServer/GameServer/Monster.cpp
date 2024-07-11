@@ -1,29 +1,39 @@
 #include "Monster.h"
 #include <cmath>
 #include "Player.h"
+#include "GameData.h"
+#include <algorithm>
 
-Monster::Monster(int MonsterId, FVector Position)
+
+
+void Monster::Init(std::unordered_map<int64, Player*>* playerMap,
+	FVector position, uint16 type)
 {
-	monsterId = MonsterId;
-	position = Position;
+	// monsterId : 1씩 증가
+	static int64 monsterIdGenerator = 0;
+	_monsterInfo.MonsterID = ++monsterIdGenerator;
+	_monsterInfo.Type = type;
+	_playerMap = playerMap;
+	_position = position;
 }
 
 void Monster::Update(float deltaTime)
 {
 	//여기서 하는게 좋은 설계인가
-	attackTimer += deltaTime;
+	// 공격 쿨타임 계산
+	_attackTimer += deltaTime;
 
-	switch(state)
+	switch(_state)
 	{
 		case MonsterState::MS_IDLE:
 		{
 			// idle 상태였으면
-			idleTime -= deltaTime;
-			if(idleTime <= 0)
+			_idleTime -= deltaTime;
+			if(_idleTime <= 0)
 			{
 				// idle 시간이 다 되었으면
 				SetRandomDestination();
-				state = MonsterState::MS_MOVING;
+				_state = MonsterState::MS_MOVING;
 			}
 		}
 		break;
@@ -53,22 +63,22 @@ void Monster::Update(float deltaTime)
 
 void Monster::MoveToDestination(float deltaTime)
 {
-	float dirX = destination.X - position.X;
-	float dirY = destination.Y - position.Y;
+	float dirX = _destination.X - _position.X;
+	float dirY = _destination.Y - _position.Y;
 	float distance = sqrt(dirX * dirX + dirY * dirY);
 
 	if (distance < 1.0f)
 	{
 		// 목적지에 도착했으면
-		state = MonsterState::MS_IDLE;
-		idleTime = 5.0f;
+		_state = MonsterState::MS_IDLE;
+		_idleTime = 5.0f;
 	}
 	else
 	{
 		// 목적지로 이동
 
 		// 속도 * deltaTime
-		float moveDist = speed * deltaTime;
+		float moveDist = _speed * deltaTime;
 		if (moveDist > distance)
 		{
 			moveDist = distance;
@@ -79,30 +89,30 @@ void Monster::MoveToDestination(float deltaTime)
 		float moveX = moveDist * dirX / distance;
 		float moveY = moveDist * dirY / distance;
 
-		position.X += moveX;
-		position.Y += moveY;
+		_position.X += moveX;
+		_position.Y += moveY;
 	}
 }
 
 void Monster::AttackPlayer(float deltaTime)
 {
-	if (targetPlayer)
+	if (_targetPlayer)
 	{
-		float distance = GetDistanceToPlayer(targetPlayer);
-		if (distance <= attackRange)
+		float distance = GetDistanceToPlayer(_targetPlayer);
+		if (distance <= _attackRange)
 		{
-			if (attackTimer >= attackCooldown)
+			if (_attackTimer >= _attackCooldown)
 			{
 
 				//공격 로직
 				// 캐릭터 공경하고
 				// 클라이언트에 몬스터 공격 패킷 및
 				// 데미지 패킷 전송
-				attackTimer = 0;
+				_attackTimer = 0;
 			}
 		}
 		else {
-			state = MonsterState::MS_CHASING;
+			_state = MonsterState::MS_CHASING;
 		}
 
 	}
@@ -110,27 +120,27 @@ void Monster::AttackPlayer(float deltaTime)
 
 void Monster::ChasePlayer(float deltaTime)
 {
-	if (targetPlayer)
+	if (_targetPlayer)
 	{
-		chaseTime += deltaTime;
+		_chaseTime += deltaTime;
 
-		if (chaseTime > maxChaseTime)
+		if (_chaseTime > _maxChaseTime)
 		{
 			// maxChaseTime 초과하면
-			state = MonsterState::MS_IDLE;
-			idleTime = 5.0f;
-			targetPlayer = nullptr;
-			chaseTime = 0;
+			_state = MonsterState::MS_IDLE;
+			_idleTime = 5.0f;
+			_targetPlayer = nullptr;
+			_chaseTime = 0;
 			return;
 		}
 
-		float distance = GetDistanceToPlayer(targetPlayer);
-		if (distance <= attackRange)
+		float distance = GetDistanceToPlayer(_targetPlayer);
+		if (distance <= _attackRange)
 		{
-			state = MonsterState::MS_ATTACKING;
+			_state = MonsterState::MS_ATTACKING;
 		}
 		else {
-			SetDestination(targetPlayer->Position);
+			SetDestination(_targetPlayer->Position);
 			MoveToDestination(deltaTime);
 		}
 	}
@@ -139,7 +149,7 @@ void Monster::ChasePlayer(float deltaTime)
 
 void Monster::SetDestination(FVector dest)
 {
-	destination = dest;
+	_destination = dest;
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 }
 
@@ -147,39 +157,42 @@ void Monster::SetRandomDestination()
 {
 	//TODO: 현재 몬스터 위치 기반으로
 	// 랜덤 목적지 정한다
-	float range = 100.0f; // 범위 설정
-	destination.X = position.X + (rand() % static_cast<int>(range * 2)) - range;
-	destination.Y = position.Y + (rand() % static_cast<int>(range * 2)) - range;
-	destination.Z = position.Z; // z 좌표는 변경하지 않음
+	float range = 500.0f; // 범위 설정
+	_destination.X = _position.X + (rand() % static_cast<int>(range * 2)) - range;
+	_destination.Y = _position.Y + (rand() % static_cast<int>(range * 2)) - range;
+
+	_destination.X = std::clamp(_destination.X, MIN_MAP_SIZE_X, MAX_MAP_SIZE_X);
+	_destination.Y = std::clamp(_destination.Y, MIN_MAP_SIZE_Y, MAX_MAP_SIZE_Y);
+
+	//여기서부터 이동할거니까 이동패킷 보내면 되나
 }
 
 void Monster::TakeDamage(int damage, Player* attacker)
 {
-	health -= damage;
-	if (health > 0)
+	_health -= damage;
+	if (_health > 0)
 	{
-		targetPlayer = attacker;
-		state = MonsterState::MS_ATTACKING;
+		_targetPlayer = attacker;
+		_state = MonsterState::MS_ATTACKING;
 	}
 	else {
 		//TODO: die
 	}
 
-	//일단 패킷 보내야하고
+	//일단 패킷 보내야하고 // 일단 패킷을 보낸다 ? 뭔 패킷을 보내지
+
 }
-
-
-
-
-
-
-
-
-
 
 float Monster::GetDistanceToPlayer(Player* player)
 {
-	float dirX = player->Position.X - position.X;
-	float dirY = player->Position.Y - position.Y;
+	float dirX = player->Position.X - _position.X;
+	float dirY = player->Position.Y - _position.Y;
 	return sqrt(dirX * dirX + dirY * dirY);
 }
+
+//void Monster::SendIdlePacket()
+//{
+//	// 나중에 섹터 생기면 ? 섹터 생기면 또 어떻게하지
+//		
+//
+//}

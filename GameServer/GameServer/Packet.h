@@ -249,6 +249,17 @@ enum PACKET_TYPE
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_CREATE_PLAYER = 1023,
+	
+	
+	//------------------------------------------------------------
+	//	{
+	//		WORD	Type
+	//		MonsterInfo monsterInfo
+	//		SpawnLocation spawnLocation
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_SPAWN_MONSTER = 1024,
+	
 
 
 
@@ -292,7 +303,7 @@ enum PACKET_TYPE
 	// 채팅서버 채팅보내기 응답  (다른 클라가 보낸 채팅도 이걸로 받음)
 	//
 	//	{
-	//		WORD	Type
+	//		WORD	Type												
 	//
 	//		INT64	AccountNo
 	//		WCHAR	Nickname[20]				// null 포함
@@ -303,4 +314,4 @@ enum PACKET_TYPE
 	//
 	//------------------------------------------------------------
 	PACKET_SC_CHAT_RES_MESSAGE = 5004,
-};
+};																																										

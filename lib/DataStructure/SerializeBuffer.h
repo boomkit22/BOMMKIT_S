@@ -16,6 +16,8 @@ class CPacket
 	friend CPacket& operator<<(CPacket& packet, FRotator& rot);
 	friend CPacket& operator<<(CPacket& packet, PlayerInfo& info);
 	friend CPacket& operator>>(CPacket& packet, PlayerInfo& info);
+	friend CPacket& operator<<(CPacket& packet, MonsterInfo& info);
+	friend CPacket& operator>>(CPacket& packet, MonsterInfo& info);
 
 	friend class TlsObjectPool<CPacket, false>;
 	friend class LockFreeObjectPool<CPacket, false>;
