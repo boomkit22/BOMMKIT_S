@@ -25,7 +25,7 @@ private:
 private:
 	//∏ÛΩ∫≈Õ
 	std::vector<Monster*> _monsters;
-	virtual void GameRun(int deltaTime) override;
+	virtual void GameRun(float deltaTime) override;
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
 	int32 _maxMonsterNum = 5;

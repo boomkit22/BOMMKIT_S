@@ -59,7 +59,10 @@ private:
 	const char* database = "mmo";
 	int port = Data::DBPort;
 
+
 	// GameThread을(를) 통해 상속됨
-	void GameRun(int deltaTime) override;
+	void GameRun(float deltaTime) override;
+
+	// GameThread을(를) 통해 상속됨
 };
 

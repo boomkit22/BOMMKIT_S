@@ -20,6 +20,8 @@ void Monster::Init(GameGameThread* gameGameThread,
 	_monsterInfo.Type = type;
 	_gameGameThread = gameGameThread;
 	_position = position;
+	_state = MonsterState::MS_IDLE;
+	_speed = 300.0f;
 }
 
 void Monster::Update(float deltaTime)
@@ -83,7 +85,7 @@ void Monster::MoveToDestination(float deltaTime)
 		// 목적지로 이동
 
 		// 속도 * deltaTime
-		float moveDist = _speed * deltaTime;
+		float moveDist = _speed * deltaTime * 1000;
 		if (moveDist > distance)
 		{
 			moveDist = distance;
@@ -157,7 +159,7 @@ void Monster::SetDestination(FVector dest)
 	_destination = dest;
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 	CPacket* packet = CPacket::Alloc();
-	MP_SC_SPAWN_MONSTER(packet, _monsterInfo, _position);
+	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
 	_gameGameThread->SendPacket_BroadCast(packet);
 	CPacket::Free(packet);
 }
@@ -174,6 +176,10 @@ void Monster::SetRandomDestination()
 	_destination.Y = std::clamp(_destination.Y, MIN_MAP_SIZE_Y, MAX_MAP_SIZE_Y);
 
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
+	CPacket* packet = CPacket::Alloc();
+	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
+	_gameGameThread->SendPacket_BroadCast(packet);
+	CPacket::Free(packet);
 }
 
 void Monster::TakeDamage(int damage, Player* attacker)

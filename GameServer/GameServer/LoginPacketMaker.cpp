@@ -89,6 +89,8 @@ void LoginGameThread::MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, uint16
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void LoginGameThread::GameRun(int deltaTime)
+void LoginGameThread::GameRun(float deltaTime)
 {
 }
+
+

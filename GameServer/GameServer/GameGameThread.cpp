@@ -165,11 +165,22 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	//TODO: 몬스터들 소환 패킷 보내고 
 	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
 	{
+		Monster* monster = *it;
 		CPacket* spawnMonsterPacket = CPacket::Alloc();
 		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
 		SendPacket(p->_sessionId, spawnMonsterPacket);
-		printf("send spawn monster location : %f %f %f", (*it)->_position.X, (*it)->_position.Y, (*it)->_position.Z);
 		CPacket::Free(spawnMonsterPacket);
+
+		if (monster->_state == MonsterState::MS_MOVING)
+		{
+			CPacket* movePacket = CPacket::Alloc();
+			MP_SC_MONSTER_MOVE(movePacket, monster->_monsterInfo.MonsterID, monster->_destination, monster->_rotation);
+			SendPacket(p->_sessionId, movePacket);
+			CPacket::Free(movePacket);
+		}
+		printf("send spawn monster location : %f %f %f", (*it)->_position.X, (*it)->_position.Y, (*it)->_position.Z);
+
+		//현재 이동중이었으면 이동패킷 까지 보내기
 	}
 }
 
@@ -233,7 +244,7 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 }
 
 
-void GameGameThread::GameRun(int deltaTime)
+void GameGameThread::GameRun(float deltaTime)
 {
 	//TODO: 몬스터 갯수 확인하기
 	// 몬스터 없으면 Spawn 하고
@@ -244,7 +255,10 @@ void GameGameThread::GameRun(int deltaTime)
 		printf("Spawn Monster\n");
 	}
 
-
+	for(auto it = _monsters.begin(); it != _monsters.end(); it++)
+	{
+		(*it)->Update(deltaTime);
+	}
 }
 
 void GameGameThread::SpawnMonster()

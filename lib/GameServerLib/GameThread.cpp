@@ -56,7 +56,7 @@ unsigned __stdcall GameThread::UpdateThread()
 		int deltaTime = delay; // 밀리초 단위
 
 		NetworkRun();
-		GameRun(deltaTime); // deltaTime을 인자로 전달
+		GameRun(deltaTime / 1000.f); // deltaTime을 인자로 전달
 		_updateTps++;
 
 		lastLogicProcess = currentTime;
