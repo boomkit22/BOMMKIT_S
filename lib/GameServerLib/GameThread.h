@@ -82,7 +82,7 @@ private:
 private:
 	//TODO: fram Ã³¸®
 	void NetworkRun();
-	virtual void GameRun(int deltaTime);
+	virtual void GameRun(int deltaTime) = 0;
 
 private:
 	bool EnterSession(int64 sessionId, void* ptr);

@@ -58,5 +58,8 @@ private:
 	const char* password = "boomkit22";
 	const char* database = "mmo";
 	int port = Data::DBPort;
+
+	// GameThread을(를) 통해 상속됨
+	void GameRun(int deltaTime) override;
 };
 

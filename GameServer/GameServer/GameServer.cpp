@@ -86,7 +86,7 @@ void GameServer::LogServerInfo()
 
 	int loginPlayerNum = _loginGameThread->GetPlayerSize();
 	int gamePlayerNum = _gameGameThread->GetPlayerSize();
-	int64 totalPlayerNum = _playerMap.size();
+	int64 totalPlayerNum = _globalPlayerMap.size();
 	int loginTps = _loginGameThread->GetFps();
 	int echoTps = _gameGameThread->GetFps();
 

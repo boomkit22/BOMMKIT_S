@@ -4,8 +4,8 @@
 #include "Player.h"
 #include "GameServer.h"
 #include <vector>
-#include "Monster.h"
 #include "ObjectPool.h"
+#include "Monster.h"
 
 class GameGameThread : public GameThread
 {
@@ -28,7 +28,7 @@ private:
 	virtual void GameRun(int deltaTime) override;
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
-	int32 _maxMonsterNum = 10;
+	int32 _maxMonsterNum = 5;
 	
 
 

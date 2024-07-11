@@ -6,6 +6,10 @@
 
 
 
+Monster::Monster()
+{
+}
+
 void Monster::Init(std::unordered_map<int64, Player*>* playerMap,
 	FVector position, uint16 type)
 {

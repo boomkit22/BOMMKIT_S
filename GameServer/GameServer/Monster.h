@@ -1,6 +1,6 @@
 #pragma once
 #include "Type.h"
-#include "GameGameThread.h"
+#include <unordered_map>
 
 class Player;
 
@@ -18,6 +18,8 @@ class Monster
 {
 	friend class GameGameThread;
 public:
+	Monster();
+
 	void Init(std::unordered_map<int64, Player*>* playerMap,
 	FVector position,
 	uint16 type);
