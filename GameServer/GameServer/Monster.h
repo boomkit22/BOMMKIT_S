@@ -2,6 +2,7 @@
 #include "Type.h"
 #include <unordered_map>
 
+#define M_PI 3.141592653589
 class Player;
 class GameGameThread;
 enum class MonsterState {
@@ -32,8 +33,7 @@ public:
 	void ChasePlayer(float deltaTime);
 	void SetRandomDestination();
 	float GetDistanceToPlayer(Player* targetPlayer);
-
-
+	void CalculateRotation(const FVector& oldPosition, const FVector& newPosition);
 //private:
 //	void SendIdlePacket();
 //	void SendAttackPacket();
@@ -47,7 +47,7 @@ private:
 	GameGameThread* _gameGameThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
-	FRotator _rotation;
+	FRotator _rotation{ 0,0,0 }; // 현재 방향
 
 	FVector _destination; // 목적지
 	float _speed; // 이동속도

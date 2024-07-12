@@ -169,6 +169,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		CPacket* spawnMonsterPacket = CPacket::Alloc();
 		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
 		SendPacket(p->_sessionId, spawnMonsterPacket);
+		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
 		CPacket::Free(spawnMonsterPacket);
 
 		if (monster->_state == MonsterState::MS_MOVING)
@@ -178,7 +179,6 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 			SendPacket(p->_sessionId, movePacket);
 			CPacket::Free(movePacket);
 		}
-		printf("send spawn monster location : %f %f %f", (*it)->_position.X, (*it)->_position.Y, (*it)->_position.Z);
 
 		//현재 이동중이었으면 이동패킷 까지 보내기
 	}
@@ -264,7 +264,7 @@ void GameGameThread::GameRun(float deltaTime)
 void GameGameThread::SpawnMonster()
 {
 	Monster*  monster = _monsterPool.Alloc();
-	FVector randomLocation{ rand() % 2000, rand() % 2000, 0 };
+	FVector randomLocation{ rand() % 2000, rand() % 2000, 88.1 };
 	std::clamp(randomLocation.X, double(100), double(2000));
 	std::clamp(randomLocation.Y, double(100), double(2000));
 
@@ -275,6 +275,8 @@ void GameGameThread::SpawnMonster()
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation);
 	
+	printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
+
 	SendPacket_BroadCast(packet);
 	CPacket::Free(packet);
 }

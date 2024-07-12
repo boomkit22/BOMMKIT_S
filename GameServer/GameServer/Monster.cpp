@@ -22,6 +22,7 @@ void Monster::Init(GameGameThread* gameGameThread,
 	_position = position;
 	_state = MonsterState::MS_IDLE;
 	_speed = 300.0f;
+	_destination.Z = 88.1;
 }
 
 void Monster::Update(float deltaTime)
@@ -161,7 +162,11 @@ void Monster::SetDestination(FVector dest)
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
 	_gameGameThread->SendPacket_BroadCast(packet);
+	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
+
+
 	CPacket::Free(packet);
+	CalculateRotation(_position, _destination);
 }
 
 void Monster::SetRandomDestination()
@@ -175,11 +180,16 @@ void Monster::SetRandomDestination()
 	_destination.X = std::clamp(_destination.X, MIN_MAP_SIZE_X, MAX_MAP_SIZE_X);
 	_destination.Y = std::clamp(_destination.Y, MIN_MAP_SIZE_Y, MAX_MAP_SIZE_Y);
 
+
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
 	_gameGameThread->SendPacket_BroadCast(packet);
+
+	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
+
 	CPacket::Free(packet);
+	CalculateRotation(_position, _destination);
 }
 
 void Monster::TakeDamage(int damage, Player* attacker)
@@ -203,6 +213,16 @@ float Monster::GetDistanceToPlayer(Player* player)
 	float dirX = player->Position.X - _position.X;
 	float dirY = player->Position.Y - _position.Y;
 	return sqrt(dirX * dirX + dirY * dirY);
+}
+
+void Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPosition)
+{
+	double dx = newPosition.X - oldPosition.X;
+	double dy = newPosition.Y - oldPosition.Y;
+	if (dx != 0 || dy != 0) { // 움직임이 있을 경우에만 회전 계산
+		_rotation.Yaw = std::atan2(dy, dx) * 180 / M_PI; // 라디안에서 도(degree)로 변환
+		//std::cout << "New rotation: " << rotation << " degrees" << std::endl; // 디버그 출력
+	}
 }
 
 //void Monster::SendIdlePacket()

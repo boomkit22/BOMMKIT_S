@@ -28,7 +28,7 @@ private:
 	virtual void GameRun(float deltaTime) override;
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
-	int32 _maxMonsterNum = 5;
+	int32 _maxMonsterNum = 30;
 	
 
 
