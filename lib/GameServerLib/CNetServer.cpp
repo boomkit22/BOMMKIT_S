@@ -571,6 +571,8 @@ unsigned __stdcall CNetServer::ReleaseThread()
 				session->_gameThread->LeaveSession(session->_sessionId, true);
 				//OnDisconnect(session->_sessionId);
 				ReleaseSession(session);
+
+				printf("release session\n");
 			}
 		}
 	}
