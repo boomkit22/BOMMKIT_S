@@ -20,6 +20,7 @@ private:
 	int64 accountNo = 0;
 	uint32 _lastRecvTime = 0;
 	bool _bLogined = false;
+	int32 _damage = 10;
 
 
 public:

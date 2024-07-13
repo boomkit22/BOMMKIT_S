@@ -237,10 +237,11 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	int64 attackerID;
 	int32 targetType;
 	int64 targetID;
-	int32 damage;
 
-	*packet >> attackerType >> attackerID >> targetType >> targetID >> damage;
+	*packet >> attackerType >> attackerID >> targetType >> targetID;
 	
+	int32 damage = p->_damage;
+
 	 CPacket* resDamagePacket = CPacket::Alloc();
 	 MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
 	 SendPacket_BroadCast(resDamagePacket);
