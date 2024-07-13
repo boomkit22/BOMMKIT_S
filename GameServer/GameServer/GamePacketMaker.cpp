@@ -136,5 +136,62 @@ void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& Destination,
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+void MP_SC_GAME_RSE_CHARACTER_STOP(CPacket* packet, int64& characterID, FVector& position, FRotator& rotation)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_CHARACTER_STOP;
+	*packet << type << characterID << position << rotation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void MP_SC_GAME_RES_MONSTER_STOP(CPacket* packet, int64& monsterID, FVector& position, FRotator& rotation)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_MONSTER_STOP;
+	*packet << type << monsterID << position << rotation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void MP_SC_GAME_RES_CHARACTER_DEATH(CPacket* packet, int64& characterID, FVector DeathLocation, FRotator DeathRotation)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_CHARACTER_DEATH;
+	*packet << type << characterID << DeathLocation << DeathRotation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+void MP_SC_GAME_RES_MONSTER_DEATH(CPacket* packet, int64& monsterID, FVector DeathLocation, FRotator DeathRotation)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_RES_MONSTER_DEATH;
+	*packet << type << monsterID << DeathLocation << DeathRotation;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
+
 
 

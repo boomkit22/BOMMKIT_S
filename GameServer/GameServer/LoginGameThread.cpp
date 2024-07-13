@@ -21,6 +21,27 @@ LoginGameThread::LoginGameThread(GameServer* gameServer, int threadId) : GameThr
 		fprintf(stderr, "Mysql connection error  %s\n", mysql_error(&_conn));
 		__debugbreak();
 	}
+
+	// last_player_id 테이블에서 마지막 PlayerID 가져오기
+	const char* query = "SELECT PlayerID FROM last_player_id LIMIT 1";
+	if (mysql_query(_connection, query))
+	{
+		fprintf(stderr, "querry error: %s\n", mysql_error(_connection));
+	}
+	else 
+	{
+		MYSQL_RES* result = mysql_store_result(_connection);
+		if (result)
+		{
+			MYSQL_ROW row = mysql_fetch_row(result);
+			if (row && row[0])
+			{
+				lastPlayerId = atoll(row[0]); // 문자열을 long long 타입으로 변환
+			}
+			mysql_free_result(result);
+		}
+	}
+
 }
 
 LoginGameThread::~LoginGameThread()
@@ -336,9 +357,30 @@ void LoginGameThread::HandleCreatePlayer(Player* player, CPacket* packet)
 	char nickName[NICKNAME_LEN * sizeof(TCHAR)];
 	wcstombs(nickName, NickName, NICKNAME_LEN * sizeof(TCHAR));
 
+	
+	int64 PlayerID = ++lastPlayerId;
+	// last_player_id 테이블 업데이트
+	char updateQuery[256];
+	sprintf(updateQuery, "UPDATE last_player_id SET PlayerID = %lld", lastPlayerId);
+
+	if (mysql_query(&_conn, updateQuery))
+	{
+		fprintf(stderr, "last_player_id query fail: %s\n", mysql_error(&_conn));
+		// 실패한 경우 lastPlayerId를 다시 감소시켜 원래 상태로 복구
+		--lastPlayerId;
+
+		CPacket* resPacket = CPacket::Alloc();
+		uint8 Status = 0;
+		MP_SC_CREATE_PLAYER(resPacket, Status, PlayerInfo{});
+		SendPacket_Unicast(player->_sessionId, resPacket);
+		CPacket::Free(resPacket);
+		return;
+	}
+
+
 	// 쿼리 문자열 생성
 	char query[1024];
-	sprintf(query, "INSERT INTO Player(AccountNo, NickName, Class) VALUES(%lld, '%s', %d)", player->accountNo, nickName, Class);
+	sprintf(query, "INSERT INTO Player(PlayerID, AccountNo, NickName, Class) VALUES(%lld, %lld, '%s', %d)", PlayerID, player->accountNo, nickName, Class);
 
 	// 쿼리 실행
 	bool createSuccess = true;
@@ -348,13 +390,21 @@ void LoginGameThread::HandleCreatePlayer(Player* player, CPacket* packet)
 		createSuccess = false;
 	}
 
+	//TODO: 플레이어 info에 넣기
+	PlayerInfo playerInfo;
+	playerInfo.PlayerID = PlayerID;
+	wcscpy(playerInfo.NickName, NickName);
+	playerInfo.Class = Class;
+	playerInfo.Level = 1;
+	playerInfo.Exp = 0;
+	player->playerInfos.push_back(playerInfo);
+	
 	CPacket* resPacket = CPacket::Alloc();
 	uint8 Status = createSuccess ? 1 : 0;
-	MP_SC_CREATE_PLAYER(resPacket, Status, Class, NickName);
+	MP_SC_CREATE_PLAYER(resPacket, Status, playerInfo);
 	SendPacket_Unicast(player->_sessionId, resPacket);
 	CPacket::Free(resPacket);
 	
-
 	printf("HandleCreatePlayer \n");
 }
 

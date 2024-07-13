@@ -46,7 +46,7 @@ private:
 	void HandleCharacterMove(Player* p, CPacket* packet);
 	void HandleCharacterAttack(Player* p, CPacket* packet);
 	void HandleCharacterSkill(Player* p, CPacket* packet);
-
+	void HandleCharacterStop(Player* p, CPacket* packet);
 
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;

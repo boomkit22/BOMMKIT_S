@@ -41,7 +41,7 @@ private:
 	void MP_SC_GAME_RES_SIGN_UP(CPacket* packet, uint8& Status);
 	void MP_SC_PLAYER_LIST(CPacket* packet, std::vector<PlayerInfo>& playerInfos);
 	void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
-	void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, uint16& Class, TCHAR* NickName);
+	void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo playerInfo);
 
 
 private:
@@ -60,6 +60,7 @@ private:
 	int port = Data::DBPort;
 
 
+	int64 lastPlayerId = 0;
 	// GameThread을(를) 통해 상속됨
 	void GameRun(float deltaTime) override;
 

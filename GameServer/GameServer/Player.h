@@ -20,11 +20,12 @@ private:
 	int64 accountNo = 0;
 	uint32 _lastRecvTime = 0;
 	bool _bLogined = false;
-	PlayerInfo playerInfo;
 
 
 public:
 	FVector Position;
+	PlayerInfo playerInfo;
+
 	std::vector<PlayerInfo> playerInfos;
 };
 

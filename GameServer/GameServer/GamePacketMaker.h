@@ -15,3 +15,9 @@ void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID,
 void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID);
 void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation);
 void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& Destination, FRotator& StartRotation);
+
+void MP_SC_GAME_RSE_CHARACTER_STOP(CPacket* packet, int64& characterID, FVector& position, FRotator& rotation);
+void MP_SC_GAME_RES_MONSTER_STOP(CPacket* packet, int64& monsterID, FVector& position, FRotator& rotation);
+
+void MP_SC_GAME_RES_CHARACTER_DEATH(CPacket* packet, int64& characterID, FVector DeathLocation, FRotator DeathRotation);
+void MP_SC_GAME_RES_MONSTER_DEATH(CPacket* packet, int64& monsterID, FVector DeathLocation, FRotator DeathRotation);

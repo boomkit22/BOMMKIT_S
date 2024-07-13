@@ -10,6 +10,7 @@ enum class MonsterState {
 	MS_MOVING,
 	MS_ATTACKING,
 	MS_CHASING,
+	MS_DEATH,
 };
 
 
@@ -25,6 +26,7 @@ public:
 	FVector position,
 	uint16 type);
  
+	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
 	void TakeDamage(int damage, Player* attacker);
@@ -38,11 +40,10 @@ public:
 //	void SendIdlePacket();
 //	void SendAttackPacket();
 //	void SendDestinationPacket();
-
-
-
-
 	
+	//Player가 나가거나 죽을떄 해당 player를 target으로 하고있던애를 idle 상태로 만들어야함
+	void SetTargetPlayerEmpty();
+
 private:
 	GameGameThread* _gameGameThread;
 	MonsterInfo _monsterInfo;
@@ -53,7 +54,6 @@ private:
 	float _speed; // 이동속도
 	MonsterState _state;
 	
-
 	Player* _targetPlayer; // 공격중인 플레이어
 	float _attackRange; // 공격 범위
 	float _attackCooldown; // 공격 쿨타임
@@ -64,7 +64,8 @@ private:
 	float _maxChaseTime; // 최대 추적시간
 
 	//
-	int _health; // 체력
-	int _damage; // 공격력
+	int _health = 100;
+	int _damage = 5;
+	float _defaultIdleTime = 10;
 };
 

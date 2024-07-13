@@ -23,6 +23,7 @@ void Monster::Init(GameGameThread* gameGameThread,
 	_state = MonsterState::MS_IDLE;
 	_speed = 300.0f;
 	_destination.Z = 88.1;
+	_idleTime = _defaultIdleTime;
 }
 
 void Monster::Update(float deltaTime)
@@ -64,6 +65,12 @@ void Monster::Update(float deltaTime)
 		}
 		break;
 
+		case MonsterState::MS_DEATH:
+		{
+			//TODO: 얘 아무것도 할거 없고
+		}
+		break;
+
 		default:
 			__debugbreak();
 	}
@@ -102,6 +109,7 @@ void Monster::MoveToDestination(float deltaTime)
 	}
 }
 
+// 캐릭터가 나가버리거나 하면 이 targetPlayer를 들고있던 애는 어떻게해야하는거지
 void Monster::AttackPlayer(float deltaTime)
 {
 	if (_targetPlayer)
@@ -111,11 +119,28 @@ void Monster::AttackPlayer(float deltaTime)
 		{
 			if (_attackTimer >= _attackCooldown)
 			{
-
-				//공격 로직
-				// 캐릭터 공경하고
-				// 클라이언트에 몬스터 공격 패킷 및
-				// 데미지 패킷 전송
+				//여기서 공격하면 된다
+				//클라이언트에 몬스터 공격 애니메이션 전송 및
+				CPacket* monsterSkilPacket = CPacket::Alloc();
+				int64 MonsterID = _monsterInfo.MonsterID;
+				FVector StartPosition = _position;
+				FRotator StartRotation = _rotation;
+				int32 SkillID = 1;
+				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, MonsterID, SkillID);
+				_gameGameThread->SendPacket_BroadCast(monsterSkilPacket);
+				CPacket::Free(monsterSkilPacket);
+				
+				//데미지 패킷 전송
+				//공격했으면 데미지 패킷 보내여지
+				CPacket* resDamagePacket = CPacket::Alloc();
+				int32 AttackerType = TYPE_MONSTER;
+				int64 AttackerID = _monsterInfo.MonsterID;
+				int32 targetType = TYPE_PLAYER;
+				int64 TargetID = _targetPlayer->playerInfo.PlayerID;
+				int32 Damage = _damage;
+				MP_SC_GAME_RES_DAMAGE(resDamagePacket, AttackerType, AttackerID, targetType, TargetID, Damage);
+				_gameGameThread->SendPacket_BroadCast(resDamagePacket);
+				CPacket::Free(resDamagePacket);
 				_attackTimer = 0;
 			}
 		}
@@ -201,7 +226,15 @@ void Monster::TakeDamage(int damage, Player* attacker)
 		_state = MonsterState::MS_ATTACKING;
 	}
 	else {
-		//TODO: die
+		//몬스터 죽었을때 패킷 보내기
+		CPacket* diePacket = CPacket::Alloc();
+		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID);
+		_gameGameThread->SendPacket_BroadCast(diePacket);
+		CPacket::Free(diePacket);
+
+		// 또 뭐해야하지
+		// 몬스터 풀에 넣어야하나?
+		_state = MonsterState::MS_DEATH;
 	}
 
 	//일단 패킷 보내야하고 // 일단 패킷을 보낸다 ? 뭔 패킷을 보내지
@@ -225,9 +258,15 @@ void Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPo
 	}
 }
 
-//void Monster::SendIdlePacket()
-//{
-//	// 나중에 섹터 생기면 ? 섹터 생기면 또 어떻게하지
-//		
-//
-//}
+void Monster::SetTargetPlayerEmpty()
+{
+	_targetPlayer = nullptr;
+	_state = MonsterState::MS_IDLE;
+	_idleTime = _defaultIdleTime;
+
+	//idle상태라고 보내기 MonsterStop 패킷
+	CPacket* idlePacket = CPacket::Alloc();
+	MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
+	_gameGameThread->SendPacket_BroadCast(idlePacket);
+	CPacket::Free(idlePacket);
+}

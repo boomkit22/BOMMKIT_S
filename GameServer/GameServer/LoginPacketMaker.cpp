@@ -74,7 +74,7 @@ void LoginGameThread::MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status)
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void LoginGameThread::MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, uint16& Class, TCHAR* NickName)
+void LoginGameThread::MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo playerInfo)
 {
 	NetHeader header;
 	header._code = serverPacketCode;
@@ -82,11 +82,11 @@ void LoginGameThread::MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, uint16
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_CREATE_PLAYER;
-	*packet << type << Status << Class;
-	packet->PutData((char*)NickName, NICKNAME_LEN * sizeof(TCHAR));
+	*packet << type << Status << playerInfo;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+
 }
 
 void LoginGameThread::GameRun(float deltaTime)

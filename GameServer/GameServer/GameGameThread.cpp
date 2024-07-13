@@ -57,6 +57,12 @@ void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 	}
 	break;
 
+	case PACKET_CS_GAME_REQ_CHARACTER_STOP:
+	{
+		HandleCharacterStop(player, packet);
+	}
+	break;
+
 
 
 	default:
@@ -72,6 +78,28 @@ void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 
 void GameGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
+	auto playerIt = _playerMap.find(sessionId);
+	if (playerIt == _playerMap.end())
+	{
+		// 이미 삭제된 경우
+		// 더미 기준에서는 발생하면 안됨
+		__debugbreak();
+	}
+	Player* player = playerIt->second;
+	if (player == nullptr)
+	{
+		__debugbreak();
+	}
+
+	//나간 유저를 target으로 하고있던 player Empty상태로 만들기
+	for (auto monster : _monsters)
+	{
+		if (monster->_targetPlayer == player)
+		{
+			monster->SetTargetPlayerEmpty();
+		}
+	}
+
 	if (disconnect)
 	{
 		_gameServer->FreePlayer(sessionId);
@@ -212,12 +240,26 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	int32 damage;
 
 	*packet >> attackerType >> attackerID >> targetType >> targetID >> damage;
-
+	
 	 CPacket* resDamagePacket = CPacket::Alloc();
 	 MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
-
 	 SendPacket_BroadCast(resDamagePacket);
 	 CPacket::Free(resDamagePacket);
+
+
+
+	 //TODO: 몬스터에서 검색
+	 if (targetType == TYPE_MONSTER)
+	 {
+		 for (auto monster : _monsters)
+		 {
+			 if (monster->_monsterInfo.MonsterID == targetID)
+			 {
+				 monster->TakeDamage(damage, p);
+				 break;
+			 }
+		 }
+	 }
 }
 
 void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
@@ -243,6 +285,19 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 	CPacket::Free(resSkillPacket);
 }
 
+void GameGameThread::HandleCharacterStop(Player* p, CPacket* packet)
+{
+	//브로드 캐스팅
+	int64 characterID = p->playerInfo.PlayerID;
+	FVector position;
+	FRotator rotation;
+	*packet >> position >> rotation;
+
+	CPacket* stopPacket = CPacket::Alloc();
+	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, characterID, position, rotation);
+	SendPacket_BroadCast(stopPacket);
+	CPacket::Free(stopPacket);
+}
 
 void GameGameThread::GameRun(float deltaTime)
 {
@@ -257,6 +312,15 @@ void GameGameThread::GameRun(float deltaTime)
 
 	for(auto it = _monsters.begin(); it != _monsters.end(); it++)
 	{
+		//죽었으면 일단 풀에 집어넣고
+		MonsterState state = (*it)->GetState();
+		if (state == MonsterState::MS_DEATH)
+		{
+			_monsterPool.Free(*it);
+			_monsters.erase(it);
+			continue;
+		}
+
 		(*it)->Update(deltaTime);
 	}
 }

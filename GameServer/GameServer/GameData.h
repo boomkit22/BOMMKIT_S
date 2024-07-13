@@ -8,3 +8,6 @@ const double MAX_MAP_SIZE_Y = 3900.f;
 
 #define MONSTER_TYPE_GUARDIAN 1
 #define MONSTER_TYPE_SPIDER 2
+
+#define TYPE_PLAYER		1
+#define TYPE_MONSTER    2
