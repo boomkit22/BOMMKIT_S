@@ -94,16 +94,17 @@ void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID, FVector
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID)
+
+void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, FVector StartPostion, FRotator StartRotation, int32& SkillID)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
-
+	
 	uint16 type = PACKET_SC_GAME_RES_MONSTER_SKILL;
-	*packet << type << MonsterNO << SkillID;
-
+	*packet << type << MonsterNO << StartPostion << StartRotation << SkillID;
+	
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }

@@ -21,9 +21,18 @@ void Monster::Init(GameGameThread* gameGameThread,
 	_gameGameThread = gameGameThread;
 	_position = position;
 	_state = MonsterState::MS_IDLE;
-	_speed = 300.0f;
+	_speed = 200.0f;
 	_destination.Z = 88.1;
 	_idleTime = _defaultIdleTime;
+	_attackRange = 200.0f;
+	_attackCooldown = 5.0f;
+	_chaseTime = 0;
+	_maxChaseTime = 5.0f;
+	_aggroRange = 1000.0f;
+	_health = 100;
+	_damage = 5;
+	_rotation = { 0,0,0 };
+	_targetPlayer = nullptr;
 }
 
 void Monster::Update(float deltaTime)
@@ -82,7 +91,7 @@ void Monster::MoveToDestination(float deltaTime)
 	float dirY = _destination.Y - _position.Y;
 	float distance = sqrt(dirX * dirX + dirY * dirY);
 
-	if (distance < 1.0f)
+	if (distance < 10.0f)
 	{
 		// 목적지에 도착했으면
 		_state = MonsterState::MS_IDLE;
@@ -93,7 +102,7 @@ void Monster::MoveToDestination(float deltaTime)
 		// 목적지로 이동
 
 		// 속도 * deltaTime
-		float moveDist = _speed * deltaTime * 1000;
+		float moveDist = _speed * deltaTime;
 		if (moveDist > distance)
 		{
 			moveDist = distance;
@@ -117,16 +126,28 @@ void Monster::AttackPlayer(float deltaTime)
 		float distance = GetDistanceToPlayer(_targetPlayer);
 		if (distance <= _attackRange)
 		{
+			//공격범위안에들어왔으면
+			// 추적 성공
+			//추적 시간 초기화
+			_chaseTime = 0.f;
+
 			if (_attackTimer >= _attackCooldown)
 			{
+				CalculateRotation(_position, _targetPlayer->Position);
+				//일단 Stop을 해야하네
+				
+				//Stop Packet도 그냥 보냅시다
+	/*			CPacket*  monsterStopPacket = CPacket::Alloc();
+				MP_SC_GAME_RES_MONSTER_STOP(monsterStopPacket, _monsterInfo.MonsterID, _position, _rotation);
+				_gameGameThread->SendPacket_BroadCast(monsterStopPacket);
+				CPacket::Free(monsterStopPacket);*/
+
 				//여기서 공격하면 된다
 				//클라이언트에 몬스터 공격 애니메이션 전송 및
+				//근데 로테이션을 캐릭터를 향해서 가져와야하네
 				CPacket* monsterSkilPacket = CPacket::Alloc();
-				int64 MonsterID = _monsterInfo.MonsterID;
-				FVector StartPosition = _position;
-				FRotator StartRotation = _rotation;
 				int32 SkillID = 1;
-				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, MonsterID, SkillID);
+				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, _monsterInfo.MonsterID, _position, _rotation, SkillID);
 				_gameGameThread->SendPacket_BroadCast(monsterSkilPacket);
 				CPacket::Free(monsterSkilPacket);
 				
@@ -159,6 +180,12 @@ void Monster::ChasePlayer(float deltaTime)
 
 		if (_chaseTime > _maxChaseTime)
 		{
+			//idle상태라고 보내기 MonsterStop 패킷
+			/*CPacket* idlePacket = CPacket::Alloc();
+			MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
+			_gameGameThread->SendPacket_BroadCast(idlePacket);
+			CPacket::Free(idlePacket)*/;
+
 			// maxChaseTime 초과하면
 			_state = MonsterState::MS_IDLE;
 			_idleTime = 5.0f;
@@ -171,9 +198,26 @@ void Monster::ChasePlayer(float deltaTime)
 		if (distance <= _attackRange)
 		{
 			_state = MonsterState::MS_ATTACKING;
+
 		}
 		else {
-			SetDestination(_targetPlayer->Position);
+			//플에이어 몬스터 사이 거리
+			float dirX = _targetPlayer->Position.X - _position.X;
+			float dirY = _targetPlayer->Position.Y - _position.Y;
+			float length = sqrt(dirX * dirX + dirY * dirY);
+
+			//정규화 하고
+			dirX /= length;
+			dirY /= length;
+
+			// attackRagne곱해서
+			FVector Destination{
+				_targetPlayer->Position.X - dirX * (_attackRange - 10), // 범위 안에서
+				_targetPlayer->Position.Y - dirY * (_attackRange - 10),
+				_position.Z
+			};
+
+			SetDestination(Destination);
 			MoveToDestination(deltaTime);
 		}
 	}
@@ -219,6 +263,13 @@ void Monster::SetRandomDestination()
 
 void Monster::TakeDamage(int damage, Player* attacker)
 {
+	if (_targetPlayer!= attacker)
+	{
+		// 다르면
+		//할게 뭐가있지
+		_chaseTime = 0.0f;
+	}
+
 	_health -= damage;
 	if (_health > 0)
 	{
@@ -228,7 +279,7 @@ void Monster::TakeDamage(int damage, Player* attacker)
 	else {
 		//몬스터 죽었을때 패킷 보내기
 		CPacket* diePacket = CPacket::Alloc();
-		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID);
+		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID, _position, _rotation);
 		_gameGameThread->SendPacket_BroadCast(diePacket);
 		CPacket::Free(diePacket);
 
@@ -248,7 +299,7 @@ float Monster::GetDistanceToPlayer(Player* player)
 	return sqrt(dirX * dirX + dirY * dirY);
 }
 
-void Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPosition)
+FRotator Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPosition)
 {
 	double dx = newPosition.X - oldPosition.X;
 	double dy = newPosition.Y - oldPosition.Y;
@@ -256,6 +307,8 @@ void Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPo
 		_rotation.Yaw = std::atan2(dy, dx) * 180 / M_PI; // 라디안에서 도(degree)로 변환
 		//std::cout << "New rotation: " << rotation << " degrees" << std::endl; // 디버그 출력
 	}
+
+	return FRotator{0, _rotation.Yaw, 0 };
 }
 
 void Monster::SetTargetPlayerEmpty()

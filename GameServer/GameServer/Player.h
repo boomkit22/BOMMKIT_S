@@ -5,6 +5,8 @@
 #include "Type.h"
 #include <map>
 
+const double PLAYER_Z_VALUE = 95.2f;
+
 class Player
 {
 	friend class GameServer;
@@ -28,5 +30,15 @@ public:
 	PlayerInfo playerInfo;
 
 	std::vector<PlayerInfo> playerInfos;
+	void Update(float deltaTime);
+	void SetDestination(const FVector& NewDestination);
+
+
+
+private:
+	FVector _destination;
+	float _speed = 300.0f;
+	bool bMoving = false;
+	void Move(float deltaTime);
 };
 

@@ -35,7 +35,7 @@ public:
 	void ChasePlayer(float deltaTime);
 	void SetRandomDestination();
 	float GetDistanceToPlayer(Player* targetPlayer);
-	void CalculateRotation(const FVector& oldPosition, const FVector& newPosition);
+	FRotator CalculateRotation(const FVector& oldPosition, const FVector& newPosition);
 //private:
 //	void SendIdlePacket();
 //	void SendAttackPacket();

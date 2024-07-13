@@ -144,7 +144,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	int spawnY = rand() % 400;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 	
-	FVector spawnLocation{ spawnX, spawnY, 100 };
+	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE};
 	p->Position = spawnLocation;
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
@@ -223,9 +223,10 @@ void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 
 	CPacket* movePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination, startRotation);
-
 	SendPacket_BroadCast(movePacket);
 	CPacket::Free(movePacket);
+
+	p->SetDestination(destination);
 }
 
 void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
@@ -302,28 +303,8 @@ void GameGameThread::HandleCharacterStop(Player* p, CPacket* packet)
 
 void GameGameThread::GameRun(float deltaTime)
 {
-	//TODO: 몬스터 갯수 확인하기
-	// 몬스터 없으면 Spawn 하고
-	int currentMonsterSize = _monsters.size();
-	if (currentMonsterSize < _maxMonsterNum)
-	{
-		SpawnMonster();
-		printf("Spawn Monster\n");
-	}
-
-	for(auto it = _monsters.begin(); it != _monsters.end(); it++)
-	{
-		//죽었으면 일단 풀에 집어넣고
-		MonsterState state = (*it)->GetState();
-		if (state == MonsterState::MS_DEATH)
-		{
-			_monsterPool.Free(*it);
-			_monsters.erase(it);
-			continue;
-		}
-
-		(*it)->Update(deltaTime);
-	}
+	UpdatePlayers(deltaTime);
+	UpdateMonsters(deltaTime);
 }
 
 void GameGameThread::SpawnMonster()
@@ -356,5 +337,41 @@ void GameGameThread::SendPacket_BroadCast(CPacket* packet)
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
 		SendPacket_Unicast(it->first, packet);
+	}
+}
+
+void GameGameThread::UpdatePlayers(float deltaTime)
+{
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		Player* player = it->second;
+		player->Update(deltaTime);
+	}
+}
+
+void GameGameThread::UpdateMonsters(float deltaTime)
+{
+
+	//TODO: 몬스터 갯수 확인하기
+// 몬스터 없으면 Spawn 하고
+	int currentMonsterSize = _monsters.size();
+	if (currentMonsterSize < _maxMonsterNum)
+	{
+		SpawnMonster();
+		printf("Spawn Monster\n");
+	}
+
+	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
+	{
+		//죽었으면 일단 풀에 집어넣고
+		MonsterState state = (*it)->GetState();
+		if (state == MonsterState::MS_DEATH)
+		{
+			_monsterPool.Free(*it);
+			_monsters.erase(it);
+			continue;
+		}
+
+		(*it)->Update(deltaTime);
 	}
 }

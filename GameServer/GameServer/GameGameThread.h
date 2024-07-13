@@ -48,6 +48,9 @@ private:
 	void HandleCharacterSkill(Player* p, CPacket* packet);
 	void HandleCharacterStop(Player* p, CPacket* packet);
 
+
+	void UpdatePlayers(float deltaTime);
+	void UpdateMonsters(float deltaTime);
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
 

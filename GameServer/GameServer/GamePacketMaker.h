@@ -12,7 +12,7 @@ void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& Attacker
 void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID,
 	FVector& StartLocation, FRotator& StartRotation, int32& SkillID);
 
-void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, int32& SkillID);
+void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, FVector StartPostion, FRotator StartRotation, int32& SkillID);
 void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation);
 void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& Destination, FRotator& StartRotation);
 
