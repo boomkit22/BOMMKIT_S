@@ -64,6 +64,12 @@ void LobbyFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 	}
 	break;
 
+	case PACKET_CS_GAME_REQ_FIELD_MOVE:
+	{
+		HandleFieldMove(player, packet);
+	}
+	break;
+
 
 
 	default:
@@ -302,6 +308,13 @@ void LobbyFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
 	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, characterID, position, rotation);
 	SendPacket_BroadCast(stopPacket);
 	CPacket::Free(stopPacket);
+}
+
+void LobbyFieldThread::HandleFieldMove(Player* p, CPacket* packet)
+{
+	uint16 fieldID;
+	*packet >> fieldID;
+	MoveGameThread(fieldID, p->_sessionId, p);
 }
 
 void LobbyFieldThread::GameRun(float deltaTime)
