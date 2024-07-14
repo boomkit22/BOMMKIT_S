@@ -2,7 +2,7 @@
 #include "Packet.h"
 #include "SerializeBuffer.h"
 #include "Type.h"
-#include "GameGameThread.h"
+#include "GuardianFieldThread.h"
 using namespace std;
 
 void LoginGameThread::MP_SC_LOGIN(CPacket* packet, int64 AccountNo, uint8 Status)

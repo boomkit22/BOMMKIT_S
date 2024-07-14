@@ -1,7 +1,7 @@
 #pragma once
 #include "Type.h"
 
-void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status);
+void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status, uint16& fieldID);
 void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation);
 void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation);
 void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation);

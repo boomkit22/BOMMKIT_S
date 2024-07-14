@@ -4,7 +4,7 @@
 
 #define M_PI 3.141592653589
 class Player;
-class GameGameThread;
+class GuardianFieldThread;
 enum class MonsterState {
 	MS_IDLE,
 	MS_MOVING,
@@ -18,11 +18,11 @@ enum class MonsterState {
 // 아니면 MonsterType을 만들어서 비선공형 선공형을 나눠야할까?
 class Monster
 {
-	friend class GameGameThread;
+	friend class GuardianFieldThread;
 public:
 	Monster();
 
-	void Init(GameGameThread* gameGameThread,
+	void Init(GuardianFieldThread* GuardianFieldThread,
 	FVector position,
 	uint16 type);
  
@@ -45,7 +45,7 @@ public:
 	void SetTargetPlayerEmpty();
 
 private:
-	GameGameThread* _gameGameThread;
+	GuardianFieldThread* _GuardianFieldThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
 	FRotator _rotation{ 0,0,0 }; // 현재 방향

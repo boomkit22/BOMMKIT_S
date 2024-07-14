@@ -1,4 +1,4 @@
-#include "GameGameThread.h"
+#include "GuardianFieldThread.h"
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
@@ -14,7 +14,7 @@ using namespace std;
 //이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
 
 
-GameGameThread::GameGameThread(GameServer* gameServer,int threadId) : GameThread(threadId, 1)
+GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId) : GameThread(threadId, 1)
 {
 	_gameServer = gameServer;
 	SetGameServer((CNetServer*)gameServer);
@@ -22,13 +22,13 @@ GameGameThread::GameGameThread(GameServer* gameServer,int threadId) : GameThread
 
 
 
-void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
+void GuardianFieldThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 {
 	Player* player = nullptr;
 	auto it = _playerMap.find(sessionId);
 	if (it == _playerMap.end())
 	{
-		LOG(L"GameGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
+		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
 		return;
 	}
 	player = it->second;
@@ -76,7 +76,7 @@ void GameGameThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 
 
 
-void GameGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
+void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
 	auto playerIt = _playerMap.find(sessionId);
 	if (playerIt == _playerMap.end())
@@ -106,7 +106,7 @@ void GameGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	}
 	else
 	{
-		LOG(L"GameGameThread", LogLevel::Error, L"no disconnect : %lld, OnLeaveThread", sessionId);
+		LOG(L"GuardianFieldThread", LogLevel::Error, L"no disconnect : %lld, OnLeaveThread", sessionId);
 	}
 
 	int deletedNum = _playerMap.erase(sessionId);
@@ -114,12 +114,12 @@ void GameGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	{
 		// 이미 삭제된 경우
 		// 더미 기준에서는 발생하면 안됨
-		LOG(L"GameGameThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
+		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
 }
 
 
-void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
+void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 {
 	//TODO: map에 추가
 	//TODO: 플레이어 생성
@@ -130,10 +130,11 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		__debugbreak();
 	}
 
-	// 필드 이동 응답 보내고
+	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
 	uint8 status = true;
-	MP_SC_FIELD_MOVE(packet, status);
+	uint16 fieldID = FIELD_LOBBY;
+	MP_SC_FIELD_MOVE(packet, status, fieldID);
 	//TODO: send
 	SendPacket(p->_sessionId, packet);
 	printf("send field move\n");
@@ -212,7 +213,7 @@ void GameGameThread::OnEnterThread(int64 sessionId, void* ptr)
 	}
 }
 
-void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
+void GuardianFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
 {
 	//TODO: 모든 유저에게 패킷 브로드캐스팅
 	int64 characterNo = p->playerInfo.PlayerID;
@@ -229,7 +230,7 @@ void GameGameThread::HandleCharacterMove(Player* p, CPacket* packet)
 	p->SetDestination(destination);
 }
 
-void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
+void GuardianFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 {
 	//브로드 캐스팅
 	//TODO: 서버에서 검증하기
@@ -264,7 +265,7 @@ void GameGameThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	 }
 }
 
-void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
+void GuardianFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
 {
 	//이건 플레이어 빼고 브로드캐스팅
 	int64 CharacterId = p->playerInfo.PlayerID;
@@ -287,7 +288,7 @@ void GameGameThread::HandleCharacterSkill(Player* p, CPacket* packet)
 	CPacket::Free(resSkillPacket);
 }
 
-void GameGameThread::HandleCharacterStop(Player* p, CPacket* packet)
+void GuardianFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
 {
 	//브로드 캐스팅
 	int64 characterID = p->playerInfo.PlayerID;
@@ -301,13 +302,13 @@ void GameGameThread::HandleCharacterStop(Player* p, CPacket* packet)
 	CPacket::Free(stopPacket);
 }
 
-void GameGameThread::GameRun(float deltaTime)
+void GuardianFieldThread::GameRun(float deltaTime)
 {
 	UpdatePlayers(deltaTime);
 	UpdateMonsters(deltaTime);
 }
 
-void GameGameThread::SpawnMonster()
+void GuardianFieldThread::SpawnMonster()
 {
 	Monster*  monster = _monsterPool.Alloc();
 	FVector randomLocation{ rand() % 2000, rand() % 2000, 88.1 };
@@ -327,12 +328,12 @@ void GameGameThread::SpawnMonster()
 	CPacket::Free(packet);
 }
 
-void GameGameThread::SendPacket(int64 sessionId, CPacket* packet)
+void GuardianFieldThread::SendPacket(int64 sessionId, CPacket* packet)
 {
 	SendPacket_Unicast(sessionId, packet);
 }
 
-void GameGameThread::SendPacket_BroadCast(CPacket* packet)
+void GuardianFieldThread::SendPacket_BroadCast(CPacket* packet)
 {
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
@@ -340,7 +341,7 @@ void GameGameThread::SendPacket_BroadCast(CPacket* packet)
 	}
 }
 
-void GameGameThread::UpdatePlayers(float deltaTime)
+void GuardianFieldThread::UpdatePlayers(float deltaTime)
 {
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
@@ -349,7 +350,7 @@ void GameGameThread::UpdatePlayers(float deltaTime)
 	}
 }
 
-void GameGameThread::UpdateMonsters(float deltaTime)
+void GuardianFieldThread::UpdateMonsters(float deltaTime)
 {
 
 	//TODO: 몬스터 갯수 확인하기

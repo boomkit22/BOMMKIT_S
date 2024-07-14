@@ -54,6 +54,7 @@ enum PACKET_TYPE
 	//	{
 	//		WORD	Type
 	//		uint8  Status
+	//		uin16 fieldID
 	//	}
 	//------------------------------------------------------------
 	PACKET_SC_GAME_RES_FIELD_MOVE = 1004,

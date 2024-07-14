@@ -6,7 +6,7 @@
 #include "Data.h"
 
 
-void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
+void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status, uint16& fieldID)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -14,7 +14,7 @@ void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status)
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_FIELD_MOVE;
-	*packet << type << status;
+	*packet << type << status << fieldID;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

@@ -5,20 +5,20 @@
 #include <algorithm>
 #include "GamePacketMaker.h"
 #include "SerializeBuffer.h"
-#include "GameGameThread.h"
+#include "GuardianFieldThread.h"
 
 Monster::Monster()
 {
 }
 
-void Monster::Init(GameGameThread* gameGameThread,
+void Monster::Init(GuardianFieldThread* GuardianFieldThread,
 	FVector position, uint16 type)
 {
 	// monsterId : 1씩 증가
 	static int64 monsterIdGenerator = 0;
 	_monsterInfo.MonsterID = ++monsterIdGenerator;
 	_monsterInfo.Type = type;
-	_gameGameThread = gameGameThread;
+	_GuardianFieldThread = GuardianFieldThread;
 	_position = position;
 	_state = MonsterState::MS_IDLE;
 	_speed = 200.0f;
@@ -139,7 +139,7 @@ void Monster::AttackPlayer(float deltaTime)
 				//Stop Packet도 그냥 보냅시다
 	/*			CPacket*  monsterStopPacket = CPacket::Alloc();
 				MP_SC_GAME_RES_MONSTER_STOP(monsterStopPacket, _monsterInfo.MonsterID, _position, _rotation);
-				_gameGameThread->SendPacket_BroadCast(monsterStopPacket);
+				_GuardianFieldThread->SendPacket_BroadCast(monsterStopPacket);
 				CPacket::Free(monsterStopPacket);*/
 
 				//여기서 공격하면 된다
@@ -148,7 +148,7 @@ void Monster::AttackPlayer(float deltaTime)
 				CPacket* monsterSkilPacket = CPacket::Alloc();
 				int32 SkillID = 1;
 				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, _monsterInfo.MonsterID, _position, _rotation, SkillID);
-				_gameGameThread->SendPacket_BroadCast(monsterSkilPacket);
+				_GuardianFieldThread->SendPacket_BroadCast(monsterSkilPacket);
 				CPacket::Free(monsterSkilPacket);
 				
 				//데미지 패킷 전송
@@ -160,7 +160,7 @@ void Monster::AttackPlayer(float deltaTime)
 				int64 TargetID = _targetPlayer->playerInfo.PlayerID;
 				int32 Damage = _damage;
 				MP_SC_GAME_RES_DAMAGE(resDamagePacket, AttackerType, AttackerID, targetType, TargetID, Damage);
-				_gameGameThread->SendPacket_BroadCast(resDamagePacket);
+				_GuardianFieldThread->SendPacket_BroadCast(resDamagePacket);
 				CPacket::Free(resDamagePacket);
 				_attackTimer = 0;
 			}
@@ -183,7 +183,7 @@ void Monster::ChasePlayer(float deltaTime)
 			//idle상태라고 보내기 MonsterStop 패킷
 			/*CPacket* idlePacket = CPacket::Alloc();
 			MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
-			_gameGameThread->SendPacket_BroadCast(idlePacket);
+			_GuardianFieldThread->SendPacket_BroadCast(idlePacket);
 			CPacket::Free(idlePacket)*/;
 
 			// maxChaseTime 초과하면
@@ -230,7 +230,7 @@ void Monster::SetDestination(FVector dest)
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
-	_gameGameThread->SendPacket_BroadCast(packet);
+	_GuardianFieldThread->SendPacket_BroadCast(packet);
 	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
 
 
@@ -253,7 +253,7 @@ void Monster::SetRandomDestination()
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
-	_gameGameThread->SendPacket_BroadCast(packet);
+	_GuardianFieldThread->SendPacket_BroadCast(packet);
 
 	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
 
@@ -280,7 +280,7 @@ void Monster::TakeDamage(int damage, Player* attacker)
 		//몬스터 죽었을때 패킷 보내기
 		CPacket* diePacket = CPacket::Alloc();
 		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID, _position, _rotation);
-		_gameGameThread->SendPacket_BroadCast(diePacket);
+		_GuardianFieldThread->SendPacket_BroadCast(diePacket);
 		CPacket::Free(diePacket);
 
 		// 또 뭐해야하지
@@ -320,6 +320,6 @@ void Monster::SetTargetPlayerEmpty()
 	//idle상태라고 보내기 MonsterStop 패킷
 	CPacket* idlePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
-	_gameGameThread->SendPacket_BroadCast(idlePacket);
+	_GuardianFieldThread->SendPacket_BroadCast(idlePacket);
 	CPacket::Free(idlePacket);
 }

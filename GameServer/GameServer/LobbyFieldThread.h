@@ -7,10 +7,10 @@
 #include "ObjectPool.h"
 #include "Monster.h"
 
-class GameGameThread : public GameThread
+class LobbyFieldThread : public GameThread
 {
 public:
-	GameGameThread(GameServer* gameServer, int threadId);
+	GuardianFieldThread(GameServer* gameServer, int threadId);
 
 public:
 	int64 GetPlayerSize() override
@@ -21,7 +21,7 @@ public:
 private:
 	GameServer* _gameServer;
 	std::unordered_map<int64, Player*> _playerMap;
-	
+
 private:
 	//∏ÛΩ∫≈Õ
 	std::vector<Monster*> _monsters;
@@ -29,7 +29,7 @@ private:
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
 	int32 _maxMonsterNum = 30;
-	
+
 
 
 public:
