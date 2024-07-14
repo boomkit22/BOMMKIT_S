@@ -10,7 +10,10 @@ const double PLAYER_Z_VALUE = 95.2f;
 class Player
 {
 	friend class GameServer;
+	
 	friend class GuardianFieldThread;
+	friend class LobbyFieldThread;
+	friend class SpiderFieldThread;
 	friend class LoginGameThread;
 
 private:

@@ -93,4 +93,11 @@ void LoginGameThread::GameRun(float deltaTime)
 {
 }
 
+void LoginGameThread::SendPacket_BroadCast(CPacket* packet)
+{
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		SendPacket_Unicast(it->first, packet);
+	}
+}
 

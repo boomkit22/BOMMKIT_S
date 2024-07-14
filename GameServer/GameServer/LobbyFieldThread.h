@@ -10,7 +10,7 @@
 class LobbyFieldThread : public GameThread
 {
 public:
-	GuardianFieldThread(GameServer* gameServer, int threadId);
+	LobbyFieldThread(GameServer* gameServer, int threadId);
 
 public:
 	int64 GetPlayerSize() override
@@ -39,7 +39,6 @@ public:
 	void OnEnterThread(int64 sessionId, void* ptr) override;
 
 	void SendPacket(int64 sessionId, CPacket* packet);
-	void SendPacket_BroadCast(CPacket* packet);
 
 
 private:
@@ -54,6 +53,10 @@ private:
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
 
+
+
+	// GameThread을(를) 통해 상속됨
+	virtual void SendPacket_BroadCast(CPacket* packet) override;
 
 };
 

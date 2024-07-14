@@ -39,7 +39,7 @@ public:
 	void OnEnterThread(int64 sessionId, void* ptr) override;
 
 	void SendPacket(int64 sessionId, CPacket* packet);
-	void SendPacket_BroadCast(CPacket* packet);
+	virtual void SendPacket_BroadCast(CPacket* packet) override;
 
 
 private:
@@ -53,6 +53,8 @@ private:
 	void UpdateMonsters(float deltaTime);
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
+
+
 
 
 };

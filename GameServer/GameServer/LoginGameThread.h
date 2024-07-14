@@ -64,6 +64,9 @@ private:
 	// GameThread을(를) 통해 상속됨
 	void GameRun(float deltaTime) override;
 
+
 	// GameThread을(를) 통해 상속됨
+	void SendPacket_BroadCast(CPacket* packet) override;
+
 };
 

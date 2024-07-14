@@ -100,7 +100,8 @@ public:
 
 public:
 	virtual void OnEnterThread(int64 sessionId, void* ptr) = 0;
-
+	virtual void SendPacket_BroadCast(CPacket* packet) = 0;
+	
 public:
 	void SetGameServer(CNetServer* server)
 	{
@@ -130,10 +131,11 @@ public:
 	std::vector<int64> GetSessions();
 
 
+protected:
+	uint16 _gameThreadID;
 private:
 	bool _running = true;
 	bool _isAlive = true;
-	int _gameThreadId;
 	int _runningThread = 0;
 };
 

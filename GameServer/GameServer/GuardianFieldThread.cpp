@@ -133,7 +133,7 @@ void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
 	uint8 status = true;
-	uint16 fieldID = FIELD_LOBBY;
+	uint16 fieldID = _gameThreadID;
 	MP_SC_FIELD_MOVE(packet, status, fieldID);
 	//TODO: send
 	SendPacket(p->_sessionId, packet);
@@ -333,13 +333,6 @@ void GuardianFieldThread::SendPacket(int64 sessionId, CPacket* packet)
 	SendPacket_Unicast(sessionId, packet);
 }
 
-void GuardianFieldThread::SendPacket_BroadCast(CPacket* packet)
-{
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		SendPacket_Unicast(it->first, packet);
-	}
-}
 
 void GuardianFieldThread::UpdatePlayers(float deltaTime)
 {
@@ -374,5 +367,13 @@ void GuardianFieldThread::UpdateMonsters(float deltaTime)
 		}
 
 		(*it)->Update(deltaTime);
+	}
+}
+
+void GuardianFieldThread::SendPacket_BroadCast(CPacket* packet)
+{
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		SendPacket_Unicast(it->first, packet);
 	}
 }

@@ -4,7 +4,8 @@
 
 #define M_PI 3.141592653589
 class Player;
-class GuardianFieldThread;
+class GameThread;
+
 enum class MonsterState {
 	MS_IDLE,
 	MS_MOVING,
@@ -19,10 +20,12 @@ enum class MonsterState {
 class Monster
 {
 	friend class GuardianFieldThread;
+	friend class LobbyFieldThread;
+	friend class SpiderFieldThread;
 public:
 	Monster();
 
-	void Init(GuardianFieldThread* GuardianFieldThread,
+	void Init(GameThread* GameThread,
 	FVector position,
 	uint16 type);
  
@@ -45,7 +48,7 @@ public:
 	void SetTargetPlayerEmpty();
 
 private:
-	GuardianFieldThread* _GuardianFieldThread;
+	GameThread* _GameThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
 	FRotator _rotation{ 0,0,0 }; // 현재 방향

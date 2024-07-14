@@ -1,4 +1,4 @@
-#include "GuardianFieldThread.h"
+#include "LobbyFieldThread.h"
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
@@ -14,15 +14,16 @@ using namespace std;
 //이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
 
 
-GuardianFieldThread::GuardianFieldThread(GameServer* gameServer, int threadId) : GameThread(threadId, 1)
+LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId) : GameThread(threadId, 1)
 {
 	_gameServer = gameServer;
 	SetGameServer((CNetServer*)gameServer);
+
 }
 
 
 
-void GuardianFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
+void LobbyFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 {
 	Player* player = nullptr;
 	auto it = _playerMap.find(sessionId);
@@ -76,7 +77,7 @@ void GuardianFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 
 
 
-void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
+void LobbyFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
 	auto playerIt = _playerMap.find(sessionId);
 	if (playerIt == _playerMap.end())
@@ -119,7 +120,7 @@ void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 }
 
 
-void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
+void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 {
 	//TODO: map에 추가
 	//TODO: 플레이어 생성
@@ -133,7 +134,7 @@ void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
 	uint8 status = true;
-	uint16 fieldID = FIELD_LOBBY;
+	uint16 fieldID = _gameThreadID;
 	MP_SC_FIELD_MOVE(packet, status, fieldID);
 	//TODO: send
 	SendPacket(p->_sessionId, packet);
@@ -213,7 +214,7 @@ void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	}
 }
 
-void GuardianFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
+void LobbyFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
 {
 	//TODO: 모든 유저에게 패킷 브로드캐스팅
 	int64 characterNo = p->playerInfo.PlayerID;
@@ -230,7 +231,7 @@ void GuardianFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
 	p->SetDestination(destination);
 }
 
-void GuardianFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
+void LobbyFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 {
 	//브로드 캐스팅
 	//TODO: 서버에서 검증하기
@@ -244,28 +245,29 @@ void GuardianFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 
 	int32 damage = p->_damage;
 
-	CPacket* resDamagePacket = CPacket::Alloc();
+	//로비쓰레드는 데미지 없고
+	/*CPacket* resDamagePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
 	SendPacket_BroadCast(resDamagePacket);
-	CPacket::Free(resDamagePacket);
+	CPacket::Free(resDamagePacket);*/
 
 
 
 	//TODO: 몬스터에서 검색
-	if (targetType == TYPE_MONSTER)
-	{
-		for (auto monster : _monsters)
-		{
-			if (monster->_monsterInfo.MonsterID == targetID)
-			{
-				monster->TakeDamage(damage, p);
-				break;
-			}
-		}
-	}
+	//if (targetType == TYPE_MONSTER)
+	//{
+	//	for (auto monster : _monsters)
+	//	{
+	//		if (monster->_monsterInfo.MonsterID == targetID)
+	//		{
+	//			monster->TakeDamage(damage, p);
+	//			break;
+	//		}
+	//	}
+	//}
 }
 
-void GuardianFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
+void LobbyFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
 {
 	//이건 플레이어 빼고 브로드캐스팅
 	int64 CharacterId = p->playerInfo.PlayerID;
@@ -288,7 +290,7 @@ void GuardianFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
 	CPacket::Free(resSkillPacket);
 }
 
-void GuardianFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
+void LobbyFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
 {
 	//브로드 캐스팅
 	int64 characterID = p->playerInfo.PlayerID;
@@ -302,13 +304,15 @@ void GuardianFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
 	CPacket::Free(stopPacket);
 }
 
-void GuardianFieldThread::GameRun(float deltaTime)
+void LobbyFieldThread::GameRun(float deltaTime)
 {
 	UpdatePlayers(deltaTime);
-	UpdateMonsters(deltaTime);
+
+	// Lobby Thread에는 몬스터 없고
+	//UpdateMonsters(deltaTime);
 }
 
-void GuardianFieldThread::SpawnMonster()
+void LobbyFieldThread::SpawnMonster()
 {
 	Monster* monster = _monsterPool.Alloc();
 	FVector randomLocation{ rand() % 2000, rand() % 2000, 88.1 };
@@ -328,20 +332,8 @@ void GuardianFieldThread::SpawnMonster()
 	CPacket::Free(packet);
 }
 
-void GuardianFieldThread::SendPacket(int64 sessionId, CPacket* packet)
-{
-	SendPacket_Unicast(sessionId, packet);
-}
 
-void GuardianFieldThread::SendPacket_BroadCast(CPacket* packet)
-{
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		SendPacket_Unicast(it->first, packet);
-	}
-}
-
-void GuardianFieldThread::UpdatePlayers(float deltaTime)
+void LobbyFieldThread::UpdatePlayers(float deltaTime)
 {
 	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
 	{
@@ -350,7 +342,7 @@ void GuardianFieldThread::UpdatePlayers(float deltaTime)
 	}
 }
 
-void GuardianFieldThread::UpdateMonsters(float deltaTime)
+void LobbyFieldThread::UpdateMonsters(float deltaTime)
 {
 
 	//TODO: 몬스터 갯수 확인하기
@@ -374,5 +366,19 @@ void GuardianFieldThread::UpdateMonsters(float deltaTime)
 		}
 
 		(*it)->Update(deltaTime);
+	}
+}
+
+
+void LobbyFieldThread::SendPacket(int64 sessionId, CPacket* packet)
+{
+	SendPacket_Unicast(sessionId, packet);
+}
+
+void LobbyFieldThread::SendPacket_BroadCast(CPacket* packet)
+{
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		SendPacket_Unicast(it->first, packet);
 	}
 }

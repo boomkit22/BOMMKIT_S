@@ -18,6 +18,7 @@
 #include "GameThreadInfo.h"
 #include "CpuUsage.h"
 #include <time.h>
+#include "GameData.h"
 //#define _LOG
 //같은쓰레드를 여러개 만들면?
 
@@ -26,7 +27,10 @@ using namespace std;
 GameServer::GameServer()
 {
 	InitializeSRWLock(&_playerMapLock);
-	_GuardianFieldThread = new GuardianFieldThread(this, ECHO_THREAD);
+	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY);
+	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN);
+	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER);
+
 	_loginGameThread = new LoginGameThread(this, LOGIN_THREAD);
 	RegisterDefaultGameThread(_loginGameThread);
 	LOG(L"System", LogLevel::System, L"GameServer()");

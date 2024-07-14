@@ -18,7 +18,7 @@ GameThread::GameThread(int threadId, int msPerFram) : _msPerFrame(msPerFram)
 	_gameThreadInfoMap.insert({ threadId, this });
 	ReleaseSRWLockExclusive(&_gameThreadInfoMapLock);
 	
-	_gameThreadId = threadId;
+	_gameThreadID = threadId;
 	int errorCode;
 
 	_hUpdateThread = (HANDLE)_beginthreadex(nullptr, 0, UpdateThreadStatic, this, 0, nullptr);
@@ -291,7 +291,8 @@ bool GameThread::MoveGameThread(int gameThreadId, int64 sessionId, void* ptr)
 void GameThread::Stop()
 {
 	AcquireSRWLockExclusive(&_gameThreadInfoMapLock);
-	_gameThreadInfoMap.erase(_gameThreadId);
+	_gameThreadInfoMap.erase(_gameThreadID);
+
 	ReleaseSRWLockExclusive(&_gameThreadInfoMapLock);
 	_running = false;
 }

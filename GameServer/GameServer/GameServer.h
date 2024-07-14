@@ -4,11 +4,13 @@
 #include "Player.h"
 #include "MonitorClient.h"
 #include "PerformanceMonitor.h"
-#include "GuardianFieldThread.h"
-#include "LoginGameThread.h"
 #include <map>
 #include "Log.h"
 
+#include "GuardianFieldThread.h"
+#include "LobbyFieldThread.h"
+#include "SpiderFieldThread.h"
+#include "LoginGameThread.h"
 
 class GameServer : public CNetServer
 {
@@ -57,6 +59,10 @@ private: // 플레이어
 	SRWLOCK _playerMapLock;
 	LockFreeObjectPool<class Player, false> _playerPool;
 	std::unordered_map<int64, Player*> _globalPlayerMap;
+
+private:
+	LobbyFieldThread* _LobbyFieldThread = nullptr;
+	SpiderFieldThread* _SpiderFieldThread = nullptr;
 	GuardianFieldThread* _GuardianFieldThread = nullptr;
 	LoginGameThread* _loginGameThread = nullptr;
 
