@@ -46,6 +46,8 @@ private:
 	void HandleCharacterAttack(Player* p, CPacket* packet);
 	void HandleCharacterSkill(Player* p, CPacket* packet);
 	void HandleCharacterStop(Player* p, CPacket* packet);
+	void HandleFieldMove(Player* p, CPacket* packet);
+
 
 
 	void UpdatePlayers(float deltaTime);

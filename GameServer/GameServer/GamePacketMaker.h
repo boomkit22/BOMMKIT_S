@@ -21,3 +21,6 @@ void MP_SC_GAME_RES_MONSTER_STOP(CPacket* packet, int64& monsterID, FVector& pos
 
 void MP_SC_GAME_RES_CHARACTER_DEATH(CPacket* packet, int64& characterID, FVector DeathLocation, FRotator DeathRotation);
 void MP_SC_GAME_RES_MONSTER_DEATH(CPacket* packet, int64& monsterID, FVector DeathLocation, FRotator DeathRotation);
+
+
+void MP_SC_GAME_DESPAWN_OTHER_CHARACTER(CPacket* packet, int64& characterNO);

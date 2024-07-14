@@ -23,12 +23,7 @@ private:
 	std::unordered_map<int64, Player*> _playerMap;
 
 private:
-	//∏ÛΩ∫≈Õ
-	std::vector<Monster*> _monsters;
 	virtual void GameRun(float deltaTime) override;
-	void SpawnMonster();
-	CObjectPool<Monster, false> _monsterPool;
-	int32 _maxMonsterNum = 30;
 
 
 
@@ -48,9 +43,7 @@ private:
 	void HandleCharacterStop(Player* p, CPacket* packet);
 	void HandleFieldMove(Player* p, CPacket* packet);
 
-
 	void UpdatePlayers(float deltaTime);
-	void UpdateMonsters(float deltaTime);
 private:
 	uint16 serverPacketCode = Data::serverPacketCode;
 

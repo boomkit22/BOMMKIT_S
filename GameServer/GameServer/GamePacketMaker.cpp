@@ -193,6 +193,20 @@ void MP_SC_GAME_RES_MONSTER_DEATH(CPacket* packet, int64& monsterID, FVector Dea
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+void MP_SC_GAME_DESPAWN_OTHER_CHARACTER(CPacket* packet, int64& characterNO)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+
+	uint16 type = PACKET_SC_GAME_DESPAWN_OTHER_CHARACTER;
+	*packet << type << characterNO;
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
 
 
 

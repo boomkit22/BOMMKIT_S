@@ -63,6 +63,11 @@ void GuardianFieldThread::HandleRecvPacket(int64 sessionId, CPacket * packet)
 	}
 	break;
 
+	case PACKET_CS_GAME_REQ_FIELD_MOVE:
+	{
+		HandleFieldMove(player, packet);
+	}
+	break;
 
 
 	default:
@@ -90,6 +95,7 @@ void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	{
 		__debugbreak();
 	}
+	int64 characterNo = player->playerInfo.PlayerID;
 
 	//나간 유저를 target으로 하고있던 player Empty상태로 만들기
 	for (auto monster : _monsters)
@@ -116,6 +122,11 @@ void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		// 더미 기준에서는 발생하면 안됨
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
+
+	CPacket* despawnPacket = CPacket::Alloc();
+	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, characterNo);
+	SendPacket_BroadCast(despawnPacket);
+	CPacket::Free(despawnPacket);
 }
 
 
@@ -300,6 +311,13 @@ void GuardianFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
 	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, characterID, position, rotation);
 	SendPacket_BroadCast(stopPacket);
 	CPacket::Free(stopPacket);
+}
+
+void GuardianFieldThread::HandleFieldMove(Player* p, CPacket* packet)
+{
+	uint16 fieldID;
+	*packet >> fieldID;
+	MoveGameThread(fieldID, p->_sessionId, p);
 }
 
 void GuardianFieldThread::GameRun(float deltaTime)

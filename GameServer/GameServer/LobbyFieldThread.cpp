@@ -11,17 +11,11 @@
 
 using namespace std;
 
-//이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
-
-
 LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId) : GameThread(threadId, 1)
 {
 	_gameServer = gameServer;
 	SetGameServer((CNetServer*)gameServer);
-
 }
-
-
 
 void LobbyFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 {
@@ -85,27 +79,15 @@ void LobbyFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 
 void LobbyFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
-	auto playerIt = _playerMap.find(sessionId);
-	if (playerIt == _playerMap.end())
+	//TODO: 이 플레이어 despawn메시지 보내기
+	auto it = _playerMap.find(sessionId);
+	if (it == _playerMap.end())
 	{
-		// 이미 삭제된 경우
-		// 더미 기준에서는 발생하면 안됨
-		__debugbreak();
+		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
+		return;
 	}
-	Player* player = playerIt->second;
-	if (player == nullptr)
-	{
-		__debugbreak();
-	}
-
-	//나간 유저를 target으로 하고있던 player Empty상태로 만들기
-	for (auto monster : _monsters)
-	{
-		if (monster->_targetPlayer == player)
-		{
-			monster->SetTargetPlayerEmpty();
-		}
-	}
+	Player* p = it->second;
+	int64 characterNo = p->playerInfo.PlayerID;
 
 	if (disconnect)
 	{
@@ -123,6 +105,14 @@ void LobbyFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		// 더미 기준에서는 발생하면 안됨
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
+	//먼저삭제하고 broadcast하면 되긴하는데
+
+
+
+	CPacket* despawnPacket = CPacket::Alloc();
+	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, characterNo);
+	SendPacket_BroadCast(despawnPacket);
+	CPacket::Free(despawnPacket);
 }
 
 
@@ -196,28 +186,6 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
 	}
-
-
-	//TODO: 몬스터들 소환 패킷 보내고 
-	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
-	{
-		Monster* monster = *it;
-		CPacket* spawnMonsterPacket = CPacket::Alloc();
-		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
-		SendPacket(p->_sessionId, spawnMonsterPacket);
-		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
-		CPacket::Free(spawnMonsterPacket);
-
-		if (monster->_state == MonsterState::MS_MOVING)
-		{
-			CPacket* movePacket = CPacket::Alloc();
-			MP_SC_MONSTER_MOVE(movePacket, monster->_monsterInfo.MonsterID, monster->_destination, monster->_rotation);
-			SendPacket(p->_sessionId, movePacket);
-			CPacket::Free(movePacket);
-		}
-
-		//현재 이동중이었으면 이동패킷 까지 보내기
-	}
 }
 
 void LobbyFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
@@ -248,29 +216,6 @@ void LobbyFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	int64 targetID;
 
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
-
-	int32 damage = p->_damage;
-
-	//로비쓰레드는 데미지 없고
-	/*CPacket* resDamagePacket = CPacket::Alloc();
-	MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
-	SendPacket_BroadCast(resDamagePacket);
-	CPacket::Free(resDamagePacket);*/
-
-
-
-	//TODO: 몬스터에서 검색
-	//if (targetType == TYPE_MONSTER)
-	//{
-	//	for (auto monster : _monsters)
-	//	{
-	//		if (monster->_monsterInfo.MonsterID == targetID)
-	//		{
-	//			monster->TakeDamage(damage, p);
-	//			break;
-	//		}
-	//	}
-	//}
 }
 
 void LobbyFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
@@ -318,33 +263,12 @@ void LobbyFieldThread::HandleFieldMove(Player* p, CPacket* packet)
 }
 
 void LobbyFieldThread::GameRun(float deltaTime)
-{
+{								
 	UpdatePlayers(deltaTime);
 
 	// Lobby Thread에는 몬스터 없고
 	//UpdateMonsters(deltaTime);
 }
-
-void LobbyFieldThread::SpawnMonster()
-{
-	Monster* monster = _monsterPool.Alloc();
-	FVector randomLocation{ rand() % 2000, rand() % 2000, 88.1 };
-	std::clamp(randomLocation.X, double(100), double(2000));
-	std::clamp(randomLocation.Y, double(100), double(2000));
-
-	monster->Init(this, randomLocation, MONSTER_TYPE_GUARDIAN);
-	_monsters.push_back(monster);
-
-	//TODO: 몬스터 스폰 패킷 날리기
-	CPacket* packet = CPacket::Alloc();
-	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation);
-
-	printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
-
-	SendPacket_BroadCast(packet);
-	CPacket::Free(packet);
-}
-
 
 void LobbyFieldThread::UpdatePlayers(float deltaTime)
 {
@@ -354,34 +278,6 @@ void LobbyFieldThread::UpdatePlayers(float deltaTime)
 		player->Update(deltaTime);
 	}
 }
-
-void LobbyFieldThread::UpdateMonsters(float deltaTime)
-{
-
-	//TODO: 몬스터 갯수 확인하기
-// 몬스터 없으면 Spawn 하고
-	int currentMonsterSize = _monsters.size();
-	if (currentMonsterSize < _maxMonsterNum)
-	{
-		SpawnMonster();
-		printf("Spawn Monster\n");
-	}
-
-	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
-	{
-		//죽었으면 일단 풀에 집어넣고
-		MonsterState state = (*it)->GetState();
-		if (state == MonsterState::MS_DEATH)
-		{
-			_monsterPool.Free(*it);
-			_monsters.erase(it);
-			continue;
-		}
-
-		(*it)->Update(deltaTime);
-	}
-}
-
 
 void LobbyFieldThread::SendPacket(int64 sessionId, CPacket* packet)
 {
