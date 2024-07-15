@@ -14,7 +14,7 @@
 
 using namespace std;
 
-LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId) : BasePacketHandleThread(gameServer, threadId)
+LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId) : FieldPacketHandleThread(gameServer, threadId)
 {
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HandleCharacterAttack(p, packet); });
 }

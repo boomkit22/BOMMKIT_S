@@ -2,13 +2,13 @@
 #include <map>
 #include <vector>
 #include "ObjectPool.h"
-#include "BasePacketHandleThread.h"
+#include "FieldPacketHandleThread.h"
 
 class Player;
 class CPacket;
 class GameServer;
 
-class LobbyFieldThread : public BasePacketHandleThread
+class LobbyFieldThread : public FieldPacketHandleThread
 {
 public:
 	LobbyFieldThread(GameServer* gameServer, int threadId);
