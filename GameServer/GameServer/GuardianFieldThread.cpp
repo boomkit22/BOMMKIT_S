@@ -217,6 +217,11 @@ void GuardianFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 		 {
 			 if (monster->_monsterInfo.MonsterID == targetID)
 			 {
+				 CPacket* resDamagePacket = CPacket::Alloc();
+				 MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
+				 SendPacket_BroadCast(resDamagePacket);
+				 CPacket::Free(resDamagePacket);
+
 				 monster->TakeDamage(damage, p);
 				 break;
 			 }
