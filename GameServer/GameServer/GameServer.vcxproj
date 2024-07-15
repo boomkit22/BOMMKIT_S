@@ -155,17 +155,18 @@
     <ClCompile Include="..\..\lib\Util\Profiler.cpp" />
     <ClCompile Include="..\..\lib\Util\TextParser.cpp" />
     <ClCompile Include="..\..\lib\Util\Util.cpp" />
+    <ClCompile Include="BasePacketHandleThread.cpp" />
     <ClCompile Include="ClientPacketMaker.cpp" />
+    <ClCompile Include="FieldPacketHandleThread.cpp" />
     <ClCompile Include="GuardianFieldThread.cpp" />
-    <ClCompile Include="GamePacketMaker.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="LobbyFieldThread.cpp" />
     <ClCompile Include="LoginGameThread.cpp" />
-    <ClCompile Include="LoginPacketMaker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MonitorClient.cpp" />
     <ClCompile Include="MonitorPacketMaker.cpp" />
     <ClCompile Include="Monster.cpp" />
+    <ClCompile Include="PacketMaker.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="SpiderFieldThread.cpp" />
   </ItemGroup>
@@ -191,9 +192,10 @@
     <ClInclude Include="..\..\lib\Util\Profiler.h" />
     <ClInclude Include="..\..\lib\Util\TextParser.h" />
     <ClInclude Include="..\..\lib\Util\Util.h" />
+    <ClInclude Include="BasePacketHandleThread.h" />
+    <ClInclude Include="FieldPacketHandleThread.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="GuardianFieldThread.h" />
-    <ClInclude Include="GamePacketMaker.h" />
     <ClInclude Include="GameServer.h" />
     <ClInclude Include="GameThreadInfo.h" />
     <ClInclude Include="LobbyFieldThread.h" />
@@ -203,6 +205,7 @@
     <ClInclude Include="MonitorPacketMaker.h" />
     <ClInclude Include="Monster.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="PacketMaker.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="SpiderFieldThread.h" />
   </ItemGroup>

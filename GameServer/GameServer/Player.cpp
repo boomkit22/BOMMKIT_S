@@ -1,6 +1,6 @@
 #include "Player.h"
 #include "Type.h"
-
+#include "GameData.h"
 using namespace std;
 
 
@@ -30,12 +30,17 @@ void Player::SetDestination(const FVector& NewDestination)
 
 }
 
+void Player::StopMove()
+{
+    bMoving = false;
+}
+
 void Player::Move(float deltaTime) {
     FVector Direction = { _destination.X - Position.X, _destination.Y - Position.Y, 0 };
     double Distance = std::sqrt(Direction.X * Direction.X + Direction.Y * Direction.Y);
+    FVector NormalizedDirection = { Direction.X / Distance, Direction.Y / Distance, 0 };
 
     if (Distance > 0.0) {
-        FVector NormalizedDirection = { Direction.X / Distance, Direction.Y / Distance, 0 };
         double DistanceToMove = _speed * deltaTime;
         Position.X += NormalizedDirection.X * DistanceToMove;
         Position.Y += NormalizedDirection.Y * DistanceToMove;
@@ -48,5 +53,21 @@ void Player::Move(float deltaTime) {
         bMoving = false;
     }
 
+    double RotationAngleRadians = std::atan2(NormalizedDirection.Y, NormalizedDirection.X);
+    double RotationAngleDegrees = RotationAngleRadians * 180 / PI; // 라디안을 도로 변환
+    Rotation.Yaw = RotationAngleDegrees;
+}
+
+bool Player::TakeDamage(int32 damage)
+{
+    //죽으면 tru
+    playerInfo.Hp -= damage;
+    if (playerInfo.Hp <= 0)
+    {
+		playerInfo.Hp = 0;
+		return true;
+	}
+
+    return false;
 }
 

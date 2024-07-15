@@ -7,79 +7,113 @@
 #include "Packet.h"
 #include "GameData.h"
 #include <algorithm>
-#include "GamePacketMaker.h"
+#include "PacketMaker.h"
+#include "Monster.h"
+#include "Player.h"
 
 using namespace std;
 
 //이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
 
 
-SpiderFieldThread::SpiderFieldThread(GameServer* gameServer, int threadId) : GameThread(threadId, 1)
+SpiderFieldThread::SpiderFieldThread(GameServer* gameServer, int threadId) : FieldPacketHandleThread(gameServer, threadId)
 {
-	_gameServer = gameServer;
-	SetGameServer((CNetServer*)gameServer);
+	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HandleCharacterAttack(p, packet); });
 }
 
-
-
-void SpiderFieldThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
+void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 {
-	Player* player = nullptr;
-	auto it = _playerMap.find(sessionId);
-	if (it == _playerMap.end())
+	//TODO: map에 추가
+	//TODO: 플레이어 생성
+	Player* p = (Player*)ptr;
+	auto result = _playerMap.insert({ sessionId, p });
+	if (!result.second)
 	{
-		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
-		return;
-	}
-	player = it->second;
-	
-	uint16 packetType;
-	*packet >> packetType;
-
-	switch (packetType)
-	{
-
-	case PACKET_CS_GAME_REQ_CHARACTER_MOVE:
-	{
-		HandleCharacterMove(player, packet);
-	}
-	break;
-
-	case PACKET_CS_GAME_REQ_CHARACTER_ATTACK:
-	{
-		HandleCharacterAttack(player, packet);
-	}
-	break;
-
-	case PACKET_CS_GAME_REQ_CHARACTER_SKILL:
-	{
-		HandleCharacterSkill(player, packet);
-	}
-	break;
-
-	case PACKET_CS_GAME_REQ_CHARACTER_STOP:
-	{
-		HandleCharacterStop(player, packet);
-	}
-	break;
-
-	case PACKET_CS_GAME_REQ_FIELD_MOVE:
-	{
-		HandleFieldMove(player, packet);
-	}
-	break;
-
-
-
-	default:
-		LOG(L"Packet", LogLevel::Error, L"Packet Type Not Exist");
-		__debugbreak();//TODO: 악의적인 유저가 이상한 패킷을 보냈다-> 세션 끊는다
+		__debugbreak();
 	}
 
+	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
+	CPacket* packet = CPacket::Alloc();
+	uint8 status = true;
+	uint16 fieldID = _gameThreadID;
+	MP_SC_FIELD_MOVE(packet, status, fieldID);
+	//TODO: send
+	SendPacket_Unicast(p->_sessionId, packet);
+	printf("send field move\n");
 	CPacket::Free(packet);
+
+	// 내 캐릭터 소환 패킷 보내고
+	int spawnX = rand() % 400;
+	int spawnY = rand() % 400;
+	CPacket* spawnCharacterPacket = CPacket::Alloc();
+
+	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
+	p->Position = spawnLocation;
+
+	PlayerInfo myPlayerInfo = p->playerInfo;
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
+	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
+	printf("send spawn my character\n");
+	CPacket::Free(spawnCharacterPacket);
+
+	//TODO: 다른 컈릭터들에게 이 캐릭터 소환 패킷 보내고
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		if (it->first == sessionId)
+			continue;
+		Player* other = it->second;
+
+		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
+		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
+		//spawnOtherCharacterInfo.NickName = p->NickName;
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
+		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
+		printf("to other send spawn other character\n");
+		CPacket::Free(spawnOtherCharacterPacket);
+	}
+
+	//TODO: 이 캐릭터에게 이미 존재하고 있던 다른 캐릭터들 패킷 보내고
+	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	{
+		if (it->first == sessionId)
+			continue;
+		Player* other = it->second;
+
+		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
+		FVector OtherSpawnLocation = other->Position;
+		PlayerInfo otherPlayerInfo = other->playerInfo;
+
+		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
+
+		//spawnOtherCharacterInfo.NickName = p->NickName;
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
+		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
+		printf("to me send spawn other character\n");
+		CPacket::Free(spawnOtherCharacterPacket);
+	}
+
+
+	//TODO: 몬스터들 소환 패킷 보내고 
+	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
+	{
+		Monster* monster = *it;
+		CPacket* spawnMonsterPacket = CPacket::Alloc();
+		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
+		SendPacket_Unicast(p->_sessionId, spawnMonsterPacket);
+		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
+		CPacket::Free(spawnMonsterPacket);
+
+		if (monster->_state == MonsterState::MS_MOVING)
+		{
+			CPacket* movePacket = CPacket::Alloc();
+			MP_SC_MONSTER_MOVE(movePacket, monster->_monsterInfo.MonsterID, monster->_destination, monster->_rotation);
+			SendPacket_Unicast(p->_sessionId, movePacket);
+			CPacket::Free(movePacket);
+		}
+
+		//현재 이동중이었으면 이동패킷 까지 보내기
+	}
 }
-
-
 
 
 void SpiderFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
@@ -109,7 +143,7 @@ void SpiderFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 
 	if (disconnect)
 	{
-		_gameServer->FreePlayer(sessionId);
+		FreePlayer(sessionId);
 	}
 	else
 	{
@@ -130,117 +164,6 @@ void SpiderFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	CPacket::Free(despawnPacket);
 }
 
-
-void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
-{
-	//TODO: map에 추가
-	//TODO: 플레이어 생성
-	Player* p = (Player*)ptr;
-	auto result = _playerMap.insert({ sessionId, p });
-	if (!result.second)
-	{
-		__debugbreak();
-	}
-
-	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
-	CPacket* packet = CPacket::Alloc();
-	uint8 status = true;
-	uint16 fieldID = _gameThreadID;
-	MP_SC_FIELD_MOVE(packet, status, fieldID);
-	//TODO: send
-	SendPacket(p->_sessionId, packet);
-	printf("send field move\n");
-	CPacket::Free(packet);
-
-	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = rand() % 400;
-	int spawnY = rand() % 400;
-	CPacket* spawnCharacterPacket = CPacket::Alloc();
-
-	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
-	p->Position = spawnLocation;
-
-	PlayerInfo myPlayerInfo = p->playerInfo;
-	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
-	SendPacket(p->_sessionId, spawnCharacterPacket);
-	printf("send spawn my character\n");
-	CPacket::Free(spawnCharacterPacket);
-
-	//TODO: 다른 컈릭터들에게 이 캐릭터 소환 패킷 보내고
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		if (it->first == sessionId)
-			continue;
-		Player* other = it->second;
-
-		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
-		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
-		SendPacket(other->_sessionId, spawnOtherCharacterPacket);
-		printf("to other send spawn other character\n");
-		CPacket::Free(spawnOtherCharacterPacket);
-	}
-
-	//TODO: 이 캐릭터에게 이미 존재하고 있던 다른 캐릭터들 패킷 보내고
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		if (it->first == sessionId)
-			continue;
-		Player* other = it->second;
-
-		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		FVector OtherSpawnLocation = other->Position;
-		PlayerInfo otherPlayerInfo = other->playerInfo;
-
-		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
-
-		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
-		SendPacket(p->_sessionId, spawnOtherCharacterPacket);
-		printf("to me send spawn other character\n");
-		CPacket::Free(spawnOtherCharacterPacket);
-	}
-
-
-	//TODO: 몬스터들 소환 패킷 보내고 
-	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
-	{
-		Monster* monster = *it;
-		CPacket* spawnMonsterPacket = CPacket::Alloc();
-		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
-		SendPacket(p->_sessionId, spawnMonsterPacket);
-		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
-		CPacket::Free(spawnMonsterPacket);
-
-		if (monster->_state == MonsterState::MS_MOVING)
-		{
-			CPacket* movePacket = CPacket::Alloc();
-			MP_SC_MONSTER_MOVE(movePacket, monster->_monsterInfo.MonsterID, monster->_destination, monster->_rotation);
-			SendPacket(p->_sessionId, movePacket);
-			CPacket::Free(movePacket);
-		}
-
-		//현재 이동중이었으면 이동패킷 까지 보내기
-	}
-}
-
-void SpiderFieldThread::HandleCharacterMove(Player* p, CPacket* packet)
-{
-	//TODO: 모든 유저에게 패킷 브로드캐스팅
-	int64 characterNo = p->playerInfo.PlayerID;
-	FVector destination;
-	FRotator startRotation;
-	*packet >> destination >> startRotation;
-
-
-	CPacket* movePacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination, startRotation);
-	SendPacket_BroadCast(movePacket);
-	CPacket::Free(movePacket);
-
-	p->SetDestination(destination);
-}
 
 void SpiderFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 {
@@ -277,55 +200,12 @@ void SpiderFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	}
 }
 
-void SpiderFieldThread::HandleCharacterSkill(Player* p, CPacket* packet)
-{
-	//이건 플레이어 빼고 브로드캐스팅
-	int64 CharacterId = p->playerInfo.PlayerID;
-	FVector startLocation;
-	FRotator startRotation;
-	int32 skillID;
-
-	*packet >> startLocation >> startRotation >> skillID;
-
-	CPacket* resSkillPacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, CharacterId, startLocation, startRotation, skillID);
-
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		if (it->first == p->_sessionId)
-			continue;
-		SendPacket(it->first, resSkillPacket);
-	}
-
-	CPacket::Free(resSkillPacket);
-}
-
-void SpiderFieldThread::HandleCharacterStop(Player* p, CPacket* packet)
-{
-	//브로드 캐스팅
-	int64 characterID = p->playerInfo.PlayerID;
-	FVector position;
-	FRotator rotation;
-	*packet >> position >> rotation;
-
-	CPacket* stopPacket = CPacket::Alloc();
-	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, characterID, position, rotation);
-	SendPacket_BroadCast(stopPacket);
-	CPacket::Free(stopPacket);
-}
-
-void SpiderFieldThread::HandleFieldMove(Player* p, CPacket* packet)
-{
-	uint16 fieldID;
-	*packet >> fieldID;
-	MoveGameThread(fieldID, p->_sessionId, p);
-}
-
 void SpiderFieldThread::GameRun(float deltaTime)
 {
 	UpdatePlayers(deltaTime);
 	UpdateMonsters(deltaTime);
 }
+
 
 void SpiderFieldThread::SpawnMonster()
 {
@@ -345,11 +225,6 @@ void SpiderFieldThread::SpawnMonster()
 
 	SendPacket_BroadCast(packet);
 	CPacket::Free(packet);
-}
-
-void SpiderFieldThread::SendPacket(int64 sessionId, CPacket* packet)
-{
-	SendPacket_Unicast(sessionId, packet);
 }
 
 
@@ -388,12 +263,3 @@ void SpiderFieldThread::UpdateMonsters(float deltaTime)
 		(*it)->Update(deltaTime);
 	}
 }
-
-void SpiderFieldThread::SendPacket_BroadCast(CPacket* packet)
-{
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		SendPacket_Unicast(it->first, packet);
-	}
-}
-

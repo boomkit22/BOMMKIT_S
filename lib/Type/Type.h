@@ -45,6 +45,7 @@ struct PlayerInfo
 	uint16 Class;
 	uint16 Level;
 	uint32 Exp;
+	int32 Hp;
 };
 
 CPacket& operator<<(CPacket& packet, PlayerInfo& info);

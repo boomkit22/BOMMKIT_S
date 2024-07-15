@@ -100,7 +100,6 @@ public:
 
 public:
 	virtual void OnEnterThread(int64 sessionId, void* ptr) = 0;
-	virtual void SendPacket_BroadCast(CPacket* packet) = 0;
 	
 public:
 	void SetGameServer(CNetServer* server)

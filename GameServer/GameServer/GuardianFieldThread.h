@@ -1,62 +1,35 @@
 #pragma once
-#include "GameThread.h"
 #include <map>
-#include "Player.h"
-#include "GameServer.h"
 #include <vector>
 #include "ObjectPool.h"
-#include "Monster.h"
+#include "FieldPacketHandleThread.h"
 
-class GuardianFieldThread : public GameThread
+
+class Monster;
+class Player;
+class CPacket;
+
+class GuardianFieldThread : public FieldPacketHandleThread
 {
 public:
 	GuardianFieldThread(GameServer* gameServer, int threadId);
 
-public:
-	int64 GetPlayerSize() override
-	{
-		return _playerMap.size();
-	}
-
 private:
-	GameServer* _gameServer;
-	std::unordered_map<int64, Player*> _playerMap;
-	
+	virtual void GameRun(float deltaTime) override;
+	void UpdatePlayers(float deltaTime);
+	void UpdateMonsters(float deltaTime);
+
+	virtual void OnEnterThread(int64 sessionId, void* ptr) override;
+	virtual void OnLeaveThread(int64 sessionId, bool disconnect) override;
+
 private:
 	//몬스터
 	std::vector<Monster*> _monsters;
-	virtual void GameRun(float deltaTime) override;
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
 	int32 _maxMonsterNum = 30;
 	
-
-
-public:
-	// GameThread을(를) 통해 상속됨
-	void HandleRecvPacket(int64 sessionId, CPacket* packet) override;
-	void OnLeaveThread(int64 sessionId, bool disconnect) override;
-	void OnEnterThread(int64 sessionId, void* ptr) override;
-
-	void SendPacket(int64 sessionId, CPacket* packet);
-	virtual void SendPacket_BroadCast(CPacket* packet) override;
-
-
 private:
-	void HandleCharacterMove(Player* p, CPacket* packet);
 	void HandleCharacterAttack(Player* p, CPacket* packet);
-	void HandleCharacterSkill(Player* p, CPacket* packet);
-	void HandleCharacterStop(Player* p, CPacket* packet);
-	void HandleFieldMove(Player* p, CPacket* packet);
-
-
-	void UpdatePlayers(float deltaTime);
-	void UpdateMonsters(float deltaTime);
-private:
-	uint16 serverPacketCode = Data::serverPacketCode;
-
-
-
-
 };
 

@@ -103,9 +103,6 @@
     <ClCompile Include="GuardianFieldThread.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
-    <ClCompile Include="GamePacketMaker.cpp">
-      <Filter>GameServer\Source</Filter>
-    </ClCompile>
     <ClCompile Include="GameServer.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
@@ -124,9 +121,6 @@
     <ClCompile Include="MonitorClient.cpp">
       <Filter>MonitorClient\Source</Filter>
     </ClCompile>
-    <ClCompile Include="LoginPacketMaker.cpp">
-      <Filter>GameServer\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\lib\Type\Type.cpp">
       <Filter>lib\Type</Filter>
     </ClCompile>
@@ -137,6 +131,15 @@
       <Filter>GameServer\Source</Filter>
     </ClCompile>
     <ClCompile Include="SpiderFieldThread.cpp">
+      <Filter>GameServer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BasePacketHandleThread.cpp">
+      <Filter>GameServer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="FieldPacketHandleThread.cpp">
+      <Filter>GameServer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketMaker.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -237,13 +240,19 @@
     <ClInclude Include="GameData.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
-    <ClInclude Include="GamePacketMaker.h">
-      <Filter>GameServer\Header</Filter>
-    </ClInclude>
     <ClInclude Include="LobbyFieldThread.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
     <ClInclude Include="SpiderFieldThread.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="BasePacketHandleThread.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="FieldPacketHandleThread.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketMaker.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
   </ItemGroup>

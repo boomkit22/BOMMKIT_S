@@ -10,11 +10,12 @@ const double PLAYER_Z_VALUE = 95.2f;
 class Player
 {
 	friend class GameServer;
-	
+	friend class BasePacketHandleThread;
 	friend class GuardianFieldThread;
 	friend class LobbyFieldThread;
 	friend class SpiderFieldThread;
 	friend class LoginGameThread;
+	friend class FieldPacketHandleThread;
 
 private:
 	
@@ -30,11 +31,13 @@ private:
 
 public:
 	FVector Position;
+	FRotator Rotation;
 	PlayerInfo playerInfo;
 
 	std::vector<PlayerInfo> playerInfos;
 	void Update(float deltaTime);
 	void SetDestination(const FVector& NewDestination);
+	void StopMove();
 
 
 
@@ -43,5 +46,13 @@ private:
 	float _speed = 300.0f;
 	bool bMoving = false;
 	void Move(float deltaTime);
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="damage"></param>
+	/// <returns> return true when death </returns>
+	bool TakeDamage(int32 damage);
 };
 

@@ -2,9 +2,8 @@
 #include "Type.h"
 #include <unordered_map>
 
-#define M_PI 3.141592653589
 class Player;
-class GameThread;
+class BasePacketHandleThread;
 
 enum class MonsterState {
 	MS_IDLE,
@@ -25,7 +24,7 @@ class Monster
 public:
 	Monster();
 
-	void Init(GameThread* GameThread,
+	void Init(BasePacketHandleThread* PacketHandleThread,
 	FVector position,
 	uint16 type);
  
@@ -48,7 +47,7 @@ public:
 	void SetTargetPlayerEmpty();
 
 private:
-	GameThread* _GameThread;
+	BasePacketHandleThread* _PacketHandleThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
 	FRotator _rotation{ 0,0,0 }; // 현재 방향

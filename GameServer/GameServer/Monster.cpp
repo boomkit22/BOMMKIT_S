@@ -3,23 +3,23 @@
 #include "Player.h"
 #include "GameData.h"
 #include <algorithm>
-#include "GamePacketMaker.h"
+#include "PacketMaker.h"
 #include "SerializeBuffer.h"
-#include "GuardianFieldThread.h"
+#include "BasePAcketHandleThread.h"
 
 Monster::Monster()
 {
 }
 
 
-void Monster::Init(GameThread* GameThread,
+void Monster::Init(BasePacketHandleThread* PacketHandleThread,
 	FVector position, uint16 type)
 {
 	// monsterId : 1씩 증가
 	static int64 monsterIdGenerator = 0;
 	_monsterInfo.MonsterID = ++monsterIdGenerator;
 	_monsterInfo.Type = type;
-	_GameThread = GameThread;
+	_PacketHandleThread = PacketHandleThread;
 	_position = position;
 	_state = MonsterState::MS_IDLE;
 	_speed = 200.0f;
@@ -149,7 +149,7 @@ void Monster::AttackPlayer(float deltaTime)
 				CPacket* monsterSkilPacket = CPacket::Alloc();
 				int32 SkillID = 1;
 				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, _monsterInfo.MonsterID, _position, _rotation, SkillID);
-				_GameThread->SendPacket_BroadCast(monsterSkilPacket);
+				_PacketHandleThread->SendPacket_BroadCast(monsterSkilPacket);
 				CPacket::Free(monsterSkilPacket);
 				
 				//데미지 패킷 전송
@@ -161,7 +161,7 @@ void Monster::AttackPlayer(float deltaTime)
 				int64 TargetID = _targetPlayer->playerInfo.PlayerID;
 				int32 Damage = _damage;
 				MP_SC_GAME_RES_DAMAGE(resDamagePacket, AttackerType, AttackerID, targetType, TargetID, Damage);
-				_GameThread->SendPacket_BroadCast(resDamagePacket);
+				_PacketHandleThread->SendPacket_BroadCast(resDamagePacket);
 				CPacket::Free(resDamagePacket);
 				_attackTimer = 0;
 			}
@@ -231,7 +231,7 @@ void Monster::SetDestination(FVector dest)
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
-	_GameThread->SendPacket_BroadCast(packet);
+	_PacketHandleThread->SendPacket_BroadCast(packet);
 	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
 
 
@@ -254,7 +254,7 @@ void Monster::SetRandomDestination()
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
-	_GameThread->SendPacket_BroadCast(packet);
+	_PacketHandleThread->SendPacket_BroadCast(packet);
 
 	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
 
@@ -281,16 +281,13 @@ void Monster::TakeDamage(int damage, Player* attacker)
 		//몬스터 죽었을때 패킷 보내기
 		CPacket* diePacket = CPacket::Alloc();
 		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID, _position, _rotation);
-		_GameThread->SendPacket_BroadCast(diePacket);
+		_PacketHandleThread->SendPacket_BroadCast(diePacket);
 		CPacket::Free(diePacket);
 
 		// 또 뭐해야하지
 		// 몬스터 풀에 넣어야하나?
 		_state = MonsterState::MS_DEATH;
 	}
-
-	//일단 패킷 보내야하고 // 일단 패킷을 보낸다 ? 뭔 패킷을 보내지
-
 }
 
 float Monster::GetDistanceToPlayer(Player* player)
@@ -305,7 +302,7 @@ FRotator Monster::CalculateRotation(const FVector& oldPosition, const FVector& n
 	double dx = newPosition.X - oldPosition.X;
 	double dy = newPosition.Y - oldPosition.Y;
 	if (dx != 0 || dy != 0) { // 움직임이 있을 경우에만 회전 계산
-		_rotation.Yaw = std::atan2(dy, dx) * 180 / M_PI; // 라디안에서 도(degree)로 변환
+		_rotation.Yaw = std::atan2(dy, dx) * 180 / PI; // 라디안에서 도(degree)로 변환
 		//std::cout << "New rotation: " << rotation << " degrees" << std::endl; // 디버그 출력
 	}
 
@@ -321,6 +318,6 @@ void Monster::SetTargetPlayerEmpty()
 	//idle상태라고 보내기 MonsterStop 패킷
 	CPacket* idlePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
-	_GameThread->SendPacket_BroadCast(idlePacket);
+	_PacketHandleThread->SendPacket_BroadCast(idlePacket);
 	CPacket::Free(idlePacket);
 }

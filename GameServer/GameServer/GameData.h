@@ -15,3 +15,5 @@ const double MAX_MAP_SIZE_Y = 3900.f;
 #define FIELD_LOBBY 1
 #define FIELD_GUARDIAN 2
 #define FIELD_SPIDER 3
+
+#define PI 3.141592653589
