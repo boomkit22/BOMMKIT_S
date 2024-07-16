@@ -15,8 +15,7 @@ void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status, uint16& fieldID)
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-
-void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
+void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation, FRotator SpawnRotation)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -24,13 +23,13 @@ void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector sp
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_MY_CHARACTER;
-	*packet << type << playerInfo << spawnLocation;
+	*packet << type << playerInfo << spawnLocation << SpawnRotation;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation)
+void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector spawnLocation, FRotator SpawnRotation)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -38,7 +37,7 @@ void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo playerInfo, FVector
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_OTHER_CHAACTER;
-	*packet << type << playerInfo << spawnLocation;
+	*packet << type << playerInfo << spawnLocation << SpawnRotation;
 
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
@@ -104,7 +103,7 @@ void MP_SC_GAME_RES_MONSTER_SKILL(CPacket* packet, int64& MonsterNO, FVector Sta
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation)
+void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawnLocation, FRotator SpawnRotation)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -112,7 +111,7 @@ void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo monsterInfo, FVector spawn
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_SPAWN_MONSTER;
-	*packet << type << monsterInfo << spawnLocation;
+	*packet << type << monsterInfo << spawnLocation << SpawnRotation;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

@@ -55,6 +55,7 @@ struct MonsterInfo
 {
 	int64 MonsterID;
 	uint16 Type;
+	int32 Hp;
 };
 
 CPacket& operator<<(CPacket& packet, MonsterInfo& info);

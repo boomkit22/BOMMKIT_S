@@ -19,6 +19,8 @@ void Monster::Init(BasePacketHandleThread* PacketHandleThread,
 	static int64 monsterIdGenerator = 0;
 	_monsterInfo.MonsterID = ++monsterIdGenerator;
 	_monsterInfo.Type = type;
+	_monsterInfo.Hp= 100;
+
 	_PacketHandleThread = PacketHandleThread;
 	_position = position;
 	_state = MonsterState::MS_IDLE;
@@ -30,7 +32,6 @@ void Monster::Init(BasePacketHandleThread* PacketHandleThread,
 	_chaseTime = 0;
 	_maxChaseTime = 5.0f;
 	_aggroRange = 1000.0f;
-	_health = 100;
 	_damage = 5;
 	_rotation = { 0,0,0 };
 	_targetPlayer = nullptr;
@@ -271,8 +272,8 @@ void Monster::TakeDamage(int damage, Player* attacker)
 		_chaseTime = 0.0f;
 	}
 
-	_health -= damage;
-	if (_health > 0)
+	_monsterInfo.Hp -= damage;
+	if (_monsterInfo.Hp > 0)
 	{
 		_targetPlayer = attacker;
 		_state = MonsterState::MS_ATTACKING;

@@ -31,6 +31,7 @@ void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	{
 		__debugbreak();
 	}
+	p->StopMove();
 
 	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
@@ -43,15 +44,17 @@ void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = rand() % 400;
-	int spawnY = rand() % 400;
+	int spawnX = MAP_SIZE_X / 2 + rand() % 300;
+	int spawnY = MAP_SIZE_Y / 2 + rand() % 300;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
 	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
 	p->Position = spawnLocation;
+	FRotator spawnRotation{ 0, 0, 0 };
+	p->Rotation = spawnRotation;
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
-	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
 	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
@@ -66,7 +69,7 @@ void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
 		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
 		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
 		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -86,7 +89,7 @@ void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
 
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation, other->Rotation);
 		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -98,7 +101,7 @@ void SpiderFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	{
 		Monster* monster = *it;
 		CPacket* spawnMonsterPacket = CPacket::Alloc();
-		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position);
+		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, (*it)->_monsterInfo, (*it)->_position, monster->_rotation);
 		SendPacket_Unicast(p->_sessionId, spawnMonsterPacket);
 		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
 		CPacket::Free(spawnMonsterPacket);
@@ -210,16 +213,19 @@ void SpiderFieldThread::GameRun(float deltaTime)
 void SpiderFieldThread::SpawnMonster()
 {
 	Monster* monster = _monsterPool.Alloc();
-	FVector randomLocation{ rand() % 2000, rand() % 2000, 88.1 };
-	std::clamp(randomLocation.X, double(100), double(2000));
-	std::clamp(randomLocation.Y, double(100), double(2000));
+	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
+	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
+	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
+	FRotator spawnRotation = { 0, 0, 0 };
+	monster->Init(this, randomLocation, MONSTER_TYPE_SPIDER);
+	monster->_rotation = spawnRotation;
 
-	monster->Init(this, randomLocation, MONSTER_TYPE_GUARDIAN);
+
 	_monsters.push_back(monster);
 
 	//TODO: 몬스터 스폰 패킷 날리기
 	CPacket* packet = CPacket::Alloc();
-	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation);
+	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation, spawnRotation);
 
 	printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
 

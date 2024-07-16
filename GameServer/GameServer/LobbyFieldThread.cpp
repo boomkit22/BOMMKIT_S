@@ -60,7 +60,7 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	{
 		__debugbreak();
 	}
-
+	p->StopMove();
 	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
 	uint8 status = true;
@@ -72,15 +72,18 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = rand() % 400;
-	int spawnY = rand() % 400;
+	int spawnX = MAP_SIZE_X / 2 + rand() % 300;
+	int spawnY = MAP_SIZE_Y / 2 + rand() % 300;
+
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
 	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
 	p->Position = spawnLocation;
+	FRotator spawnRotation{ 0, 0, 0 };
+	p->Rotation = spawnRotation;
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
-	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation);
+	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
 	SendPacket_Unicast(p->_sessionId, spawnCharacterPacket);
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
@@ -95,7 +98,7 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
 		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
 		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
 		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
@@ -115,7 +118,7 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
 
 		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation);
+		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation, other->Rotation);
 		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
 		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);

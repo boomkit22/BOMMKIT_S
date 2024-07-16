@@ -27,7 +27,7 @@ private:
 	std::vector<Monster*> _monsters;
 	void SpawnMonster();
 	CObjectPool<Monster, false> _monsterPool;
-	int32 _maxMonsterNum = 30;
+	int32 _maxMonsterNum = 100;
 	
 private:
 	void HandleCharacterAttack(Player* p, CPacket* packet);

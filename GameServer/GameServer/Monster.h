@@ -66,7 +66,6 @@ private:
 	float _maxChaseTime; // 최대 추적시간
 
 	//
-	int _health = 100;
 	int _damage = 5;
 	float _defaultIdleTime = 10;
 };
