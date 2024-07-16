@@ -15,8 +15,6 @@
 
 int main()
 {
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-
 	timeBeginPeriod(1);
 	//데이터 로드
 	bool loadDataSucceed = Data::LoadData();
