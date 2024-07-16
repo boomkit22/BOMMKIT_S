@@ -46,7 +46,7 @@ void Player::Move(float deltaTime) {
         Position.Y += NormalizedDirection.Y * DistanceToMove;
     }
 
-    // 목적지에 도달했는지 확인 (예: 일정 거리 이내일 경우)
+    // 이거 범위 얼만큼해야하지
     if (std::abs(Position.X - _destination.X) < 1.0 &&
         std::abs(Position.Y - _destination.Y) < 1.0) {
         Position = _destination; // 목적지에 도달했다고 간주
@@ -54,7 +54,7 @@ void Player::Move(float deltaTime) {
     }
 
     double RotationAngleRadians = std::atan2(NormalizedDirection.Y, NormalizedDirection.X);
-    double RotationAngleDegrees = RotationAngleRadians * 180 / PI; // 라디안을 도로 변환
+    double RotationAngleDegrees = RotationAngleRadians * 180 / PI; // 라디안을 도로 언리얼 degree
     Rotation.Yaw = RotationAngleDegrees;
 }
 

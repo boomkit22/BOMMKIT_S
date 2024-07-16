@@ -25,8 +25,6 @@ private:
 	int32 _maxMonsterNum = 50;
 
 	
-
-
 private:
 	void HandleCharacterAttack(Player* p, CPacket* packet);
 

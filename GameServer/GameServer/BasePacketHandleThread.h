@@ -37,7 +37,5 @@ protected: // PacketHandler
 
 protected:
 	GameServer* _gameServer;
-
-
 };
 

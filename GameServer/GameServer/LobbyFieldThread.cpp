@@ -2,7 +2,6 @@
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
-#include "GameThreadInfo.h"
 #include "Log.h"
 #include "Packet.h"
 #include "GameData.h"

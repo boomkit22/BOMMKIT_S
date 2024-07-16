@@ -100,15 +100,7 @@ public:
 		ReleaseSRWLockExclusive(&_playerMapLock);
 		_playerPool.Free(p);
 	}
-	//Player* AllocPlayer()
-	//{
-	//	return _playerPool.Alloc();
-	//}
 
-	//void FreePlayer(Player* p)
-	//{
-	//	_playerPool.Free(p);
-	//}
 private:
 	uint16 clientPacketCode = Data::clientPacketCode;
 	void MP_SS_MONITOR_LOGIN(CPacket* packet, int& serverNo);

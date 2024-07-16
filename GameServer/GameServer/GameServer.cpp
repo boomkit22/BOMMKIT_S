@@ -15,7 +15,6 @@
 #include "algorithm"
 #include "GuardianFieldThread.h"
 #include "LoginGameThread.h"
-#include "GameThreadInfo.h"
 #include "CpuUsage.h"
 #include <time.h>
 #include "GameData.h"

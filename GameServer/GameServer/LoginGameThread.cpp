@@ -2,7 +2,6 @@
 #include "LoginGameThread.h"
 #include "SerializeBuffer.h"
 #include "Profiler.h"
-#include "GameThreadInfo.h"
 #include "GuardianFieldThread.h"
 #include "Log.h"
 #include <process.h>
@@ -310,7 +309,7 @@ void LoginGameThread::HandleCreatePlayer(Player* player, CPacket* packet)
 	if (mysql_query(&_conn, updateQuery))
 	{
 		fprintf(stderr, "last_player_id query fail: %s\n", mysql_error(&_conn));
-		// 실패한 경우 lastPlayerId를 다시 감소시켜 원래 상태로 복구
+		// 실패한 경우 lastPlayerId를 다시 감소
 		--lastPlayerId;
 
 		CPacket* resPacket = CPacket::Alloc();

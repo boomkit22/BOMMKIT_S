@@ -197,7 +197,6 @@
     <ClInclude Include="GameData.h" />
     <ClInclude Include="GuardianFieldThread.h" />
     <ClInclude Include="GameServer.h" />
-    <ClInclude Include="GameThreadInfo.h" />
     <ClInclude Include="LobbyFieldThread.h" />
     <ClInclude Include="LoginGameThread.h" />
     <ClInclude Include="MonitorClient.h" />

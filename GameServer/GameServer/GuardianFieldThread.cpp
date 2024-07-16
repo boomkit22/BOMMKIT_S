@@ -2,7 +2,6 @@
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
-#include "GameThreadInfo.h"
 #include "Log.h"
 #include "Packet.h"
 #include "GameData.h"
@@ -15,9 +14,6 @@
 
 using namespace std;
 
-//이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
-
-
 GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId) : FieldPacketHandleThread(gameServer, threadId)
 {
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HandleCharacterAttack(p, packet); });
@@ -25,8 +21,6 @@ GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId) : 
 
 void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 {
-	//TODO: map에 추가
-	//TODO: 플레이어 생성
 	Player* p = (Player*)ptr; 
 	auto result = _playerMap.insert({ sessionId, p });
 	if (!result.second)
@@ -107,6 +101,7 @@ void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
 		CPacket::Free(spawnMonsterPacket);
 
+		//현재 이동중이었으면 이동패킷 까지 보내기
 		if (monster->_state == MonsterState::MS_MOVING)
 		{
 			CPacket* movePacket = CPacket::Alloc();
@@ -114,8 +109,6 @@ void GuardianFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 			SendPacket_Unicast(p->_sessionId, movePacket);
 			CPacket::Free(movePacket);
 		}
-
-		//현재 이동중이었으면 이동패킷 까지 보내기
 	}
 }
 
@@ -125,8 +118,6 @@ void GuardianFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	auto playerIt = _playerMap.find(sessionId);
 	if (playerIt == _playerMap.end())
 	{
-		// 이미 삭제된 경우
-		// 더미 기준에서는 발생하면 안됨
 		__debugbreak();
 	}
 	Player* player = playerIt->second;
@@ -260,7 +251,6 @@ void GuardianFieldThread::SpawnMonster()
 	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation, spawnRotation);
 	
 	//printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
-
 	SendPacket_BroadCast(packet);
 	CPacket::Free(packet);
 }

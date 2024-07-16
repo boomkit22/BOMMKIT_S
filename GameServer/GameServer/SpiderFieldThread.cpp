@@ -2,7 +2,6 @@
 #include "SerializeBuffer.h"
 #include "Profiler.h"
 #include <process.h>
-#include "GameThreadInfo.h"
 #include "Log.h"
 #include "Packet.h"
 #include "GameData.h"
@@ -12,9 +11,6 @@
 #include "Player.h"
 
 using namespace std;
-
-//이거 전역으로 뺴두고 나중에 섹터관리되면 섹터로 하면 되니가
-
 
 SpiderFieldThread::SpiderFieldThread(GameServer* gameServer, int threadId) : FieldPacketHandleThread(gameServer, threadId)
 {
@@ -170,9 +166,6 @@ void SpiderFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 
 void SpiderFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 {
-	//브로드 캐스팅
-	//TODO: 서버에서 검증하기
-
 	int32 attackerType;
 	int64 attackerID;
 	int32 targetType;

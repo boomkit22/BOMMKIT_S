@@ -213,9 +213,6 @@
     <ClInclude Include="GameServer.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
-    <ClInclude Include="GameThreadInfo.h">
-      <Filter>GameServer\Header</Filter>
-    </ClInclude>
     <ClInclude Include="LoginGameThread.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>

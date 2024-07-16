@@ -302,9 +302,9 @@ FRotator Monster::CalculateRotation(const FVector& oldPosition, const FVector& n
 {
 	double dx = newPosition.X - oldPosition.X;
 	double dy = newPosition.Y - oldPosition.Y;
-	if (dx != 0 || dy != 0) { // 움직임이 있을 경우에만 회전 계산
-		_rotation.Yaw = std::atan2(dy, dx) * 180 / PI; // 라디안에서 도(degree)로 변환
-		//std::cout << "New rotation: " << rotation << " degrees" << std::endl; // 디버그 출력
+	if (dx != 0 || dy != 0) { 
+		// 움직임이 있을 경우에만 calculate rotation
+		_rotation.Yaw = std::atan2(dy, dx) * 180 / PI; // 라디안에서 도, 언리얼 degree
 	}
 
 	return FRotator{0, _rotation.Yaw, 0 };
