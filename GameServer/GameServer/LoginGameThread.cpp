@@ -315,7 +315,8 @@ void LoginGameThread::HandleCreatePlayer(Player* player, CPacket* packet)
 
 		CPacket* resPacket = CPacket::Alloc();
 		uint8 Status = 0;
-		MP_SC_CREATE_PLAYER(resPacket, Status, PlayerInfo{});
+		PlayerInfo playerInfo;
+		MP_SC_CREATE_PLAYER(resPacket, Status, playerInfo);
 		SendPacket_Unicast(player->_sessionId, resPacket);
 		CPacket::Free(resPacket);
 		return;

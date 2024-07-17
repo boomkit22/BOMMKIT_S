@@ -83,9 +83,6 @@ void FieldPacketHandleThread::HnadleCharacterAttack(Player* player, CPacket* pac
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
 
 	int32 damage = player->_damage;
-	
-	
-
 
 	if (targetType == TYPE_PLAYER)
 	{

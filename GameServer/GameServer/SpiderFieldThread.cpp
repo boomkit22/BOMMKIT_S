@@ -24,7 +24,7 @@ void SpiderFieldThread::SpawnMonster()
 	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
 	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
 	FRotator spawnRotation = { 0, 0, 0 };
-	monster->Init(this, randomLocation, MONSTER_TYPE_SPIDER);
+	monster->Init(randomLocation, MONSTER_TYPE_SPIDER);
 	monster->_rotation = spawnRotation;
 
 
@@ -63,6 +63,11 @@ void SpiderFieldThread::UpdateMonsters(float deltaTime)
 			continue;
 		}
 
-		(*it)->Update(deltaTime);
+		vector<CPacket*> resPAckets = (*it)->Update(deltaTime);
+		for (auto packet : resPAckets)
+		{
+			SendPacket_BroadCast(packet);
+			CPacket::Free(packet);
+		}
 	}
 }

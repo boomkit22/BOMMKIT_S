@@ -1,7 +1,8 @@
 #pragma once
 #include "Type.h"
 #include <unordered_map>
-
+#include <vector>
+class CPacket;
 class Player;
 class BasePacketHandleThread;
 
@@ -25,13 +26,9 @@ class Monster
 
 public:
 	Monster();
-
-	void Init(BasePacketHandleThread* PacketHandleThread,
-	FVector position,
-	uint16 type);
- 
+	void Init(FVector position, uint16 type);
 	MonsterState GetState() { return _state; };
-	void Update(float deltaTime);
+	std::vector<CPacket*>& Update(float deltaTime);
 	void SetDestination(FVector destination);
 
 
@@ -58,7 +55,6 @@ public:
 	void SetTargetPlayerEmpty();
 
 private:
-	BasePacketHandleThread* _PacketHandleThread;
 	MonsterInfo _monsterInfo;
 	FVector _position; // 현재 위치
 	FRotator _rotation{ 0,0,0 }; // 현재 방향
@@ -79,5 +75,7 @@ private:
 	//
 	int _damage = 5;
 	float _defaultIdleTime = 10;
+
+	std::vector<CPacket*> _sendPacketsPerThread;
 };
 

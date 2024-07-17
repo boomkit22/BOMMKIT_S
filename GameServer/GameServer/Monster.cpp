@@ -9,19 +9,17 @@
 
 Monster::Monster()
 {
+
 }
 
 
-void Monster::Init(BasePacketHandleThread* PacketHandleThread,
-	FVector position, uint16 type)
+void Monster::Init(FVector position, uint16 type)
 {
 	// monsterId : 1씩 증가
 	static int64 monsterIdGenerator = 0;
 	_monsterInfo.MonsterID = ++monsterIdGenerator;
 	_monsterInfo.Type = type;
 	_monsterInfo.Hp= 100;
-
-	_PacketHandleThread = PacketHandleThread;
 	_position = position;
 	_state = MonsterState::MS_IDLE;
 	_speed = 200.0f;
@@ -37,8 +35,10 @@ void Monster::Init(BasePacketHandleThread* PacketHandleThread,
 	_targetPlayer = nullptr;
 }
 
-void Monster::Update(float deltaTime)
+std::vector<CPacket*>&  Monster::Update(float deltaTime)
 {
+	_sendPacketsPerThread.clear();
+
 	//여기서 하는게 좋은 설계인가
 	// 공격 쿨타임 계산
 	_attackTimer += deltaTime;
@@ -85,6 +85,8 @@ void Monster::Update(float deltaTime)
 		default:
 			__debugbreak();
 	}
+
+	return _sendPacketsPerThread;
 }
 
 void Monster::MoveToDestination(float deltaTime)
@@ -150,8 +152,10 @@ void Monster::AttackPlayer(float deltaTime)
 				CPacket* monsterSkilPacket = CPacket::Alloc();
 				int32 SkillID = 1;
 				MP_SC_GAME_RES_MONSTER_SKILL(monsterSkilPacket, _monsterInfo.MonsterID, _position, _rotation, SkillID);
-				_PacketHandleThread->SendPacket_BroadCast(monsterSkilPacket);
-				CPacket::Free(monsterSkilPacket);
+				_sendPacketsPerThread.push_back(monsterSkilPacket);
+				
+				/*_PacketHandleThread->SendPacket_BroadCast(monsterSkilPacket);
+				CPacket::Free(monsterSkilPacket);*/
 				
 				//데미지 패킷 전송
 				//공격했으면 데미지 패킷 보내여지
@@ -162,8 +166,7 @@ void Monster::AttackPlayer(float deltaTime)
 				int64 TargetID = _targetPlayer->playerInfo.PlayerID;
 				int32 Damage = _damage;
 				MP_SC_GAME_RES_DAMAGE(resDamagePacket, AttackerType, AttackerID, targetType, TargetID, Damage);
-				_PacketHandleThread->SendPacket_BroadCast(resDamagePacket);
-				CPacket::Free(resDamagePacket);
+				_sendPacketsPerThread.push_back(resDamagePacket);
 				_attackTimer = 0;
 			}
 		}
@@ -232,10 +235,7 @@ void Monster::SetDestination(FVector dest)
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
-	_PacketHandleThread->SendPacket_BroadCast(packet);
-
-
-	CPacket::Free(packet);
+	_sendPacketsPerThread.push_back(packet);
 	CalculateRotation(_position, _destination);
 }
 
@@ -249,15 +249,14 @@ void Monster::SetRandomDestination()
 
 	_destination.X = std::clamp(_destination.X, MIN_MAP_SIZE_X, MAX_MAP_SIZE_X);
 	_destination.Y = std::clamp(_destination.Y, MIN_MAP_SIZE_Y, MAX_MAP_SIZE_Y);
+	CalculateRotation(_position, _destination);
 
 
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
-	_PacketHandleThread->SendPacket_BroadCast(packet);
+	_sendPacketsPerThread.push_back(packet);
 
-	CPacket::Free(packet);
-	CalculateRotation(_position, _destination);
 }
 
 bool Monster::TakeDamage(int damage, Player* attacker)
@@ -312,6 +311,5 @@ void Monster::SetTargetPlayerEmpty()
 	//idle상태라고 보내기 MonsterStop 패킷
 	CPacket* idlePacket = CPacket::Alloc();
 	MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
-	_PacketHandleThread->SendPacket_BroadCast(idlePacket);
-	CPacket::Free(idlePacket);
+	_sendPacketsPerThread.push_back(idlePacket);
 }

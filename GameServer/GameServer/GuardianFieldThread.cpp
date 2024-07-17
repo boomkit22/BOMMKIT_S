@@ -26,7 +26,7 @@ void GuardianFieldThread::SpawnMonster()
 	Monster*  monster = _monsterPool.Alloc();
 	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
 	FRotator spawnRotation = { 0, 0, 0 };
-	monster->Init(this, randomLocation, MONSTER_TYPE_GUARDIAN);
+	monster->Init(randomLocation, MONSTER_TYPE_GUARDIAN);
 	monster->_rotation = spawnRotation;
 
 	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
@@ -67,6 +67,11 @@ void GuardianFieldThread::UpdateMonsters(float deltaTime)
 			continue;
 		}
 
-		(*it)->Update(deltaTime);
+		vector<CPacket*> resPAckets = (*it)->Update(deltaTime);
+		for (auto packet : resPAckets)
+		{
+			SendPacket_BroadCast(packet);
+			CPacket::Free(packet);
+		}
 	}
 }

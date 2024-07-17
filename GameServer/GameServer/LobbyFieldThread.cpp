@@ -100,11 +100,10 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		Player* other = it->second;
 
 		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		printf("to other Spawn Location : %f, %f, %f\n", p->Position.X, p->Position.Y, p->Position.Z);
 		//spawnOtherCharacterInfo.NickName = p->NickName;
+		printf("my playerinfo.hp = %d\n", p->playerInfo.Hp);
 		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
 		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
-		printf("to other send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
 	}
 
@@ -119,12 +118,9 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 		FVector OtherSpawnLocation = other->Position;
 		PlayerInfo otherPlayerInfo = other->playerInfo;
 
-		printf("to me Spawn Location : %f, %f, %f\n", other->Position.X, other->Position.Y, other->Position.Z);
-
 		//spawnOtherCharacterInfo.NickName = p->NickName;
 		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation, other->Rotation);
 		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
-		printf("to me send spawn other character\n");
 		CPacket::Free(spawnOtherCharacterPacket);
 	}
 }
