@@ -13,29 +13,27 @@ class GameServer;
 class BasePacketHandleThread : public GameThread
 {
 public:
-	BasePacketHandleThread(GameServer* gameServer, int threadId);
+	BasePacketHandleThread(GameServer* gameServer, int threadId, int msPerFrame);
 
 public:
 	int64 GetPlayerSize() override;
 	void SendPacket_Unicast(int64 sessionId, CPacket* packet);
 	void SendPacket_BroadCast(CPacket* packet, Player* p = nullptr);
 
-protected:	
-	// GameThread을(를) 통해 상속됨
-	void HandleRecvPacket(int64 sessionId, CPacket* packet) override;
+protected:
+	void DisconnectPlayer(int64 sessionId);
+	std::unordered_map<int64, Player*> _playerMap;
 	Player* AllocPlayer(int64 sessionId);
 	void FreePlayer(int64 sessionId);
 
-
-protected: // PacketHandler 
+protected: 
+	// PacketHandler 
 	using PacketHandler = std::function<void(Player*, CPacket*)>;
-	std::map<uint16, PacketHandler> _packetHandlerMap;
 	void RegisterPacketHandler(uint16 packetCode, PacketHandler handler);
 
-	std::unordered_map<int64, Player*> _playerMap;
-
-
-protected:
+private:
+	void HandleRecvPacket(int64 sessionId, CPacket* packet) override;
+	std::map<uint16, PacketHandler> _packetHandlerMap;
 	GameServer* _gameServer;
 };
 

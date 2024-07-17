@@ -9,7 +9,7 @@ void Player::Init(int64 sessionId)
 	_sessionId = sessionId;
 	_lastRecvTime = 0;
 	_bLogined = false;
-	playerInfo = PlayerInfo();
+    playerInfo.Hp = 100;
 	Position = { 0, 0,  PLAYER_Z_VALUE };
 	playerInfos.clear();
 

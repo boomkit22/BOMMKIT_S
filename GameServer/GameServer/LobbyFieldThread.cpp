@@ -13,7 +13,7 @@
 
 using namespace std;
 
-LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId) : FieldPacketHandleThread(gameServer, threadId)
+LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId, int msPerFrame) : FieldPacketHandleThread(gameServer, threadId, msPerFrame)
 {
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HandleCharacterAttack(p, packet); });
 }
@@ -47,6 +47,11 @@ void LobbyFieldThread::UpdatePlayers(float deltaTime)
 		Player* player = it->second;
 		player->Update(deltaTime);
 	}
+}
+
+void LobbyFieldThread::UpdateMonsters(float deltaTime)
+{
+	// Nothing
 }
 
 void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)

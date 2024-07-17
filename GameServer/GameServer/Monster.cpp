@@ -233,7 +233,6 @@ void Monster::SetDestination(FVector dest)
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
 	_PacketHandleThread->SendPacket_BroadCast(packet);
-	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
 
 
 	CPacket::Free(packet);
@@ -257,14 +256,13 @@ void Monster::SetRandomDestination()
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
 	_PacketHandleThread->SendPacket_BroadCast(packet);
 
-	printf("send monster move location : mosterID : %lld\n", _monsterInfo.MonsterID);
-
 	CPacket::Free(packet);
 	CalculateRotation(_position, _destination);
 }
 
-void Monster::TakeDamage(int damage, Player* attacker)
+bool Monster::TakeDamage(int damage, Player* attacker)
 {
+	bool bDeath = false;
 	if (_targetPlayer!= attacker)
 	{
 		// 다르면
@@ -279,16 +277,11 @@ void Monster::TakeDamage(int damage, Player* attacker)
 		_state = MonsterState::MS_ATTACKING;
 	}
 	else {
-		//몬스터 죽었을때 패킷 보내기
-		CPacket* diePacket = CPacket::Alloc();
-		MP_SC_GAME_RES_MONSTER_DEATH(diePacket, _monsterInfo.MonsterID, _position, _rotation);
-		_PacketHandleThread->SendPacket_BroadCast(diePacket);
-		CPacket::Free(diePacket);
-
-		// 또 뭐해야하지
 		// 몬스터 풀에 넣어야하나?
 		_state = MonsterState::MS_DEATH;
+		bDeath = true;
 	}
+	return bDeath;
 }
 
 float Monster::GetDistanceToPlayer(Player* player)

@@ -21,6 +21,8 @@ class Monster
 	friend class GuardianFieldThread;
 	friend class LobbyFieldThread;
 	friend class SpiderFieldThread;
+	friend class FieldPacketHandleThread;
+
 public:
 	Monster();
 
@@ -31,7 +33,16 @@ public:
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
-	void TakeDamage(int damage, Player* attacker);
+
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="damage"></param>
+	/// <param name="attacker"></param>
+	/// <returns>return true when death</returns>
+	bool TakeDamage(int damage, Player* attacker);
+
 	void MoveToDestination(float deltaTime);
 	void AttackPlayer(float deltaTime);
 	void ChasePlayer(float deltaTime);

@@ -13,7 +13,7 @@ class GameServer;
 class LoginGameThread : public BasePacketHandleThread
 {
 public:
-	LoginGameThread(GameServer* gameServer, int threadId);
+	LoginGameThread(GameServer* gameServer, int threadId, int msPerFrame);
 	~LoginGameThread();
 
 private:

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-LoginGameThread::LoginGameThread(GameServer* gameServer, int threadId) : BasePacketHandleThread(gameServer, threadId)
+LoginGameThread::LoginGameThread(GameServer* gameServer, int threadId, int msPerFrame) : BasePacketHandleThread(gameServer, threadId, msPerFrame)
 {
 	//mysql
 	mysql_init(&_conn);
@@ -155,6 +155,7 @@ void LoginGameThread::HandleLogin(Player * player, CPacket * packet)
 			playerInfo.Class = static_cast<uint16>(atoi(row[3])); // 클래스
 			playerInfo.Level = static_cast<uint16>(atoi(row[4])); // 레벨
 			playerInfo.Exp = static_cast<uint32>(atoi(row[5])); // 경험치
+			playerInfo.Hp = 100;
 			player->playerInfos.push_back(playerInfo);
 		}
 
@@ -249,7 +250,7 @@ void LoginGameThread::HandleSelectPlayer(Player* player, CPacket* packet)
 	int64 playerID;
 	*packet >> playerID;
 	//TODO : 플레이어 선택
-	for (auto playerInfo : player->playerInfos)
+	for (auto& playerInfo : player->playerInfos)
 	{
 		if (playerInfo.PlayerID == playerID)
 		{
