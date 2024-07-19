@@ -1,6 +1,5 @@
 #include "GameThread.h"
 #include "Log.h"
-//#include "CNetServer.h"
 #include "SerializeBuffer.h"
 #include <process.h>
 #include "CNetServer.h"
@@ -56,12 +55,12 @@ unsigned __stdcall GameThread::UpdateThread()
 		int deltaTime = delay; // 밀리초 단위
 
 		NetworkRun();
-		GameRun(deltaTime / 1000.f); // deltaTime을 인자로 전달
+		GameRun(deltaTime / 1000.f); // deltaTime을 초로
 		_updateTps++;
 
 		lastLogicProcess = currentTime;
 
-		// 주기적으로 일정 시간 동안 대기하여 CPU 사용률 조절
+		// 프레임 맞추기
 		DWORD frameTime = timeGetTime() - currentTime;
 		if (frameTime < _msPerFrame)
 		{
@@ -110,13 +109,7 @@ void GameThread::NetworkRun()
 		_msPerFrame = _originalMsPerFrame;
 	}
 
-	//if (sessionNum == 0)
-	//{
-	//	WaitForSingleObject(_hUpdateEvent, INFINITE);
-	//	continue;
-	//}
 
-	// devidedSessionNum이 2500이면
 	for (int i = 0; i < sessionNum; i++)
 	{
 		int64 sessionId = _sessionArr[i];
@@ -146,9 +139,7 @@ void GameThread::NetworkRun()
 			}
 
 			packets.push_back(packet);
-			// 패킷 처리
-			// 패킷 처리후 반납
-			//HandleRecvPacket(sessionId, packet);
+
 		}
 
 
@@ -181,8 +172,6 @@ bool GameThread::EnterSession(int64 sessionId, void* ptr)
 void GameThread::LeaveSession(int64 sessionId, bool disconnect)
 {
 	_leaveQueue.Enqueue({ sessionId, disconnect });
-	//SetEvent(_hLeaveEvent);
-	//SetEvent(_hUpdateEvent);
 }
 
 void GameThread::ProcessEnter()

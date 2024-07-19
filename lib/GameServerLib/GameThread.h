@@ -113,7 +113,6 @@ private:
 private: 
 	LockFreeStack<uint16> _emptySessionIndex;
 	SRWLOCK _sessionArrLock;
-	//TODO: _sessionArr size 계속 체킄하기
 	std::vector<int64> _sessionArr;
 	LockFreeQueue<EnterSessionInfo> _enterQueue;
 	LockFreeQueue<LeaveSessionInfo> _leaveQueue;
