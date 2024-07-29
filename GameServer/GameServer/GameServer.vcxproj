@@ -168,6 +168,7 @@
     <ClCompile Include="Monster.cpp" />
     <ClCompile Include="PacketMaker.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Sector.cpp" />
     <ClCompile Include="SpiderFieldThread.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -206,6 +207,7 @@
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketMaker.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="Sector.h" />
     <ClInclude Include="SpiderFieldThread.h" />
   </ItemGroup>
   <ItemGroup>

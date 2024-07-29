@@ -11,7 +11,8 @@ class CPacket;
 class SpiderFieldThread : public FieldPacketHandleThread
 {
 public:
-	SpiderFieldThread(GameServer* gameServer, int threadId, int msPerFrame);
+	SpiderFieldThread(GameServer* gameServer, int threadId, int msPerFrame,
+		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize);
 
 private:
 	virtual void UpdateMonsters(float deltaTime) override;

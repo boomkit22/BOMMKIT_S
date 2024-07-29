@@ -142,6 +142,9 @@
     <ClCompile Include="PacketMaker.cpp">
       <Filter>GameServer\Source</Filter>
     </ClCompile>
+    <ClCompile Include="Sector.cpp">
+      <Filter>GameServer\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\GameServerLib\Session.h">
@@ -250,6 +253,9 @@
       <Filter>GameServer\Header</Filter>
     </ClInclude>
     <ClInclude Include="PacketMaker.h">
+      <Filter>GameServer\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Sector.h">
       <Filter>GameServer\Header</Filter>
     </ClInclude>
   </ItemGroup>

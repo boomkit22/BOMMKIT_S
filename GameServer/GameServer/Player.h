@@ -54,5 +54,10 @@ private:
 	/// <param name="damage"></param>
 	/// <returns> return true when death </returns>
 	bool TakeDamage(int32 damage);
+
+
+private:
+	//Sector
+	class Sector* _currentSector;
 };
 

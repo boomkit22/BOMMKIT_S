@@ -12,7 +12,9 @@
 
 using namespace std;
 
-SpiderFieldThread::SpiderFieldThread(GameServer* gameServer, int threadId, int msPerFrame) : FieldPacketHandleThread(gameServer, threadId, msPerFrame)
+SpiderFieldThread::SpiderFieldThread(GameServer* gameServer, int threadId, int msPerFrame,
+	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize)
+	: FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize)
 {
 }
 

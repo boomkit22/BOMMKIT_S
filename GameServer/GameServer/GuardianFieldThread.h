@@ -12,7 +12,8 @@ class CPacket;
 class GuardianFieldThread : public FieldPacketHandleThread
 {
 public:
-	GuardianFieldThread(GameServer* gameServer, int threadId, int msPerFrame);
+	GuardianFieldThread(GameServer* gameServer, int threadId, int msPerFrame,
+		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize);
 
 private:
 	virtual void UpdateMonsters(float deltaTime) override;

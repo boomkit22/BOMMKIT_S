@@ -14,8 +14,11 @@
 
 using namespace std;
 
-GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId, int msPerFrame) : FieldPacketHandleThread(gameServer, threadId, msPerFrame)
+GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId, int msPerFrame,
+	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize)
+	: FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize)
 {
+
 }
 
 
