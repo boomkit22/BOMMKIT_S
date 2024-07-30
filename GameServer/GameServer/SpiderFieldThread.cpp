@@ -37,7 +37,6 @@ void SpiderFieldThread::FrameUpdate(float deltaTime)
 		if (state == MonsterState::MS_DEATH)
 		{
 			ReturnFieldObject((*it).first);
-			continue;
 		}
 	}
 }
@@ -57,3 +56,4 @@ void SpiderFieldThread::SpawnMonster()
 
 	monster->OnSpawn();
 }
+

@@ -2,6 +2,7 @@
 #include "Type.h"
 #include <unordered_set>
 #include <vector>
+#include <map>
 #define AROUND_SEC_NUM 9
 #define STRAIGHT_SEC_CHANGE_NUM 3
 #define DIAGONAL_SEC_CHANGE_NUM 5
@@ -15,7 +16,10 @@
 #define MOVE_DIR_LD			7
 #define MOVE_DIR_MAX           8
 
-class Player;
+
+extern std::map<std::pair<int8, int8>, int8> diffToDirection;
+
+class FieldObject;
 
 class Sector
 {
@@ -50,6 +54,6 @@ public:
 	Sector* downLeft[DIAGONAL_SEC_CHANGE_NUM];
 	uint8 downLeftSectorNum;
 
-	std::vector<Player*> playerVector;
+	std::vector<FieldObject*> fieldObjectVector;
 };
 

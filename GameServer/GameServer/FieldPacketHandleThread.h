@@ -55,5 +55,8 @@ private:
 
 	Sector** _sector;
 	void InitializeSector();
+
+public:
+	Sector* GetSector(uint16 newSectorY, uint16 newSectorX);
 };
 

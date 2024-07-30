@@ -27,57 +27,36 @@ void FieldObject::SendPacket_Around(CPacket* packet, bool bInclude)
 	int aroundSectorNum = _currentSector->aroundSectorNum;
 	Sector** around = _currentSector->_around;
 
-	// 플레이어인 경우
-	if (_objectType == TYPE_PLAYER)
+	
+	for (int i = 0; i < aroundSectorNum; i++)
 	{
-		//자신 포함하고 보내면
-		if (bInclude)
+		vector<FieldObject*>& fieldObjecVector = around[i]->fieldObjectVector;
+
+		for (FieldObject* o : fieldObjecVector)
 		{
-			for (int i = 0; i < aroundSectorNum; i++)
+			if(o->GetObjectType() == TYPE_PLAYER)
 			{
-				vector<Player*>& gcList = around[i]->playerVector;
-
-				for (Player* p : gcList)
-				{
-					SendPacket_Unicast(p->_objectId, packet);
-				}
-			}
-		}
-		else {
-			// 주변에 보내고
-			for (int i = 0; i < aroundSectorNum - 1; i++)
-			{
-				vector<Player*>& gcList = around[i]->playerVector;
-
-				for (Player* p : gcList)
-				{
-					SendPacket_Unicast(p->_objectId, packet);
-				}
-			}
-
-			// 자신것 따로 보내고
-			Sector* sector =_currentSector;
-			vector<Player*>& gcList = sector->playerVector;
-			for (Player* p : gcList)
-			{
-				if (p->_objectId == _objectId)
+				Player* p = static_cast<Player*>(o);
+				if (!bInclude && p->GetObjectId() == _objectId)
 				{
 					continue;
 				}
-				SendPacket_Unicast(p->_objectId, packet);
+				SendPacket_Unicast(p->GetSessionId(), packet);
 			}
 		}
-	} 
-	else {
-		// 몬스터인 경우
-		for (int i = 0; i < aroundSectorNum; i++)
-		{
-			vector<Player*>& gcList = around[i]->playerVector;
+	}
+}
 
-			for (Player* p : gcList)
-			{
-				SendPacket_Unicast(p->_objectId, packet);
-			}
+void FieldObject::SendPacket_Sector(Sector* sector, CPacket* packet)
+{
+	vector<FieldObject*>& fieldObjecVector = sector->fieldObjectVector;
+
+	for (FieldObject* o : fieldObjecVector)
+	{
+		if (o->GetObjectType() == TYPE_PLAYER)
+		{
+			Player* p = static_cast<Player*>(o);
+			SendPacket_Unicast(p->GetSessionId(), packet);
 		}
 	}
 }

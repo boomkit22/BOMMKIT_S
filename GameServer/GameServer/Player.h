@@ -38,6 +38,7 @@ public:
 	void SetDestination(const FVector& NewDestination);
 	void StopMove();
 	void OnLeave();
+	void OnFieldChange();
 
 	int64 GetObjectId() { return _objectId; };
 	int64 GetSessionId() { return _sessionId; };
@@ -65,5 +66,10 @@ private:
 private:
 	//Sector
 	class Sector* _currentSector;
+	uint16 _sectorYSize;
+	uint16 _sectorXSize;
+	void ProcessSectorChange(Sector* newSector);
+	void AddSector(Sector* newSEctor);
+	void RemoveSector(Sector* newSector);
 };
 

@@ -17,6 +17,8 @@ public:
 
 
 	virtual void FrameUpdate(float deltaTime) override;
+
+
 private:
 	//∏ÛΩ∫≈Õ
 	void SpawnMonster();

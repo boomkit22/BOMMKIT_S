@@ -26,3 +26,4 @@ void MP_SC_GAME_RES_SIGN_UP(CPacket* packet, uint8& Status);
 void MP_SC_PLAYER_LIST(CPacket* packet, std::vector<PlayerInfo>& playerInfos);
 void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
 void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo& playerInfo);
+void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId);

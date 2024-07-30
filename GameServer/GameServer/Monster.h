@@ -26,6 +26,13 @@ class Monster : public FieldObject
 	friend class FieldPacketHandleThread;
 
 public:
+	//Getter
+	MonsterInfo GetMonsterInfo() { return _monsterInfo; };
+	FVector GetPosition() { return _position; };
+	FRotator GetRotation() { return _rotation; };
+	FVector GetDestination() { return _destination; };
+
+public:
 	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType);
 	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType, FVector spawnPosition);
 	MonsterState GetState() { return _state; };
@@ -40,8 +47,6 @@ public:
 	/// <param name="attacker"></param>
 	/// <returns>return true when death</returns>
 	bool TakeDamage(int damage, Player* attacker);
-	FVector GetPosition() { return _position; };
-	FRotator GetRotation() { return _rotation; };
 	void MoveToDestination(float deltaTime);
 	void AttackPlayer(float deltaTime);
 	void ChasePlayer(float deltaTime);
@@ -49,6 +54,7 @@ public:
 	float GetDistanceToPlayer(Player* targetPlayer);
 	FRotator CalculateRotation(const FVector& oldPosition, const FVector& newPosition);
 	void OnSpawn();
+
 //private:
 //	void SendIdlePacket();
 //	void SendAttackPacket();

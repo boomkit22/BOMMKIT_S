@@ -11,6 +11,7 @@ class CPacket;
 using int64 = signed long long;
 using int32 = int;
 using int16 = short;
+using int8 = char;
 using uint32 = unsigned int;
 using uint16 = unsigned short;
 using uint64 = unsigned long long;

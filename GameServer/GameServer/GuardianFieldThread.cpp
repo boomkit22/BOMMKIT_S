@@ -39,7 +39,6 @@ void GuardianFieldThread::FrameUpdate(float deltaTime)
 		if (state == MonsterState::MS_DEATH)
 		{
 			ReturnFieldObject((*it).first);
-			continue;
 		}
 	}
 }
@@ -59,4 +58,6 @@ void GuardianFieldThread::SpawnMonster()
 
 	monster->OnSpawn();
 }
+
+
 
