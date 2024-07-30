@@ -170,6 +170,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Sector.cpp" />
     <ClCompile Include="SpiderFieldThread.cpp" />
+    <ClCompile Include="FieldObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\lib\DataStructure\LockFreeObjectPool.h" />
@@ -209,6 +210,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Sector.h" />
     <ClInclude Include="SpiderFieldThread.h" />
+    <ClInclude Include="FieldObject.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ServerConfig.txt" />

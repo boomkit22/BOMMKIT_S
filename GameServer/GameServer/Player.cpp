@@ -1,12 +1,16 @@
 #include "Player.h"
 #include "Type.h"
 #include "GameData.h"
+#include "SerializeBuffer.h" 
+#include "PacketMaker.h"
+#include "Monster.h"
+
 using namespace std;
 
 
 void Player::Init(int64 sessionId)
 {
-	_sessionId = sessionId;
+	_objectId = sessionId;
 	_lastRecvTime = 0;
 	_bLogined = false;
     playerInfo.Hp = 100;
@@ -34,6 +38,109 @@ void Player::StopMove()
 {
     bMoving = false;
 }
+
+void Player::HandleCharacterMove(FVector destination, FRotator startRotation)
+{
+    CPacket* movePacket = CPacket::Alloc();
+    int64 playerId = playerInfo.PlayerID;
+    MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, playerId, destination, startRotation);
+    //브로드케스팅
+    SendPacket_Around(movePacket);
+    CPacket::Free(movePacket);
+    SetDestination(destination);
+}
+
+void Player::HandleCharacterSkill(FVector startLocation, FRotator startRotation, int32 skillId)
+{
+    int64 playerId = playerInfo.PlayerID;
+    CPacket* resSkillPacket = CPacket::Alloc();
+    MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, playerId, startLocation, startRotation, skillId);
+
+    // 이 플레이어 뺴고 브로드캐스팅
+    SendPacket_Around(resSkillPacket, false);
+    CPacket::Free(resSkillPacket);
+}
+
+void Player::HandleCharacterStop(FVector position, FRotator rotation)
+{
+    int64 playerId = playerInfo.PlayerID;
+	CPacket* stopPacket = CPacket::Alloc();
+	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, playerId, position, rotation);
+	//브로드캐스팅
+    SendPacket_Around(stopPacket);
+	CPacket::Free(stopPacket);
+}
+
+void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 targetType, int64 targetId)
+{
+	int32 damage = _damage;
+
+	if (targetType == TYPE_PLAYER)
+	{
+		printf("HandleCharacterAttack to player\n");
+
+		//캐릭터 맵에서 찾아서
+		//체력 깎고
+		Player* targetPlayer = static_cast<Player*>(FindFieldObject(targetId));
+
+		if (targetPlayer == nullptr)
+		{
+			printf("targetPlayer is nullptr\n");
+			return;
+		}
+		bool bDeath = targetPlayer->TakeDamage(damage);
+
+		printf("targetPlayer->TakeDamage\n");
+		CPacket* resDamagePacket = CPacket::Alloc();
+		MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerId, targetType, targetId, damage);
+		SendPacket_Around(resDamagePacket);
+		CPacket::Free(resDamagePacket);
+
+		if (bDeath)
+		{
+			//죽었으면 죽은 패킷까지 보내고
+			CPacket* characterDeathPacket = CPacket::Alloc();
+			MP_SC_GAME_RES_CHARACTER_DEATH(characterDeathPacket, targetId, Position, Rotation);
+			SendPacket_Around(characterDeathPacket);
+			CPacket::Free(characterDeathPacket);
+		}
+	}
+
+	//TODO: 몬스터에서 검색
+	if (targetType == TYPE_MONSTER)
+	{
+		Monster* targetMonster  = static_cast<Monster*>(FindFieldObject(targetId));
+		if (targetMonster == nullptr)
+		{
+			printf("targetMonster is nullptr\n");
+			return;
+		}
+		
+		if (targetMonster->GetState() == MonsterState::MS_DEATH)
+		{
+			return;
+		}
+
+		CPacket* resDamagePacket = CPacket::Alloc();
+		MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerId, targetType, targetId, damage);
+		SendPacket_Around(resDamagePacket);
+		CPacket::Free(resDamagePacket);
+
+
+		bool bDeath = targetMonster->TakeDamage(damage, this);
+		if (bDeath)
+		{
+			CPacket* monsterDeathPacket = CPacket::Alloc();
+			FVector monsterPosition = targetMonster->GetPosition();
+			FRotator monsterRotation = targetMonster->GetRotation();
+			MP_SC_GAME_RES_MONSTER_DEATH(monsterDeathPacket, targetId, monsterPosition, monsterRotation);
+			SendPacket_Around(monsterDeathPacket);
+			CPacket::Free(monsterDeathPacket);
+		}
+	}
+}
+
+
 
 void Player::Move(float deltaTime) {
     FVector Direction = { _destination.X - Position.X, _destination.Y - Position.Y, 0 };

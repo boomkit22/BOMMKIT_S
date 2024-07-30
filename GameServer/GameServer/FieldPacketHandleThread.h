@@ -7,6 +7,7 @@ class Player;
 class GameServer;
 class Monster;
 class Sector;
+class FieldObject;
 
 //같은거
 //  ReqFieldMvoe
@@ -26,7 +27,6 @@ protected:
 	void HandleCharacterSkill(Player* player, CPacket* packet);
 	void HandleCharacterStop(Player* player, CPacket* packet);
 	void HnadleCharacterAttack(Player* player, CPacket* packet);
-	void SendPacket_Around(Player* player, bool bInclude, CPacket* packet);
 
 private:
 	virtual void GameRun(float deltaTime) override;
@@ -34,12 +34,14 @@ private:
 	virtual void OnEnterThread(int64 sessionId, void* ptr) override;
 	virtual void OnLeaveThread(int64 sessionId, bool disconnect) override;
 
+public:
+	FieldObject* FindFieldObject(int64 objectId);
+
 protected:
 	std::vector<Monster*> _monsters;
 	CObjectPool<Monster, false> _monsterPool;
 	virtual void UpdateMonsters(float deltaTime) = 0;
-
-	std::unordered_map<int64, Player*> _playerIDToPlayerMap;
+	std::unordered_map<int64, FieldObject*> _fieldObjectMap;
 
 private:
 	//섹터

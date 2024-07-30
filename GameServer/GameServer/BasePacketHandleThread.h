@@ -17,8 +17,7 @@ public:
 
 public:
 	int64 GetPlayerSize() override;
-	void SendPacket_Unicast(int64 sessionId, CPacket* packet);
-	void SendPacket_BroadCast(CPacket* packet, Player* p = nullptr);
+	void SendPacket(int64 sessionId, CPacket* packet);
 
 protected:
 	void DisconnectPlayer(int64 sessionId);

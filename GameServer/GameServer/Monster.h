@@ -2,6 +2,8 @@
 #include "Type.h"
 #include <unordered_map>
 #include <vector>
+#include "FieldObject.h"
+
 class CPacket;
 class Player;
 class BasePacketHandleThread;
@@ -17,7 +19,7 @@ enum class MonsterState {
 
 // 이거 몬스터 override를 해서 비선공형 선공형을 나눠야할까?
 // 아니면 MonsterType을 만들어서 비선공형 선공형을 나눠야할까?
-class Monster
+class Monster : public FieldObject
 {
 	friend class GuardianFieldThread;
 	friend class LobbyFieldThread;
@@ -31,7 +33,6 @@ public:
 	std::vector<CPacket*>& Update(float deltaTime);
 	void SetDestination(FVector destination);
 
-
 	/// <summary>
 	/// 
 	/// </summary>
@@ -39,7 +40,8 @@ public:
 	/// <param name="attacker"></param>
 	/// <returns>return true when death</returns>
 	bool TakeDamage(int damage, Player* attacker);
-
+	FVector GetPosition() { return _position; };
+	FRotator GetRotation() { return _rotation; };
 	void MoveToDestination(float deltaTime);
 	void AttackPlayer(float deltaTime);
 	void ChasePlayer(float deltaTime);

@@ -4,10 +4,10 @@
 #include <algorithm>
 #include "Type.h"
 #include <map>
-
+#include "FieldObject.h"
 const double PLAYER_Z_VALUE = 95.2f;
 
-class Player
+class Player : public FieldObject
 {
 	friend class GameServer;
 	friend class BasePacketHandleThread;
@@ -22,7 +22,7 @@ private:
 	void Init(int64 sessionId);
 
 private:
-	int64 _sessionId = 0; // sessionid,  character id
+	int64 _sessionId;
 	int64 accountNo = 0;
 	uint32 _lastRecvTime = 0;
 	bool _bLogined = false;
@@ -39,7 +39,13 @@ public:
 	void SetDestination(const FVector& NewDestination);
 	void StopMove();
 
-
+	int64 GetObjectId() { return _objectId; };
+	int64 GetSessionId() { return _sessionId; };
+public:
+	void HandleCharacterMove(FVector destination, FRotator startRotation);
+	void HandleCharacterSkill(FVector startLocation, FRotator startRotation, int32 skillId);
+	void HandleCharacterStop(FVector position, FRotator rotation);
+	void HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 targetType, int64 targetId);
 
 private:
 	FVector _destination;

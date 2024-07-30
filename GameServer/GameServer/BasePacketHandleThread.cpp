@@ -56,22 +56,7 @@ void BasePacketHandleThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 	CPacket::Free(packet);
 }
 
-void BasePacketHandleThread::SendPacket_Unicast(int64 sessionId, CPacket* packet)
-{
-	_gameServer->SendPacket(sessionId, packet);
-}
 
-void BasePacketHandleThread::SendPacket_BroadCast(CPacket* packet, Player* p)
-{
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); ++it)
-	{
-		if (it->second == p)
-		{
-			continue;
-		}
-		_gameServer->SendPacket(it->first, packet);
-	}
-}
 
 void BasePacketHandleThread::DisconnectPlayer(int64 sessionId)
 {
@@ -86,5 +71,10 @@ Player* BasePacketHandleThread::AllocPlayer(int64 sessionId)
 void BasePacketHandleThread::FreePlayer(int64 sessionId)
 {
 	_gameServer->FreePlayer(sessionId);
+}
+
+void BasePacketHandleThread::SendPacket(int64 sessionId, CPacket* packet)
+{
+	_gameServer->SendPacket(sessionId, packet);
 }
 

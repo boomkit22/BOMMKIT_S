@@ -25,7 +25,8 @@ void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
 {
 	uint16 fieldID;
 	*packet >> fieldID;
-	MoveGameThread(fieldID, player->_sessionId, player);
+	
+	MoveGameThread(fieldID, player->GetObjectId(), player);
 }
 
 void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
@@ -35,13 +36,7 @@ void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet
 	FRotator startRotation;
 	*packet >> destination >> startRotation;
 
-	CPacket* movePacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, characterNo, destination, startRotation);
-
-	//브로드케스팅
-	SendPacket_BroadCast(movePacket);
-	CPacket::Free(movePacket);
-	player->SetDestination(destination);
+	player->HandleCharacterMove(destination, startRotation);
 }
 
 void FieldPacketHandleThread::HandleCharacterSkill(Player* player, CPacket* packet)
@@ -50,15 +45,9 @@ void FieldPacketHandleThread::HandleCharacterSkill(Player* player, CPacket* pack
 	FVector startLocation;
 	FRotator startRotation;
 	int32 skillID;
-
 	*packet >> startLocation >> startRotation >> skillID;
-
-	CPacket* resSkillPacket = CPacket::Alloc();
-	MP_SC_GAME_RES_CHARACTER_SKILL(resSkillPacket, CharacterId, startLocation, startRotation, skillID);
-
-	// 이 플레이어 뺴고 브로드캐스팅
-	SendPacket_BroadCast(resSkillPacket, player);
-	CPacket::Free(resSkillPacket);
+	
+	player->HandleCharacterSkill(startLocation, startRotation, skillID);
 }
 
 void FieldPacketHandleThread::HandleCharacterStop(Player* player, CPacket* packet)
@@ -68,12 +57,7 @@ void FieldPacketHandleThread::HandleCharacterStop(Player* player, CPacket* packe
 	FRotator rotation;
 	*packet >> position >> rotation;
 
-	CPacket* stopPacket = CPacket::Alloc();
-	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, characterID, position, rotation);
-
-	//브로드 캐스팅
-	SendPacket_BroadCast(stopPacket);
-	CPacket::Free(stopPacket);
+	player->HandleCharacterStop(position, rotation);
 }
 
 void FieldPacketHandleThread::HnadleCharacterAttack(Player* player, CPacket* packet)
@@ -87,114 +71,9 @@ void FieldPacketHandleThread::HnadleCharacterAttack(Player* player, CPacket* pac
 
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
 
-	int32 damage = player->_damage;
+	player->HandleCharacterAttack(attackerType, attackerID, targetType, targetID);
 
-	if (targetType == TYPE_PLAYER)
-	{
-		printf("HandleCharacterAttack to player\n");
-
-		//캐릭터 맵에서 찾아서
-		//체력 깎고
-		auto targetIt = _playerIDToPlayerMap.find(targetID);
-		if (targetIt == _playerIDToPlayerMap.end())
-		{
-			printf("Cannot find targetID : %lld, HandleCharacterAttack\n", targetID);
-			return;
-		}
-
-		Player* targetPlayer = targetIt->second;
-		bool bDeath = targetPlayer->TakeDamage(damage);
-
-		printf("targetPlayer->TakeDamage\n");
-		CPacket* resDamagePacket = CPacket::Alloc();
-		MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
-		SendPacket_BroadCast(resDamagePacket);
-		CPacket::Free(resDamagePacket);
-
-		if (bDeath)
-		{
-			//죽었으면 죽은 패킷까지 보내고
-			CPacket* characterDeathPacket = CPacket::Alloc();
-			MP_SC_GAME_RES_CHARACTER_DEATH(characterDeathPacket, targetID, player->Position, player->Rotation);
-			SendPacket_BroadCast(characterDeathPacket);
-			CPacket::Free(characterDeathPacket);
-		}
-	}
-
-	//TODO: 몬스터에서 검색
-	if (targetType == TYPE_MONSTER)
-	{
-		for (auto monster : _monsters)
-		{
-			if (monster->_monsterInfo.MonsterID == targetID)
-			{
-				if (monster->_state == MonsterState::MS_DEATH)
-				{
-					return;
-				}
-
-				CPacket* resDamagePacket = CPacket::Alloc();
-				MP_SC_GAME_RES_DAMAGE(resDamagePacket, attackerType, attackerID, targetType, targetID, damage);
-				SendPacket_BroadCast(resDamagePacket);
-				CPacket::Free(resDamagePacket);
-
-
-				bool bDeath = monster->TakeDamage(damage, player);
-				if (bDeath)
-				{
-					CPacket* monsterDeathPacket = CPacket::Alloc();
-					MP_SC_GAME_RES_MONSTER_DEATH(monsterDeathPacket, targetID, monster->_position, monster->_rotation);
-					SendPacket_BroadCast(monsterDeathPacket);
-					CPacket::Free(monsterDeathPacket);
-				}
-
-				break;
-			}
-		}
-	}
-}
-
-void FieldPacketHandleThread::SendPacket_Around(Player* player, bool bInclude, CPacket* packet)
-{
-	int aroundSectorNum = player->_currentSector->aroundSectorNum;
-	Sector** around = player->_currentSector->_around;
-	//자신 포함하고 보내면
-	if (bInclude)
-	{
-		for (int i = 0; i < aroundSectorNum; i++)
-		{
-			vector<Player*>& gcList = around[i]->playerVector;
-
-			for (Player* p : gcList)
-			{
-				SendPacket_Unicast(p->_sessionId, packet);
-			}
-		}
-	}
-	else {
-		// 주변에 보내고
-		for (int i = 0; i < aroundSectorNum - 1; i++)
-		{
-			vector<Player*>& gcList = around[i]->playerVector;
-
-			for (Player* p : gcList)
-			{
-				SendPacket_Unicast(p->_sessionId, packet);
-			}
-		}
-
-		// 자신것 따로 보내고
-		Sector* sector = player->_currentSector;
-		vector<Player*>& gcList = sector->playerVector;
-		for (Player* p : gcList)
-		{
-			if (p == player)
-			{
-				continue;
-			}
-			SendPacket_Unicast(p->_sessionId, packet);
-		}
-	}
+	
 }
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
@@ -220,7 +99,7 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 	{
 		__debugbreak();
 	}
-	auto result2 = _playerIDToPlayerMap.insert({ p->playerInfo.PlayerID, p });
+	auto result2 = _fieldObjectMap.insert({ p->GetObjectId(), p });
 	if (!result2.second)
 	{
 		__debugbreak();
@@ -358,6 +237,18 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, playerID);
 	SendPacket_BroadCast(despawnPacket);
 	CPacket::Free(despawnPacket);
+}
+
+FieldObject* FieldPacketHandleThread::FindFieldObject(int64 objectId)
+{
+	auto it = _fieldObjectMap.find(objectId);
+	
+	if (it != _fieldObjectMap.end())
+	{
+		return it->second;
+	}
+
+	return nullptr;
 }
 
 void FieldPacketHandleThread::InitializeSector()
