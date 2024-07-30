@@ -24,7 +24,12 @@ private:
 	void HandleCharacterAttack(Player* p, CPacket* packet);
 	void UpdatePlayers(float deltaTime);
 
+
+public:
+
+
 	// FieldPacketHandleThread을(를) 통해 상속됨
-	void UpdateMonsters(float deltaTime) override;
+	void FrameUpdate(float deltaTime) override;
+
 };
 

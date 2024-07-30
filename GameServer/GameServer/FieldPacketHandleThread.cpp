@@ -78,17 +78,13 @@ void FieldPacketHandleThread::HnadleCharacterAttack(Player* player, CPacket* pac
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
 {
-	UpdatePlayers(deltaTime);
-	UpdateMonsters(deltaTime);
-}
-
-void FieldPacketHandleThread::UpdatePlayers(float deltaTime)
-{
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
+	for(auto it = _fieldObjectMap.begin() ; it != _fieldObjectMap.end(); it++)
 	{
-		Player* player = it->second;
-		player->Update(deltaTime);
+		FieldObject* fieldObject = it->second;
+		fieldObject->Update(deltaTime);
 	}
+
+	FrameUpdate(deltaTime);
 }
 
 void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
@@ -173,9 +169,9 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 
 
 	//TODO: 몬스터들 소환 패킷 보내고 
-	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
+	for (auto it = _monsterMap.begin(); it != _monsterMap.end(); it++)
 	{
-		Monster* monster = *it;
+		Monster* monster = (*it).second;
 		CPacket* spawnMonsterPacket = CPacket::Alloc();
 		MP_SC_SPAWN_MONSTER(spawnMonsterPacket, monster->_monsterInfo, monster->_position, monster->_rotation);
 		SendPacket_Unicast(p->_sessionId, spawnMonsterPacket);
@@ -208,8 +204,9 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	int64 playerID = player->playerInfo.PlayerID;
 
 	//나간 유저를 target으로 하고있던 player Empty상태로 만들기
-	for (auto monster : _monsters)
+	for (auto monsterKeyVal : _monsterMap)
 	{
+		Monster* monster = monsterKeyVal.second;
 		if (monster->_targetPlayer == player)
 		{
 			monster->SetTargetPlayerEmpty();
@@ -250,6 +247,53 @@ FieldObject* FieldPacketHandleThread::FindFieldObject(int64 objectId)
 
 	return nullptr;
 }
+
+void FieldPacketHandleThread::ReturnFieldObject(int64 objectId)
+{
+	FieldObject* fieldObject = FindFieldObject(objectId);
+	if (fieldObject == nullptr)
+	{
+		__debugbreak();
+	}
+	uint16 objectType = fieldObject->GetObjectType();
+
+	switch (objectType)
+	{
+
+	case TYPE_PLAYER:
+	{
+
+	}
+	break;
+
+	case TYPE_MONSTER:
+	{
+		_monsterPool.Free((Monster*)fieldObject);
+		_monsterMap.erase(objectId);
+	}
+	break;
+
+	default:
+		__debugbreak();
+
+	}
+	
+}
+
+Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
+{
+	Monster* monster = _monsterPool.Alloc(this, TYPE_MONSTER, monsterType);
+	if (monster == nullptr)
+	{
+		return nullptr;
+	}
+
+	_monsterMap.insert({ monster->GetObjectId(), monster });
+	_fieldObjectMap.insert({ monster->GetObjectId(), monster });
+
+	return monster;
+}
+
 
 void FieldPacketHandleThread::InitializeSector()
 {

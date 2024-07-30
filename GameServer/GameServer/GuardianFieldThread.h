@@ -15,9 +15,8 @@ public:
 	GuardianFieldThread(GameServer* gameServer, int threadId, int msPerFrame,
 		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize);
 
-private:
-	virtual void UpdateMonsters(float deltaTime) override;
 
+	virtual void FrameUpdate(float deltaTime) override;
 private:
 	//∏ÛΩ∫≈Õ
 	void SpawnMonster();

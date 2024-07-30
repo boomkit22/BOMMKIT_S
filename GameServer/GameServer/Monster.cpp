@@ -10,6 +10,26 @@
 
 
 
+Monster::Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType) : FieldObject(field, objectType)
+{
+	// monsterId : 1씩 증가
+	_monsterInfo.MonsterID = _objectId;
+	_monsterInfo.Type = monsterType;
+	_monsterInfo.Hp = 100;
+	_state = MonsterState::MS_IDLE;
+	_speed = 200.0f;
+	_destination.Z = 88.1;
+	_idleTime = _defaultIdleTime;
+	_attackRange = 200.0f;
+	_attackCooldown = 5.0f;
+	_chaseTime = 0;
+	_maxChaseTime = 5.0f;
+	_aggroRange = 1000.0f;
+	_damage = 5;
+	_rotation = { 0,0,0 };
+	_targetPlayer = nullptr;
+}
+
 Monster::Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType, FVector spawnPosition) : FieldObject(field, objectType)
 {
 	// monsterId : 1씩 증가

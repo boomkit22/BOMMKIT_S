@@ -50,10 +50,12 @@ void LobbyFieldThread::UpdatePlayers(float deltaTime)
 	}
 }
 
-void LobbyFieldThread::UpdateMonsters(float deltaTime)
+void LobbyFieldThread::FrameUpdate(float deltaTime)
 {
-	// Nothing
+
 }
+
+
 
 void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 {

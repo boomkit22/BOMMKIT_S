@@ -15,6 +15,9 @@ public:
 	FieldObject* FindFieldObject(int64 objectId);
 	void SetField(FieldPacketHandleThread* field) { _field = field; };
 
+	virtual void Update(float deltaTime) = 0;
+	uint16 GetObjectType() { return _objectType; };
+
 protected:
 	int64 _objectId;
 

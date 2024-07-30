@@ -26,10 +26,12 @@ class Monster : public FieldObject
 	friend class FieldPacketHandleThread;
 
 public:
+	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType);
 	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType, FVector spawnPosition);
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
+	int64 GetObjectId() { return _objectId; };
 
 	/// <summary>
 	/// 

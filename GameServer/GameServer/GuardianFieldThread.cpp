@@ -21,43 +21,42 @@ GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId, in
 
 }
 
-
-
-
-void GuardianFieldThread::SpawnMonster()
-{
-	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
-	FRotator spawnRotation = { 0, 0, 0 };
-	Monster* monster = _monsterPool.Alloc(this, TYPE_MONSTER, MONSTER_TYPE_GUARDIAN, randomLocation);
-	monster->_rotation = spawnRotation;
-	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
-	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
-	_monsters.push_back(monster);
-	monster->OnSpawn();
-}
-
-
-
-void GuardianFieldThread::UpdateMonsters(float deltaTime)
+void GuardianFieldThread::FrameUpdate(float deltaTime)
 {
 	//TODO: 몬스터 갯수 확인하기
 	// 몬스터 없으면 Spawn 하고
-	int currentMonsterSize = _monsters.size();
+	int currentMonsterSize = _monsterMap.size();
 	if (currentMonsterSize < _maxMonsterNum)
 	{
 		SpawnMonster();
 		//printf("Spawn Monster\n");
 	}
 
-	for (auto it = _monsters.begin(); it != _monsters.end(); it++)
+	for (auto it = _monsterMap.begin(); it != _monsterMap.end(); it++)
 	{
 		//죽었으면 일단 풀에 집어넣고
-		MonsterState state = (*it)->GetState();
+		MonsterState state = (*it).second->GetState();
 		if (state == MonsterState::MS_DEATH)
 		{
-			_monsterPool.Free(*it);
-			_monsters.erase(it);
+			ReturnFieldObject((*it).first);
 			continue;
 		}
 	}
 }
+
+void GuardianFieldThread::SpawnMonster()
+{
+	Monster* monster = AllocMonster(MONSTER_TYPE_GUARDIAN);
+
+	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
+	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
+	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
+	FRotator spawnRotation = { 0, 0, 0 };
+
+
+	monster->_position = randomLocation;
+	monster->_rotation = spawnRotation;
+
+	monster->OnSpawn();
+}
+

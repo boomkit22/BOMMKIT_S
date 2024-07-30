@@ -15,10 +15,8 @@ public:
 		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize);
 
 private:
-	virtual void UpdateMonsters(float deltaTime) override;
-
-private:
 	//∏ÛΩ∫≈Õ
+	virtual void FrameUpdate(float deltaTime) override;
 	void SpawnMonster();
 	int32 _maxMonsterNum = 100;
 };

@@ -30,18 +30,21 @@ protected:
 
 private:
 	virtual void GameRun(float deltaTime) override;
-	void UpdatePlayers(float deltaTime);
+	virtual void FrameUpdate(float deltaTime) = 0;
 	virtual void OnEnterThread(int64 sessionId, void* ptr) override;
 	virtual void OnLeaveThread(int64 sessionId, bool disconnect) override;
 
 public:
 	FieldObject* FindFieldObject(int64 objectId);
+	void ReturnFieldObject(int64 objectId);
+	Monster* AllocMonster(uint16 monsterType);
 
 protected:
-	std::vector<Monster*> _monsters;
-	CObjectPool<Monster, true> _monsterPool;
-	virtual void UpdateMonsters(float deltaTime) = 0;
+	std::unordered_map<int64, Monster*> _monsterMap;
 	std::unordered_map<int64, FieldObject*> _fieldObjectMap;
+
+private:
+	CObjectPool<Monster, true> _monsterPool;
 
 private:
 	//ºΩ≈Õ
