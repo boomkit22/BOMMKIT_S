@@ -8,15 +8,15 @@
 using namespace std;
 
 
-void Player::Init(int64 sessionId)
+Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionId) :FieldObject(field, objectType)
 {
-	_objectId = sessionId;
+	_sessionId = sessionId;
 	_lastRecvTime = 0;
 	_bLogined = false;
-    playerInfo.Hp = 100;
+	playerInfo.PlayerID = _objectId;
+	playerInfo.Hp = 100;
 	Position = { 0, 0,  PLAYER_Z_VALUE };
 	playerInfos.clear();
-
 }
 
 void Player::Update(float deltaTime)
@@ -37,6 +37,14 @@ void Player::SetDestination(const FVector& NewDestination)
 void Player::StopMove()
 {
     bMoving = false;
+}
+
+void Player::OnLeave()
+{
+	CPacket* despawnPacket = CPacket::Alloc();
+	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, playerInfo.PlayerID);
+	SendPacket_Around(despawnPacket);
+	CPacket::Free(despawnPacket);
 }
 
 void Player::HandleCharacterMove(FVector destination, FRotator startRotation)

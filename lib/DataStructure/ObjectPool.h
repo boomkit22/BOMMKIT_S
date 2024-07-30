@@ -61,29 +61,28 @@ public:
 		// 3. 다 추적해서 메모리 정리
 	}
 
-
-	DATA* Alloc(void)
+	template <typename... Args>
+	DATA* Alloc(Args&&... args)
 	{
 		_useCount++;
 		if (_freeNode != nullptr)
 		{
 			// 줄거 있으면?
-			DATA* ret = new(&_freeNode->data) DATA;
+			DATA* ret = new(&_freeNode->data) DATA(std::forward<Args>(args)...);
 			_freeNode = _freeNode->next;
 
 			return ret;
-
 		}
 		else
 		{
 			// 줄거없으면
 			// 새로 만들어야지
-			_freeNode = new(st_BLOCK_NODE);
-			DATA* ret = &_freeNode->data;
-			_freeNode->next = nullptr;
+			st_BLOCK_NODE* newNode = (st_BLOCK_NODE*)malloc(sizeof(st_BLOCK_NODE));
+			DATA* ret = new(&newNode->data) DATA(std::forward<Args>(args)...);
+			newNode->next = nullptr;
 			_freeNode = nullptr;
 
-			// 새로 만들었을 떄만 capacity++9;
+			// 새로 만들었을 때만 capacity++
 			_capacity++;
 
 			return ret;

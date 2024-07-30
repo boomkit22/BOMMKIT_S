@@ -39,7 +39,7 @@ public:
 
 protected:
 	std::vector<Monster*> _monsters;
-	CObjectPool<Monster, false> _monsterPool;
+	CObjectPool<Monster, true> _monsterPool;
 	virtual void UpdateMonsters(float deltaTime) = 0;
 	std::unordered_map<int64, FieldObject*> _fieldObjectMap;
 

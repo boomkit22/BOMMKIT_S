@@ -26,24 +26,14 @@ GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId, in
 
 void GuardianFieldThread::SpawnMonster()
 {
-	Monster*  monster = _monsterPool.Alloc();
 	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
 	FRotator spawnRotation = { 0, 0, 0 };
-	monster->Init(randomLocation, MONSTER_TYPE_GUARDIAN);
+	Monster* monster = _monsterPool.Alloc(this, TYPE_MONSTER, MONSTER_TYPE_GUARDIAN, randomLocation);
 	monster->_rotation = spawnRotation;
-
 	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
 	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
-
 	_monsters.push_back(monster);
-
-	//TODO: 몬스터 스폰 패킷 날리기
-	CPacket* packet = CPacket::Alloc();
-	MP_SC_SPAWN_MONSTER(packet, monster->_monsterInfo, randomLocation, spawnRotation);
-	
-	//printf("send monster spawn mosterID : %lld\n", monster->_monsterInfo.MonsterID);
-	SendPacket_BroadCast(packet);
-	CPacket::Free(packet);
+	monster->OnSpawn();
 }
 
 
@@ -68,13 +58,6 @@ void GuardianFieldThread::UpdateMonsters(float deltaTime)
 			_monsterPool.Free(*it);
 			_monsters.erase(it);
 			continue;
-		}
-
-		vector<CPacket*> resPAckets = (*it)->Update(deltaTime);
-		for (auto packet : resPAckets)
-		{
-			SendPacket_BroadCast(packet);
-			CPacket::Free(packet);
 		}
 	}
 }

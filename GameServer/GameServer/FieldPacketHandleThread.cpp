@@ -94,6 +94,8 @@ void FieldPacketHandleThread::UpdatePlayers(float deltaTime)
 void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 {
 	Player* p = (Player*)ptr;
+	p->SetField(this);
+
 	auto result = _playerMap.insert({ sessionId, p });
 	if (!result.second)
 	{
@@ -214,6 +216,8 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		}
 	}
 
+	player->OnLeave();
+
 	if (disconnect)
 	{
 		FreePlayer(sessionId);
@@ -226,17 +230,13 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	int deletedNum = _playerMap.erase(sessionId);
 	if (deletedNum == 0)
 	{
-		// 이미 삭제된 경우
-		// 더미 기준에서는 발생하면 안됨
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
 
-	_playerIDToPlayerMap.erase(playerID);
+	_fieldObjectMap.erase(playerID);
 
-	CPacket* despawnPacket = CPacket::Alloc();
-	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, playerID);
-	SendPacket_BroadCast(despawnPacket);
-	CPacket::Free(despawnPacket);
+
+
 }
 
 FieldObject* FieldPacketHandleThread::FindFieldObject(int64 objectId)

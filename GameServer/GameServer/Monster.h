@@ -1,7 +1,6 @@
 #pragma once
 #include "Type.h"
 #include <unordered_map>
-#include <vector>
 #include "FieldObject.h"
 
 class CPacket;
@@ -27,10 +26,9 @@ class Monster : public FieldObject
 	friend class FieldPacketHandleThread;
 
 public:
-	Monster();
-	void Init(FVector position, uint16 type);
+	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType, FVector spawnPosition);
 	MonsterState GetState() { return _state; };
-	std::vector<CPacket*>& Update(float deltaTime);
+	void Update(float deltaTime);
 	void SetDestination(FVector destination);
 
 	/// <summary>
@@ -48,6 +46,7 @@ public:
 	void SetRandomDestination();
 	float GetDistanceToPlayer(Player* targetPlayer);
 	FRotator CalculateRotation(const FVector& oldPosition, const FVector& newPosition);
+	void OnSpawn();
 //private:
 //	void SendIdlePacket();
 //	void SendAttackPacket();
@@ -77,7 +76,5 @@ private:
 	//
 	int _damage = 5;
 	float _defaultIdleTime = 10;
-
-	std::vector<CPacket*> _sendPacketsPerThread;
 };
 

@@ -13,6 +13,8 @@ public:
 	void SendPacket_Around(CPacket* packet, bool bInclude = true);
 
 	FieldObject* FindFieldObject(int64 objectId);
+	void SetField(FieldPacketHandleThread* field) { _field = field; };
+
 protected:
 	int64 _objectId;
 

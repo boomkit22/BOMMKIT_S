@@ -66,6 +66,7 @@ void LoginGameThread::OnEnterThread(int64 sessionId, void* ptr)
 		LOG(L"LoginGameThread", LogLevel::Error, L"AllocPlayer Fail : %lld, OnEnterThread", sessionId);
 		return;
 	}
+
 	player->_sessionId = sessionId;
 	//Player* player = _playerPool.Alloc();
 	auto result = _playerMap.insert({ sessionId, player });

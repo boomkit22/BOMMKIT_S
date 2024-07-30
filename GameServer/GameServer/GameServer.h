@@ -11,6 +11,7 @@
 #include "LobbyFieldThread.h"
 #include "SpiderFieldThread.h"
 #include "LoginGameThread.h"
+#include "GameData.h"
 
 class GameServer : public CNetServer
 {
@@ -57,7 +58,7 @@ private: // 모니터 서버로 보낼 거 (하드웨어)
 
 private: // 플레이어
 	SRWLOCK _playerMapLock;
-	LockFreeObjectPool<class Player, false> _playerPool;
+	LockFreeObjectPool<class Player, true> _playerPool;
 	std::unordered_map<int64, Player*> _globalPlayerMap;
 
 private:
@@ -69,8 +70,7 @@ private:
 public:
 	Player* AllocPlayer(int64 sessionId)
 	{
-		Player* p = _playerPool.Alloc();
-		p->Init(sessionId);
+		Player* p = _playerPool.Alloc(nullptr, TYPE_PLAYER, sessionId);
 		AcquireSRWLockExclusive(&_playerMapLock);
 		auto ret = _globalPlayerMap.insert({ sessionId, p });
 		if (ret.second == false)

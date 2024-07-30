@@ -139,6 +139,7 @@ void LobbyFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 	Player* p = it->second;
 	int64 characterNo = p->playerInfo.PlayerID;
 
+	p->OnLeave();
 	if (disconnect)
 	{
 		FreePlayer(sessionId);
@@ -155,14 +156,8 @@ void LobbyFieldThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		// 더미 기준에서는 발생하면 안됨
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
-	//먼저삭제하고 broadcast하면 되긴하는데
 
-
-
-	CPacket* despawnPacket = CPacket::Alloc();
-	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, characterNo);
-	SendPacket_BroadCast(despawnPacket);
-	CPacket::Free(despawnPacket);
+	_fieldObjectMap.erase(characterNo);
 }
 
 

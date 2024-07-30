@@ -2,6 +2,7 @@
 #include <new.h>
 #include <stdlib.h>
 #include "Type.h"
+#include <utility>
 
 
 
@@ -75,7 +76,8 @@
 
 
 
-		DATA* Alloc(void)
+		template <typename... Args>
+		DATA* Alloc(Args&&... args)
 		{
 			InterlockedIncrement64(&_useCount);
 			DATA* ret = nullptr;
@@ -86,15 +88,14 @@
 			do {
 				oldTop = _top;
 
-
 				// 본인이 그냥 oldTop null로 봤으면 
 				//한개 생성해서 던짐
 				if (oldTop == NULL)
 				{
 					InterlockedIncrement64(&_capacity);
-					st_BLOCK_NODE* node = new st_BLOCK_NODE;
-					node->prev = nullptr;
-					return &(node->data);
+					st_BLOCK_NODE* newNode = (st_BLOCK_NODE*)malloc(sizeof(st_BLOCK_NODE));
+					newNode->prev = nullptr;
+					return new(&(newNode->data)) DATA(std::forward<Args>(args)...);
 				}
 				oldTopDemasked = (int64)oldTop;
 				oldTopDemasked &= _demaskValue;
@@ -114,10 +115,9 @@
 					__debugbreak();
 				}
 
-
 			} while (InterlockedCompareExchange64(&_top, newTopMasked, (LONG64)oldTop) != (LONG64)oldTop);
 
-			new(ret) DATA;
+			new(ret) DATA(std::forward<Args>(args)...);
 			return ret;
 		}
 
@@ -172,8 +172,8 @@
 		// 스택 방식으로 반환된 (미사용) 오브젝트 블럭을 관리.
 	private:
 		int64 _top = NULL; // 애초에 freeNode가 뭐지? 처음으로 줄 수 있는 것
-		int _capacity = 0; // 현재 확보 된 블럭 갯수 ( 메모리풀 내부의 저네 갯수)
-		int _useCount = 0; // useCount ?? 현재 사용중인 블럭갯수? 
+		int64 _capacity = 0; // 현재 확보 된 블럭 갯수 ( 메모리풀 내부의 저네 갯수)
+		int64 _useCount = 0; // useCount ?? 현재 사용중인 블럭갯수? 
 		int64 _masking = 0;
 		int64 _demaskValue = 0;
 	};

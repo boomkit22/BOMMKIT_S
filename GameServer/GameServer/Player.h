@@ -17,9 +17,8 @@ class Player : public FieldObject
 	friend class LoginGameThread;
 	friend class FieldPacketHandleThread;
 
-private:
-	
-	void Init(int64 sessionId);
+public:
+	Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionId);
 
 private:
 	int64 _sessionId;
@@ -38,6 +37,7 @@ public:
 	void Update(float deltaTime);
 	void SetDestination(const FVector& NewDestination);
 	void StopMove();
+	void OnLeave();
 
 	int64 GetObjectId() { return _objectId; };
 	int64 GetSessionId() { return _sessionId; };

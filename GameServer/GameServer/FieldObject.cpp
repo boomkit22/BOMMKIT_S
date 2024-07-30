@@ -8,7 +8,8 @@ using namespace std;
 FieldObject::FieldObject(FieldPacketHandleThread* field, uint16 objectType)
 	: _field(field), _objectType(objectType)
 {
-
+	static int64 ojbectIdGenerator = 0;
+	_objectId = ojbectIdGenerator++;
 }
 
 FieldObject::~FieldObject()
