@@ -9,6 +9,7 @@
 #include "PacketMaker.h"
 #include "Monster.h"
 #include "Player.h"
+#include "Sector.h"
 
 
 
@@ -47,15 +48,23 @@ void GuardianFieldThread::SpawnMonster()
 {
 	Monster* monster = AllocMonster(MONSTER_TYPE_GUARDIAN);
 
-	FVector randomLocation{ rand() % _sectorYSizeTotal, rand() % _sectorXSizeTotal, 88.1 };
+	int spawnX  = rand() % _sectorXSizeTotal;
+	int spawnY = rand() % _sectorYSizeTotal;
+
+	FVector randomLocation{ spawnX, spawnY, 88.1 };
 	std::clamp(randomLocation.X, double(100), double(_sectorXSize - 100));
 	std::clamp(randomLocation.Y, double(100), double(_sectorYSize - 100));
 	FRotator spawnRotation = { 0, 0, 0 };
-
-
 	monster->_position = randomLocation;
 	monster->_rotation = spawnRotation;
 
+
+	monster->_sectorXSize = _sectorXSize;
+	monster->_sectorYSize = _sectorYSize;
+
+
+	monster->_currentSector = &_sector[spawnY / _sectorYSize][spawnX / _sectorXSize];
+	monster->_currentSector->fieldObjectVector.push_back(monster);
 	monster->OnSpawn();
 }
 

@@ -6,8 +6,8 @@
 #include "PacketMaker.h"
 #include "SerializeBuffer.h"
 #include "BasePAcketHandleThread.h"
-
-
+#include "Sector.h"
+#include "FieldPacketHandleThread.h"
 
 
 Monster::Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType) : FieldObject(field, objectType)
@@ -132,6 +132,18 @@ void Monster::MoveToDestination(float deltaTime)
 		_position.X += moveX;
 		_position.Y += moveY;
 	}
+
+	uint16 newSectorY = _position.Y / _sectorYSize;
+	uint16 newSectorX = _position.X / _sectorXSize;
+
+	if (_currentSector->Y == newSectorY && _currentSector->X == newSectorX)
+	{
+		return;
+	}
+
+	Sector* currentSector = _currentSector;
+	Sector* newSector = GetField()->GetSector(newSectorY, newSectorX);
+	ProcessSectorChange(newSector);
 }
 
 // 캐릭터가 나가버리거나 하면 이 targetPlayer를 들고있던 애는 어떻게해야하는거지
@@ -338,4 +350,198 @@ void Monster::SetTargetPlayerEmpty()
 	MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
 	SendPacket_Around(idlePacket);
 	CPacket::Free(idlePacket);
+}
+
+void Monster::ProcessSectorChange(Sector* newSector)
+{
+	AddSector(newSector);
+	RemoveSector(_currentSector);
+	_currentSector = newSector;
+}
+
+void Monster::AddSector(Sector* newSector)
+{
+	// 1: new Sector에 있는 섹터에 이 캐릭터 생성, 액션 보내고
+	Sector** addSector = nullptr;
+	int8 addSectorNum = 0;
+	int8 moveDirection = diffToDirection[{newSector->Y - _currentSector->Y, newSector->X - _currentSector->X}];
+
+	// 이동 방향에 따라 이 캐릭터에게 새로 추가된 섹터 계산
+	switch (moveDirection)
+	{
+	case MOVE_DIR_LL:
+	{
+		addSector = newSector->left;
+		addSectorNum = newSector->leftSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RR:
+	{
+		addSector = newSector->right;
+		addSectorNum = newSector->rightSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_UU:
+	{
+		addSector = newSector->up;
+		addSectorNum = newSector->upSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_DD:
+	{
+		addSector = newSector->down;
+		addSectorNum = newSector->downSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RU:
+	{
+		addSector = newSector->upRight;
+		addSectorNum = newSector->upRightSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_LU:
+	{
+		addSector = newSector->upLeft;
+		addSectorNum = newSector->upLeftSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RD:
+	{
+		addSector = newSector->downRight;
+		addSectorNum = newSector->downRightSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_LD:
+	{
+		addSector = newSector->downLeft;
+		addSectorNum = newSector->downLeftSectorNum;
+	}
+	break;
+
+	default:
+	{
+		__debugbreak();
+	}
+	}
+
+	//새로 추가된 섹터에, 이 몬스터의 생성, 이동시 이동 패킷 보내기
+	CPacket* spawnMonsterPacket = CPacket::Alloc();
+	MP_SC_SPAWN_MONSTER(spawnMonsterPacket, _monsterInfo, _position, _rotation);
+	for (int i = 0; i < addSectorNum; i++)
+	{
+		SendPacket_Sector(addSector[i], spawnMonsterPacket);
+	}
+	CPacket::Free(spawnMonsterPacket);
+
+	//이동중이었으면 이동 패킷 보내기
+	if (_state == MonsterState::MS_MOVING)
+	{
+		CPacket* monsterMovePacket = CPacket::Alloc();
+		MP_SC_MONSTER_MOVE(monsterMovePacket, _monsterInfo.MonsterID, _destination, _rotation);
+		for (int i = 0; i < addSectorNum; i++)
+		{
+			SendPacket_Sector(addSector[i], monsterMovePacket);
+		}
+		CPacket::Free(monsterMovePacket);
+	}
+
+	newSector->fieldObjectVector.push_back(this);
+}
+
+void Monster::RemoveSector(Sector* newSector)
+{
+	//먼저 섹터에서 이 캐릭터 삭제하고
+	Sector* nowSector = _currentSector;
+	std::vector<FieldObject*>& fieldObjectVector = nowSector->fieldObjectVector;
+	auto it = std::find(fieldObjectVector.begin(), fieldObjectVector.end(), this);
+	if (it != fieldObjectVector.end())
+	{
+		fieldObjectVector.erase(it);
+	}
+
+	//섹터가 변경됨에 따라 사라진 섹터 구하기
+	Sector** deleteSector = nullptr;
+	int8 deleteSectorNum = 0;
+	int8 moveDirection = diffToDirection[{newSector->Y - _currentSector->Y, newSector->X - _currentSector->X}];
+
+	switch (moveDirection)
+	{
+	case MOVE_DIR_LL:
+	{
+		deleteSector = nowSector->right;
+		deleteSectorNum = nowSector->rightSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RR:
+	{
+		deleteSector = nowSector->left;
+		deleteSectorNum = nowSector->leftSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_UU:
+	{
+		deleteSector = nowSector->down;
+		deleteSectorNum = nowSector->downSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_DD:
+	{
+		deleteSector = nowSector->up;
+		deleteSectorNum = nowSector->upSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RU:
+	{
+		deleteSector = nowSector->downLeft;
+		deleteSectorNum = nowSector->downLeftSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_LU:
+	{
+		deleteSector = nowSector->downRight;
+		deleteSectorNum = nowSector->downRightSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_RD:
+	{
+		deleteSector = nowSector->upLeft;
+		deleteSectorNum = nowSector->upLeftSectorNum;
+	}
+	break;
+
+	case MOVE_DIR_LD:
+	{
+		deleteSector = nowSector->upRight;
+		deleteSectorNum = nowSector->upRightSectorNum;
+	}
+	break;
+
+	default:
+	{
+		__debugbreak();
+	}
+	}
+
+	//벗어난 섹터에 이 캐릭터 삭제 패킷 보내고
+	CPacket* despawnMonsterPacket = CPacket::Alloc();
+	MP_SC_GAME_DESPAWN_MONSTER(despawnMonsterPacket, _monsterInfo.MonsterID);
+	for (int i = 0; i < deleteSectorNum; i++)
+	{
+		SendPacket_Sector(deleteSector[i], despawnMonsterPacket);
+	}
+	CPacket::Free(despawnMonsterPacket);
+	
 }

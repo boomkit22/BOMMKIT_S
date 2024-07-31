@@ -129,9 +129,11 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 	FRotator spawnRotation{ 0, 0, 0 };
 	p->Rotation = spawnRotation;
 	p->Position = spawnLocation;
+	
 	p->_sectorYSize = _sectorYSize;
 	p->_sectorXSize = _sectorXSize;
 	p->_currentSector = &_sector[spawnY / _sectorYSize][spawnX / _sectorXSize];
+	p->_currentSector->fieldObjectVector.push_back(p);
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
 	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);

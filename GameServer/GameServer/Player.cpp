@@ -44,7 +44,7 @@ void Player::OnLeave()
 {
 	CPacket* despawnPacket = CPacket::Alloc();
 	MP_SC_GAME_DESPAWN_OTHER_CHARACTER(despawnPacket, playerInfo.PlayerID);
-	SendPacket_Around(despawnPacket);
+	SendPacket_Around(despawnPacket, false);
 	CPacket::Free(despawnPacket);
 }
 
@@ -141,7 +141,7 @@ void Player::HandleCharacterStop(FVector position, FRotator rotation)
 	CPacket* stopPacket = CPacket::Alloc();
 	MP_SC_GAME_RSE_CHARACTER_STOP(stopPacket, playerId, position, rotation);
 	//브로드캐스팅
-    SendPacket_Around(stopPacket);
+    SendPacket_Around(stopPacket, false);
 	CPacket::Free(stopPacket);
 }
 
