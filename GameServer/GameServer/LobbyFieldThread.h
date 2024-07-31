@@ -26,10 +26,7 @@ private:
 
 
 public:
-
-
 	// FieldPacketHandleThread을(를) 통해 상속됨
 	void FrameUpdate(float deltaTime) override;
-
 };
 

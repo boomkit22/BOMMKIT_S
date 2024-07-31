@@ -40,7 +40,6 @@ public:
 	void OnLeave();
 	void OnFieldChange();
 
-	int64 GetObjectId() { return _objectId; };
 	int64 GetSessionId() { return _sessionId; };
 public:
 	void HandleCharacterMove(FVector destination, FRotator startRotation);

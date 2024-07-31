@@ -18,6 +18,3 @@ const double MAX_MAP_SIZE_Y = 3900.f;
 #define FIELD_SPIDER 3
 
 #define PI 3.141592653589
-
-#define MAP_SIZE_X 4000
-#define MAP_SIZE_Y 4000

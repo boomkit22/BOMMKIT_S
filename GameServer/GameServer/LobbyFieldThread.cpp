@@ -79,8 +79,8 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = MAP_SIZE_X / 2 + rand() % 300;
-	int spawnY = MAP_SIZE_Y / 2 + rand() % 300;
+	int spawnX = _sectorXSize / 2 + rand() % 300;
+	int spawnY = _sectorYSize / 2 + rand() % 300;
 
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 

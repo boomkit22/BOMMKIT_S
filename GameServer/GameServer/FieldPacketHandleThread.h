@@ -46,12 +46,14 @@ protected:
 private:
 	CObjectPool<Monster, true> _monsterPool;
 
-private:
+protected:
 	//ºΩ≈Õ
 	uint16 _sectorYLen;
 	uint16 _sectorXLen;
 	uint16 _sectorYSize;
 	uint16 _sectorXSize;
+	uint32 _sectorYSizeTotal;
+	uint32 _sectorXSizeTotal;
 
 	Sector** _sector;
 	void InitializeSector();

@@ -57,7 +57,6 @@ void BasePacketHandleThread::HandleRecvPacket(int64 sessionId, CPacket* packet)
 }
 
 
-
 void BasePacketHandleThread::DisconnectPlayer(int64 sessionId)
 {
 	_gameServer->Disconnect(sessionId);

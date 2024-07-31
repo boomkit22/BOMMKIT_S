@@ -38,7 +38,6 @@ public:
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
-	int64 GetObjectId() { return _objectId; };
 
 	/// <summary>
 	/// 

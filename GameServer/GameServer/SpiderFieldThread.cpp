@@ -45,9 +45,9 @@ void SpiderFieldThread::SpawnMonster()
 {
 	Monster* monster = AllocMonster(MONSTER_TYPE_SPIDER);
 
-	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
-	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
-	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
+	FVector randomLocation{ rand() % _sectorXSizeTotal, rand() % _sectorYSizeTotal, 88.1 };
+	std::clamp(randomLocation.X, double(100), double(_sectorXSizeTotal - 100));
+	std::clamp(randomLocation.Y, double(100), double(_sectorYSizeTotal - 100));
 	FRotator spawnRotation = { 0, 0, 0 };
 
 

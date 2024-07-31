@@ -12,23 +12,25 @@ class GameServer;
 
 class BasePacketHandleThread : public GameThread
 {
+	friend class FieldObject;
+
 public:
 	BasePacketHandleThread(GameServer* gameServer, int threadId, int msPerFrame);
 
-public:
-	int64 GetPlayerSize() override;
-	void SendPacket(int64 sessionId, CPacket* packet);
-
 protected:
-	void DisconnectPlayer(int64 sessionId);
-	std::unordered_map<int64, Player*> _playerMap;
-	Player* AllocPlayer(int64 sessionId);
-	void FreePlayer(int64 sessionId);
-
-protected: 
+	void SendPacket(int64 sessionId, CPacket* packet);
 	// PacketHandler 
 	using PacketHandler = std::function<void(Player*, CPacket*)>;
 	void RegisterPacketHandler(uint16 packetCode, PacketHandler handler);
+
+public:
+	int64 GetPlayerSize() override;
+
+protected:
+	std::unordered_map<int64, Player*> _playerMap;
+	Player* AllocPlayer(int64 sessionId);
+	void FreePlayer(int64 sessionId);
+	void DisconnectPlayer(int64 sessionId);
 
 private:
 	void HandleRecvPacket(int64 sessionId, CPacket* packet) override;

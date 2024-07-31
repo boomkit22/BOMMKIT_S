@@ -10,7 +10,13 @@ class Sector;
 /// </summary>
 class FieldObject
 {
+	friend class FieldPacketHandleThread;
+
 public:
+	uint16 GetObjectType() { return _objectType; };
+	int64 GetObjectId() { return _objectId; };
+
+protected:
 	FieldObject(FieldPacketHandleThread* field, uint16 objectType);
 	virtual ~FieldObject();
 	void SendPacket_Unicast(int64 objectId, CPacket* packet);
@@ -20,16 +26,11 @@ public:
 	FieldObject* FindFieldObject(int64 objectId);
 	void SetField(FieldPacketHandleThread* field) { _field = field; };
 
-	uint16 GetObjectType() { return _objectType; };
-	int64 GetObjectId() { return _objectId; };
-
 	virtual void Update(float deltaTime) = 0;
 	FieldPacketHandleThread* GetField() { return _field; };
 
 protected:
 	int64 _objectId;
-
-private:
 	uint16 _objectType;
 	Sector* _currentSector;
 	FieldPacketHandleThread* _field;

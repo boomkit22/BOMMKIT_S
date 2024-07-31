@@ -47,9 +47,9 @@ void GuardianFieldThread::SpawnMonster()
 {
 	Monster* monster = AllocMonster(MONSTER_TYPE_GUARDIAN);
 
-	FVector randomLocation{ rand() % MAP_SIZE_X, rand() % MAP_SIZE_Y, 88.1 };
-	std::clamp(randomLocation.X, double(100), double(MAP_SIZE_X - 100));
-	std::clamp(randomLocation.Y, double(100), double(MAP_SIZE_Y - 100));
+	FVector randomLocation{ rand() % _sectorYSizeTotal, rand() % _sectorXSizeTotal, 88.1 };
+	std::clamp(randomLocation.X, double(100), double(_sectorXSize - 100));
+	std::clamp(randomLocation.Y, double(100), double(_sectorYSize - 100));
 	FRotator spawnRotation = { 0, 0, 0 };
 
 

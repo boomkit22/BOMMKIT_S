@@ -53,7 +53,7 @@ void Player::OnFieldChange()
 	// 이캐릭터 패킷 다른캐릭터들에게 보내고
 	CPacket* spawnMycharacterPacket = CPacket::Alloc();
 	MP_SC_SPAWN_OTHER_CHARACTER(spawnMycharacterPacket, playerInfo, Position, Rotation);
-	SendPacket_Around(spawnMycharacterPacket);
+	SendPacket_Around(spawnMycharacterPacket, false);
 	CPacket::Free(spawnMycharacterPacket);
 
 	// 이 캐릭터에게 이미 존재하고 있는 다른 FieldObject패킷 보내고
@@ -249,6 +249,7 @@ void Player::Move(float deltaTime) {
 
 	Sector* currentSector = _currentSector;
 	Sector* newSector = GetField()->GetSector(newSectorY, newSectorX);
+	ProcessSectorChange(newSector);
 }
 
 bool Player::TakeDamage(int32 damage)

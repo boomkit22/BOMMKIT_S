@@ -13,12 +13,16 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	uint16 _sectorYLen, uint16 _sectorXLen, uint16 _sectorYSize, uint16 _sectorXSize) :
 	BasePacketHandleThread(gameServer, threadId, msPerFrame), _sectorYLen(_sectorYLen), _sectorXLen(_sectorXLen), _sectorYSize(_sectorYSize), _sectorXSize(_sectorXSize)
 {
+
 	InitializeSector();
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_FIELD_MOVE, [this](Player* p, CPacket* packet) { HandleFieldMove(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_MOVE, [this](Player* p, CPacket* packet) { HandleChracterMove(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_SKILL, [this](Player* p, CPacket* packet) { HandleCharacterSkill(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_STOP, [this](Player* p, CPacket* packet) { HandleCharacterStop(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HnadleCharacterAttack(p, packet); });
+
+	_sectorXSizeTotal = _sectorXLen * _sectorXSize;
+	_sectorYSizeTotal = _sectorYLen * _sectorYSize;
 }
 
 void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
@@ -117,8 +121,8 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = MAP_SIZE_X / 2 + rand() % 300;
-	int spawnY = MAP_SIZE_Y / 2 + rand() % 300;
+	int spawnX = _sectorXSizeTotal / 2 + rand() % 300;
+	int spawnY = _sectorYSizeTotal / 2 + rand() % 300;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
 	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
