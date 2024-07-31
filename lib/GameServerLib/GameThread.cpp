@@ -18,6 +18,12 @@ GameThread::GameThread(int threadId, int msPerFram) : _msPerFrame(msPerFram)
 	ReleaseSRWLockExclusive(&_gameThreadInfoMapLock);
 	
 	_gameThreadID = threadId;
+
+	
+}
+
+void GameThread::Start()
+{
 	int errorCode;
 
 	_hUpdateThread = (HANDLE)_beginthreadex(nullptr, 0, UpdateThreadStatic, this, 0, nullptr);
@@ -36,7 +42,6 @@ GameThread::GameThread(int threadId, int msPerFram) : _msPerFrame(msPerFram)
 	}
 	_runningThread++;
 }
-
 
 unsigned __stdcall GameThread::UpdateThread()
 {

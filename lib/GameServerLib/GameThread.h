@@ -40,7 +40,7 @@ class GameThread
 	friend class CNetServer;
 
 public:
-
+	void Start();
 	GameThread(int threadId, const int msPerFrame);
 
 	int _msPerFrame;

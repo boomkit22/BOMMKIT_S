@@ -26,11 +26,17 @@ using namespace std;
 GameServer::GameServer()
 {
 	InitializeSRWLock(&_playerMapLock);
-	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 10, 10, 400, 400);
-	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 10, 10, 400, 400);
-	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER, 100, 10, 10, 400, 400);
-
+	
 	_loginGameThread = new LoginGameThread(this, LOGIN_THREAD, 100);
+	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 50, 50, 800, 800);
+	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 50, 50, 800, 800);
+	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER, 100, 50, 50, 800, 800);
+	
+	_loginGameThread->Start();
+	_LobbyFieldThread->Start();
+	_GuardianFieldThread->Start();
+	_SpiderFieldThread->Start();
+
 	RegisterDefaultGameThread(_loginGameThread);
 	LOG(L"System", LogLevel::System, L"GameServer()");
 }

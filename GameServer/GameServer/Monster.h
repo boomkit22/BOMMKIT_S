@@ -86,10 +86,6 @@ private:
 	float _defaultIdleTime = 10;
 
 private:
-	//Sector
-	class Sector* _currentSector;
-	uint16 _sectorYSize;
-	uint16 _sectorXSize;
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);

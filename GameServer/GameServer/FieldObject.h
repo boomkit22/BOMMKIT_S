@@ -34,5 +34,7 @@ protected:
 	uint16 _objectType;
 	Sector* _currentSector;
 	FieldPacketHandleThread* _field;
+	uint16 _sectorYSize;
+	uint16 _sectorXSize;
 };
 
