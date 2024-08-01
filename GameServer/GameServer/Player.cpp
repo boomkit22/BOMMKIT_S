@@ -14,7 +14,6 @@ Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionI
 	_sessionId = sessionId;
 	_lastRecvTime = 0;
 	_bLogined = false;
-	playerInfo.PlayerID = _objectId;
 	playerInfo.Hp = 100;
 	Position = { 0, 0,  PLAYER_Z_VALUE };
 	playerInfos.clear();
@@ -111,6 +110,8 @@ void Player::OnFieldChange()
 			} 
 		}
 	}
+
+	_currentSector->fieldObjectVector.push_back(this);
 }
 
 void Player::HandleCharacterMove(FVector destination, FRotator startRotation)
@@ -247,6 +248,7 @@ void Player::Move(float deltaTime) {
 		return;
 	}
 
+	printf("ProcessSectorChange\n");
 	Sector* currentSector = _currentSector;
 	Sector* newSector = GetField()->GetSector(newSectorY, newSectorX);
 	ProcessSectorChange(newSector);
@@ -268,7 +270,7 @@ bool Player::TakeDamage(int32 damage)
 void Player::ProcessSectorChange(Sector* newSector)
 {
 	AddSector(newSector);
-	RemoveSector(_currentSector);
+	RemoveSector(newSector);
 	_currentSector = newSector;
 }
 
@@ -278,7 +280,6 @@ void Player::AddSector(Sector* newSector)
 	Sector** addSector = nullptr;
 	int8 addSectorNum = 0;
 	int8 moveDirection = diffToDirection[{newSector->Y - _currentSector->Y, newSector->X - _currentSector->X}];
-
 	// 이동 방향에 따라 이 캐릭터에게 새로 추가된 섹터 계산
 	switch (moveDirection)
 	{
@@ -433,12 +434,14 @@ void Player::RemoveSector(Sector* newSector)
 	{
 		fieldObjectVector.erase(it);
 	}
+	else {
+		__debugbreak();
+	}
 
 	//섹터가 변경됨에 따라 사라진 섹터 구하기
 	Sector** deleteSector = nullptr;
 	int8 deleteSectorNum = 0;
-	int8 moveDirection = diffToDirection[{newSector->Y - _currentSector->Y, newSector->X - _currentSector->X}];
-
+	int8 moveDirection = diffToDirection[{newSector->Y - nowSector->Y, newSector->X - nowSector->X}];
 	switch (moveDirection)
 	{
 		case MOVE_DIR_LL:
@@ -514,7 +517,6 @@ void Player::RemoveSector(Sector* newSector)
 
 	
 	//벗어난 섹터에 있던 캐릭터, 몬스터들 삭제메시지 이 캐릭터한테 보내고
-
 	for (int i = 0; i < deleteSectorNum; i++)
 	{
 		std::vector<FieldObject*>& fieldObjectVector = deleteSector[i]->fieldObjectVector;
@@ -525,8 +527,9 @@ void Player::RemoveSector(Sector* newSector)
 			if (objectType == TYPE_PLAYER)
 			{
 				CPacket* deleteOtherPlayerPacket = CPacket::Alloc();
-				int64 objectId = fieldObject->GetObjectId();
-				MP_SC_GAME_DESPAWN_OTHER_CHARACTER(deleteOtherPlayerPacket, objectId);
+				Player* otherPlayer = static_cast<Player*>(fieldObject);
+				int64 otherPlayerId = otherPlayer->playerInfo.PlayerID;
+				MP_SC_GAME_DESPAWN_OTHER_CHARACTER(deleteOtherPlayerPacket, otherPlayerId);
 				SendPacket_Unicast(_sessionId, deleteOtherPlayerPacket);
 				CPacket::Free(deleteOtherPlayerPacket);
 			}

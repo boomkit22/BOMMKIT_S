@@ -30,7 +30,7 @@ void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
 	uint16 fieldID;
 	*packet >> fieldID;
 	
-	MoveGameThread(fieldID, player->GetObjectId(), player);
+	MoveGameThread(fieldID, player->GetSessionId(), player);
 }
 
 void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
@@ -133,7 +133,6 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 	p->_sectorYSize = _sectorYSize;
 	p->_sectorXSize = _sectorXSize;
 	p->_currentSector = &_sector[spawnY / _sectorYSize][spawnX / _sectorXSize];
-	p->_currentSector->fieldObjectVector.push_back(p);
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
 	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);

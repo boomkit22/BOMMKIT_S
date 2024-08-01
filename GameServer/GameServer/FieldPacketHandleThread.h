@@ -38,6 +38,7 @@ public:
 	FieldObject* FindFieldObject(int64 objectId);
 	void ReturnFieldObject(int64 objectId);
 	Monster* AllocMonster(uint16 monsterType);
+	
 
 protected:
 	std::unordered_map<int64, Monster*> _monsterMap;
@@ -60,5 +61,7 @@ protected:
 
 public:
 	Sector* GetSector(uint16 newSectorY, uint16 newSectorX);
+	uint32 GetMapXSize() { return _sectorXSizeTotal; };
+	uint32 GetMapYSize() { return _sectorYSizeTotal; };
 };
 

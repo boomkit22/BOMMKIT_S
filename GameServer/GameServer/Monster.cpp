@@ -274,8 +274,11 @@ void Monster::SetRandomDestination()
 	_destination.X = _position.X + (rand() % static_cast<int>(range * 2)) - range;
 	_destination.Y = _position.Y + (rand() % static_cast<int>(range * 2)) - range;
 
-	_destination.X = std::clamp(_destination.X, MIN_MAP_SIZE_X, MAX_MAP_SIZE_X);
-	_destination.Y = std::clamp(_destination.Y, MIN_MAP_SIZE_Y, MAX_MAP_SIZE_Y);
+	uint32 mapXSize = GetField()->GetMapXSize();
+	uint32 mapYSize = GetField()->GetMapYSize();
+
+	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize));
+	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize));
 	CalculateRotation(_position, _destination);
 
 
@@ -355,7 +358,7 @@ void Monster::SetTargetPlayerEmpty()
 void Monster::ProcessSectorChange(Sector* newSector)
 {
 	AddSector(newSector);
-	RemoveSector(_currentSector);
+	RemoveSector(newSector);
 	_currentSector = newSector;
 }
 

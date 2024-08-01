@@ -10,6 +10,8 @@
 #include "Monster.h"
 #include "Player.h"
 #include "GameServer.h"
+#include "Sector.h"`
+
 
 using namespace std;
 
@@ -62,11 +64,19 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	//TODO: map에 추가
 	//TODO: 플레이어 생성
 	Player* p = (Player*)ptr;
+	p->SetField(this);
+
 	auto result = _playerMap.insert({ sessionId, p });
 	if (!result.second)
 	{
 		__debugbreak();
 	}
+	auto result2 = _fieldObjectMap.insert({ p->GetObjectId(), p });
+	if (!result2.second)
+	{
+		__debugbreak();
+	}
+
 	p->StopMove();
 	// 필드 이동 응답 보내고, 로그인쓰레드에서 fieldID 받긴하는데 어차피 처음엔 lobby니가
 	CPacket* packet = CPacket::Alloc();
@@ -79,15 +89,20 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = _sectorXSize / 2 + rand() % 300;
-	int spawnY = _sectorYSize / 2 + rand() % 300;
+	int spawnX = _sectorXSizeTotal / 2 + rand() % 300;
+	int spawnY = _sectorYSizeTotal / 2 + rand() % 300;
 
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
 	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
-	p->Position = spawnLocation;
 	FRotator spawnRotation{ 0, 0, 0 };
+
+	p->Position = spawnLocation;
 	p->Rotation = spawnRotation;
+
+	p->_sectorYSize = _sectorYSize;
+	p->_sectorXSize = _sectorXSize;
+	p->_currentSector = &_sector[spawnY / _sectorYSize][spawnX / _sectorXSize];
 
 	PlayerInfo myPlayerInfo = p->playerInfo;
 	MP_SC_SPAWN_MY_CHARACTER(spawnCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
@@ -95,37 +110,7 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	printf("send spawn my character\n");
 	CPacket::Free(spawnCharacterPacket);
 
-	//TODO: 다른 컈릭터들에게 이 캐릭터 소환 패킷 보내고
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		if (it->first == sessionId)
-			continue;
-		Player* other = it->second;
-
-		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		//spawnOtherCharacterInfo.NickName = p->NickName;
-		printf("my playerinfo.hp = %d\n", p->playerInfo.Hp);
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, myPlayerInfo, spawnLocation, spawnRotation);
-		SendPacket_Unicast(other->_sessionId, spawnOtherCharacterPacket);
-		CPacket::Free(spawnOtherCharacterPacket);
-	}
-
-	//TODO: 이 캐릭터에게 이미 존재하고 있던 다른 캐릭터들 패킷 보내고
-	for (auto it = _playerMap.begin(); it != _playerMap.end(); it++)
-	{
-		if (it->first == sessionId)
-			continue;
-		Player* other = it->second;
-
-		CPacket* spawnOtherCharacterPacket = CPacket::Alloc();
-		FVector OtherSpawnLocation = other->Position;
-		PlayerInfo otherPlayerInfo = other->playerInfo;
-
-		//spawnOtherCharacterInfo.NickName = p->NickName;
-		MP_SC_SPAWN_OTHER_CHARACTER(spawnOtherCharacterPacket, otherPlayerInfo, OtherSpawnLocation, other->Rotation);
-		SendPacket_Unicast(p->_sessionId, spawnOtherCharacterPacket);
-		CPacket::Free(spawnOtherCharacterPacket);
-	}
+	p->OnFieldChange();
 }
 
 
