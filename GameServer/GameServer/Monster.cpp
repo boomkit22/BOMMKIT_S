@@ -136,6 +136,11 @@ void Monster::MoveToDestination(float deltaTime)
 	uint16 newSectorY = _position.Y / _sectorYSize;
 	uint16 newSectorX = _position.X / _sectorXSize;
 
+	if(newSectorY >= 50 || newSectorX >= 50)
+	{
+		__debugbreak();
+	}
+
 	if (_currentSector->Y == newSectorY && _currentSector->X == newSectorX)
 	{
 		return;
@@ -277,8 +282,8 @@ void Monster::SetRandomDestination()
 	uint32 mapXSize = GetField()->GetMapXSize();
 	uint32 mapYSize = GetField()->GetMapYSize();
 
-	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize));
-	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize));
+	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize) - 100);
+	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize) - 100);
 	CalculateRotation(_position, _destination);
 
 
