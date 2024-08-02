@@ -15,6 +15,7 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 {
 
 	InitializeSector();
+	InitializeMap();
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_FIELD_MOVE, [this](Player* p, CPacket* packet) { HandleFieldMove(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_MOVE, [this](Player* p, CPacket* packet) { HandleChracterMove(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_SKILL, [this](Player* p, CPacket* packet) { HandleCharacterSkill(p, packet); });
@@ -40,6 +41,8 @@ void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet
 	FRotator startRotation;
 	*packet >> destination >> startRotation;
 
+	//TODO: 길찾기쓰레드에 넘기고
+	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
 	player->HandleCharacterMove(destination, startRotation);
 }
 
@@ -706,6 +709,20 @@ void FieldPacketHandleThread::InitializeSector()
 Sector* FieldPacketHandleThread::GetSector(uint16 newSectorY, uint16 newSectorX)
 {
 	return &_sector[newSectorY][newSectorX];
+}
+
+void FieldPacketHandleThread::InitializeMap()
+{
+	map = new uint8*[mapSizeY];
+	for (int y = 0; y < mapSizeY; y++)
+	{
+		map[y] = new uint8[mapSizeX];
+	}
+}
+
+void FieldPacketHandleThread::JumpPointSearch(Player* p, FVector destination)
+{
+
 }
 
 

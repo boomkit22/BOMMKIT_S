@@ -160,6 +160,7 @@
     <ClCompile Include="FieldPacketHandleThread.cpp" />
     <ClCompile Include="GuardianFieldThread.cpp" />
     <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="JumpPointSearch.cpp" />
     <ClCompile Include="LobbyFieldThread.cpp" />
     <ClCompile Include="LoginGameThread.cpp" />
     <ClCompile Include="main.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="GameData.h" />
     <ClInclude Include="GuardianFieldThread.h" />
     <ClInclude Include="GameServer.h" />
+    <ClInclude Include="JumpPointSearch.h" />
     <ClInclude Include="LobbyFieldThread.h" />
     <ClInclude Include="LoginGameThread.h" />
     <ClInclude Include="MonitorClient.h" />
