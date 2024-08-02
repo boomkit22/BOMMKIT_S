@@ -185,10 +185,8 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
 	}
 
-	_fieldObjectMap.erase(playerID);
-
-
-
+	int64 objectId = player->GetObjectId();
+	_fieldObjectMap.erase(objectId);
 }
 
 FieldObject* FieldPacketHandleThread::FindFieldObject(int64 objectId)
