@@ -63,5 +63,14 @@ public:
 	Sector* GetSector(uint16 newSectorY, uint16 newSectorX);
 	uint32 GetMapXSize() { return _sectorXSizeTotal; };
 	uint32 GetMapYSize() { return _sectorYSizeTotal; };
+
+private:
+	//HandleCharacterMove 요청왔을때 길찾기하는 쓰레드 만들기
+	uint8** map;
+	void InitializeMap();
+	uint8 mapSizeY = 12000;
+	uint8 mapSizeX = 12000;
+	void JumpPointSearch(Player* p, FVector destination);
+
 };
 

@@ -26,8 +26,9 @@ using namespace std;
 GameServer::GameServer()
 {
 	InitializeSRWLock(&_playerMapLock);
-	
 	_loginGameThread = new LoginGameThread(this, LOGIN_THREAD, 100);
+	//TODO: 여기서 맵 로딩하고
+	//TODO: GameThread만들때 맵데이터 넘기고
 	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 50, 50, 800, 800);
 	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 50, 50, 800, 800);
 	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER, 100, 50, 50, 800, 800);
