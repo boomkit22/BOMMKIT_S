@@ -51,10 +51,14 @@ JumpPointSearch::JumpPointSearch(uint8** map, int32 mapYSize, int32 mapXSize)
 
 JumpPointSearch::~JumpPointSearch()
 {
-
+	for(int i = 0; i < _mapYSize; i++)
+	{
+		delete[] _jpsMap[i];
+	}
+	delete[] _jpsMap;
 }
 
-std::vector<Pos> JumpPointSearch::FindPath(Pos start, Pos end)
+void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnPath)
 {
 	std::vector<Pos> path;
 	//First : 맵 초기화하고
@@ -66,11 +70,11 @@ std::vector<Pos> JumpPointSearch::FindPath(Pos start, Pos end)
 		CheckAndMakeCorner(startNode, _start, i);
 	}
 	delete startNode;
-	
+
 	if (openList.size() == 0)
 	{
 		//길 못찾음
-		return path;
+		return;
 	}
 
 	while (true)
@@ -93,16 +97,23 @@ std::vector<Pos> JumpPointSearch::FindPath(Pos start, Pos end)
 				nodeNow = nodeNow->_parent;
 			}
 			std::reverse(path.begin(), path.end());
-			vector<Pos> shortestPath;
-			FindShortestPath(path, shortestPath);
+			FindShortestPath(path, returnPath);
 
-			return shortestPath;
+			for (;;)
+			{
+				Node* n = openList.front();
+				openList.pop_front();
+				delete n;
+			}
+
+			return;
 		}
 		// 아니면
 		openList.pop_front();
+		delete nodeNow;
 
 		for (int i = 0; i < 8; i++)
-		{	
+		{
 			if (nodeNow->directionArr[i] == 0)
 			{
 				continue;
@@ -113,11 +124,8 @@ std::vector<Pos> JumpPointSearch::FindPath(Pos start, Pos end)
 		}
 		SetMap(posNow, CLOSE);
 	}
-
-
-
-	
 }
+
 
 Node* JumpPointSearch::CreateStartNode(Pos pos)
 {

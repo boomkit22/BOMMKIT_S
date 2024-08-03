@@ -19,7 +19,8 @@ GameThread::GameThread(int threadId, int msPerFram) : _msPerFrame(msPerFram)
 	
 	_gameThreadID = threadId;
 
-	
+	_hAsyncJobThreadEvent = 
+		CreateEvent(nullptr, FALSE, FALSE, nullptr);
 }
 
 void GameThread::Start()
@@ -92,6 +93,35 @@ unsigned int __stdcall GameThread::MonitorThread()
 	return 0;
 }
 
+unsigned int __stdcall GameThread::AsyncJobThread()
+{
+	while (_running)
+	{
+		WaitForSingleObject(_hAsyncJobThreadEvent, INFINITE);
+
+		for (;;)
+		{
+			std::pair<Session*, std::function<void()>> asyncJob;
+			bool dequeueSucceed = _asyncJobQueue.Dequeue(asyncJob);
+			if (!dequeueSucceed)
+			{
+				break;
+			}
+			Session* s = asyncJob.first;
+			//호출해주고
+			asyncJob.second();
+			CPacket* packet = CPacket::Alloc();
+			HandleAsyncJobFinish(s->_sessionId, packet);
+			CPacket::Free(packet);
+			InterlockedDecrement(&s->_bProcessingAsyncJobNum);
+			_netServer->PutBackSession(s);
+
+		}
+	}
+
+	return 0;
+}
+
 
 void GameThread::NetworkRun()
 {
@@ -123,6 +153,11 @@ void GameThread::NetworkRun()
 		{
 			continue;
 		}
+		if(s->_bProcessingAsyncJobNum > 0)
+		{
+			_netServer->PutBackSession(s);
+			continue;
+		}
 
 		if (s->_packetQueue.Size() == 0)
 		{
@@ -147,9 +182,7 @@ void GameThread::NetworkRun()
 
 		}
 
-
 		HandleRecvPacket(sessionId, packets[0]);
-
 		_netServer->PutBackSession(s);
 	}
 }
@@ -224,7 +257,7 @@ void GameThread::ProcessLeave()
 		{
 			break;
 		}
-
+		
 		int64 sessionId = leaveSessionInfo.sessionId;
 		/*Session* session = _netServer->GetSession(sessionId);
 		if (session == nullptr)
@@ -243,6 +276,22 @@ void GameThread::ProcessLeave()
 		OnLeaveThread(sessionId, leaveSessionInfo.disconnect);
 		_sessionArr.erase(it);
 	}
+}
+
+bool GameThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
+{
+	Session* s = _netServer->GetSession(sessionId);
+	if (s == nullptr)
+	{
+		return false;
+	}
+	InterlockedIncrement(&s->_bProcessingAsyncJobNum);
+	//s->_bProcessingAsyncJobNum++;
+	_asyncJobQueue.Enqueue({ s, job });
+	SetEvent(_hAsyncJobThreadEvent);
+	//_netServer->PutBackSession(s);
+
+	return true;
 }
 
 

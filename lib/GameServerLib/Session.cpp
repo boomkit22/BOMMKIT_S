@@ -56,6 +56,7 @@ void Session::Init(int64 sessionId, SOCKET socket, SOCKADDR_IN* clientAddr)
 	_ioFlag._releaseFlag = 0;
 	_isSending = false;
 	_disconnectRequested = false;
+	_bProcessingAsyncJobNum = 0;
 	memset(&_recvOverlapped, 0, sizeof(_recvOverlapped));
 	memset(&_sendOverlapped, 0, sizeof(_sendOverlapped));
 	memset(_ip, 0, sizeof(_ip));
@@ -86,6 +87,7 @@ void Session::Init(int64 sessionId, SOCKET socket)
 	_ioFlag._releaseFlag = 0;
 	_isSending = false;
 	_disconnectRequested = false;
+	_bProcessingAsyncJobNum = 0;
 	memset(&_recvOverlapped, 0, sizeof(_recvOverlapped));
 	memset(&_sendOverlapped, 0, sizeof(_sendOverlapped));
 	memset(_ip, 0, sizeof(_ip));

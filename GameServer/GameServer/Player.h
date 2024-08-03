@@ -5,6 +5,9 @@
 #include "Type.h"
 #include <map>
 #include "FieldObject.h"
+#include "JumpPointSearch.h"
+#include <vector>
+
 const double PLAYER_Z_VALUE = 95.2f;
 
 class Player : public FieldObject
@@ -66,5 +69,6 @@ private:
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
+	std::vector<Pos> _path;
 };
 

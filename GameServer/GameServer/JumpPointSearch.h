@@ -99,11 +99,14 @@ struct NodeComparator {
 class JumpPointSearch
 {
 	//TODO: 생성자로 맵 받고
+public:
 	JumpPointSearch(uint8** map, int32 mapYSize, int32 mapXSize);
 	~JumpPointSearch();
 
 public:
-	std::vector<Pos> FindPath(Pos start, Pos end);
+	//std::vector<Pos> FindPath(Pos start, Pos end);
+	void FindPath(Pos start, Pos end, std::vector<Pos>& path);
+
 
 private:
 	Node* CreateStartNode(Pos pos);

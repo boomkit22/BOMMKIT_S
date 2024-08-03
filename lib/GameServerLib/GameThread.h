@@ -5,6 +5,8 @@
 #include "LockFreeStack.h"
 #include <vector>
 #include <map>
+#include <functional>
+
 
 #define TPS_ARR_NUM 5
 #define GAMETHREAD_MAX_SESSION_NUM 6000
@@ -57,6 +59,7 @@ private:
 
 	virtual int64 GetPlayerSize() = 0;
 	virtual void HandleRecvPacket(int64 sessionId, CPacket* packet) = 0;
+	virtual void HandleAsyncJobFinish(int64 sessionId, CPacket* packet) = 0;
 
 	static unsigned __stdcall UpdateThreadStatic(void* param)
 	{
@@ -70,11 +73,18 @@ private:
 	{
 		GameThread* pThis = (GameThread*)arg;
 		return pThis->MonitorThread();
-		
 	}
-
 	unsigned int __stdcall MonitorThread();
 	HANDLE _hMonitorThread;
+
+	static unsigned int __stdcall AsyncJobThreadStatic(void* arg)
+	{
+		GameThread* pThis = (GameThread*)arg;
+		return pThis->AsyncJobThread();
+	}
+	unsigned int __stdcall AsyncJobThread();
+	HANDLE _hAsyncJobThread;
+	HANDLE _hAsyncJobThreadEvent;
 
 	int64 _packetTps[TPS_ARR_NUM] = { 0, };
 	int64 _updateTps = 0;
@@ -112,7 +122,6 @@ private:
 
 private: 
 	LockFreeStack<uint16> _emptySessionIndex;
-	SRWLOCK _sessionArrLock;
 	std::vector<int64> _sessionArr;
 	LockFreeQueue<EnterSessionInfo> _enterQueue;
 	LockFreeQueue<LeaveSessionInfo> _leaveQueue;
@@ -120,6 +129,9 @@ private:
 protected:
 	void ProcessEnter();
 	void ProcessLeave();
+	//TODO: lambda 넣을 수 있게
+	bool RequestAsyncJob(int64 sessionId, std::function<void()> job);
+	
 
 public:
 	void Stop();
@@ -131,9 +143,12 @@ public:
 
 protected:
 	uint16 _gameThreadID;
+
 private:
 	bool _running = true;
 	bool _isAlive = true;
 	int _runningThread = 0;
+	LockFreeQueue<std::pair<Session*, std::function<void()>>> _asyncJobQueue;
+
 };
 

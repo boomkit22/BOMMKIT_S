@@ -1,6 +1,7 @@
 #pragma once
 #include "BasePacketHandleThread.h"
 #include "Type.h"
+#include "JumpPointSearch.h"
 
 class CPacket;
 class Player;
@@ -19,7 +20,9 @@ class FieldPacketHandleThread : public BasePacketHandleThread
 {
 public:
 	FieldPacketHandleThread(GameServer* gameServer, int threadId, int msPerFrame, 
-		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize);
+		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize, uint8** map);
+
+	~FieldPacketHandleThread();
 
 protected:
 	void HandleFieldMove(Player* player, CPacket* packet);
@@ -53,24 +56,21 @@ protected:
 	uint16 _sectorXLen;
 	uint16 _sectorYSize;
 	uint16 _sectorXSize;
-	uint32 _sectorYSizeTotal;
-	uint32 _sectorXSizeTotal;
 
 	Sector** _sector;
 	void InitializeSector();
 
 public:
 	Sector* GetSector(uint16 newSectorY, uint16 newSectorX);
-	uint32 GetMapXSize() { return _sectorXSizeTotal; };
-	uint32 GetMapYSize() { return _sectorYSizeTotal; };
+	uint32 GetMapXSize() { return _mapSizeX; };
+	uint32 GetMapYSize() { return _mapSizeY; };
 
 private:
 	//HandleCharacterMove 요청왔을때 길찾기하는 쓰레드 만들기
-	uint8** map;
+	uint8** _map;
 	void InitializeMap();
-	uint8 mapSizeY = 12000;
-	uint8 mapSizeX = 12000;
-	void JumpPointSearch(Player* p, FVector destination);
-
+	uint8 _mapSizeX;
+	uint8 _mapSizeY;
+	JumpPointSearch* _jps;
 };
 

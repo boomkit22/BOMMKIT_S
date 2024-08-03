@@ -10,8 +10,8 @@
 using namespace std;
 
 FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int threadId, int msPerFrame,
-	uint16 _sectorYLen, uint16 _sectorXLen, uint16 _sectorYSize, uint16 _sectorXSize) :
-	BasePacketHandleThread(gameServer, threadId, msPerFrame), _sectorYLen(_sectorYLen), _sectorXLen(_sectorXLen), _sectorYSize(_sectorYSize), _sectorXSize(_sectorXSize)
+	uint16 _sectorYLen, uint16 _sectorXLen, uint16 _sectorYSize, uint16 _sectorXSize, uint8** map) :
+	BasePacketHandleThread(gameServer, threadId, msPerFrame), _sectorYLen(_sectorYLen), _sectorXLen(_sectorXLen), _sectorYSize(_sectorYSize), _sectorXSize(_sectorXSize), _map(map)
 {
 
 	InitializeSector();
@@ -22,8 +22,19 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_STOP, [this](Player* p, CPacket* packet) { HandleCharacterStop(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HnadleCharacterAttack(p, packet); });
 
-	_sectorXSizeTotal = _sectorXLen * _sectorXSize;
-	_sectorYSizeTotal = _sectorYLen * _sectorYSize;
+	_mapSizeX = _sectorXLen * _sectorXSize;
+	_mapSizeY = _sectorYLen * _sectorYSize;
+	_jps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
+}
+
+FieldPacketHandleThread::~FieldPacketHandleThread()
+{
+	for (int i = 0; i < _sectorYLen; i++)
+	{
+		delete[] _sector[i];
+	}
+	delete[] _sector;
+	delete _jps;
 }
 
 void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
@@ -43,7 +54,23 @@ void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet
 
 	//TODO: 길찾기쓰레드에 넘기고
 	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
-	player->HandleCharacterMove(destination, startRotation);
+
+	Pos start = { player->Position.X, player->Position.Y };
+	Pos end = { destination.X, destination.Y };
+
+	player->_path.clear();
+
+	//start랑 end 복사로해야하고 player 참조로해도됨
+	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
+	RequestAsyncJob(player->GetSessionId(), 
+		[start, end, &player, this]()
+		{
+			this->_jps->FindPath(start, end, player->_path);
+		}
+	);
+
+	//_jps->FindPath(start, end, player->_path);
+	//player->HandleCharacterMove(destination, startRotation);
 }
 
 void FieldPacketHandleThread::HandleCharacterSkill(Player* player, CPacket* packet)
@@ -124,8 +151,8 @@ void FieldPacketHandleThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = _sectorXSizeTotal / 2 + rand() % 300;
-	int spawnY = _sectorYSizeTotal / 2 + rand() % 300;
+	int spawnX = _mapSizeX / 2 + rand() % 300;
+	int spawnY = _mapSizeY / 2 + rand() % 300;
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
 	FVector spawnLocation{ spawnX, spawnY,  PLAYER_Z_VALUE };
