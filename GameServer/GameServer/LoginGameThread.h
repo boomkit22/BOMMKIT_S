@@ -43,5 +43,9 @@ private:
 	// GameThread을(를) 통해 상속됨
 	void GameRun(float deltaTime) override;
 
+private:
+	// BasePacketHandleThread을(를) 통해 상속됨
+	void HandleAsyncJobFinish(int64 sessionId) override;
+
 };
 

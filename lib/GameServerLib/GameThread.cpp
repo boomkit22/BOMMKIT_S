@@ -111,7 +111,7 @@ unsigned int __stdcall GameThread::AsyncJobThread()
 			//호출해주고
 			asyncJob.second();
 			CPacket* packet = CPacket::Alloc();
-			HandleAsyncJobFinish(s->_sessionId, packet);
+			HandleAsyncJobFinish(s->_sessionId);
 			CPacket::Free(packet);
 			InterlockedDecrement(&s->_bProcessingAsyncJobNum);
 			_netServer->PutBackSession(s);

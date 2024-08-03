@@ -58,7 +58,7 @@ void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet
 	FVector destination = { player->_path[pathIndex].x, player->_path[pathIndex].y, PLAYER_Z_VALUE };
 	FRotator startRotation = player->Rotation;
 
-	player->HandleCharacterMove(destination, startRotation)
+	player->HandleCharacterMove(destination, startRotation);
 	//_jps->FindPath(start, end, player->_path);
 	//player->HandleCharacterMove(destination, startRotation);
 }

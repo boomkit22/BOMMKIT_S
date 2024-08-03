@@ -82,6 +82,10 @@ void LoginGameThread::GameRun(float deltaTime)
 
 }
 
+void LoginGameThread::HandleAsyncJobFinish(int64 sessionId)
+{
+}
+
 void LoginGameThread::OnLeaveThread(int64 sessionId, bool disconnect)
 {
 	printf("OnLeaveThread \n");

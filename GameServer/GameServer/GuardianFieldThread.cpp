@@ -16,8 +16,8 @@
 using namespace std;
 
 GuardianFieldThread::GuardianFieldThread(GameServer* gameServer,int threadId, int msPerFrame,
-	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize)
-	: FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize)
+	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize, uint8** map)
+	: FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize, map)
 {
 
 }
@@ -48,12 +48,14 @@ void GuardianFieldThread::SpawnMonster()
 {
 	Monster* monster = AllocMonster(MONSTER_TYPE_GUARDIAN);
 
-	int spawnX  = rand() % _sectorXSizeTotal;
-	int spawnY = rand() % _sectorYSizeTotal;
+	uint32 mapXSize = GetMapXSize();
+	uint32 mapYSize = GetMapYSize();
+	int spawnX  = rand() % mapXSize;
+	int spawnY = rand() % mapYSize;
 
 	FVector randomLocation{ spawnX, spawnY, 88.1 };
-	std::clamp(randomLocation.X, double(100), double(_sectorXSizeTotal - 100));
-	std::clamp(randomLocation.Y, double(100), double(_sectorYSizeTotal - 100));
+	std::clamp(randomLocation.X, double(100), double(mapXSize - 100));
+	std::clamp(randomLocation.Y, double(100), double(mapYSize - 100));
 	FRotator spawnRotation = { 0, 0, 0 };
 	monster->_position = randomLocation;
 	monster->_rotation = spawnRotation;

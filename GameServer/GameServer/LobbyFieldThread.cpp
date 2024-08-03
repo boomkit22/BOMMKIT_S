@@ -16,7 +16,7 @@
 using namespace std;
 
 LobbyFieldThread::LobbyFieldThread(GameServer* gameServer, int threadId, int msPerFrame,
-	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize) : FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize)
+	uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize, uint8** map) : FieldPacketHandleThread(gameServer, threadId, msPerFrame, sectorYLen, sectorXLen, sectorYSize, sectorXSize, map)
 {
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HandleCharacterAttack(p, packet); });
 }
@@ -31,7 +31,7 @@ void LobbyFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	int64 attackerID;
 	int32 targetType;
 	int64 targetID;
-
+	
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
 }
 
@@ -89,8 +89,8 @@ void LobbyFieldThread::OnEnterThread(int64 sessionId, void* ptr)
 	CPacket::Free(packet);
 
 	// 내 캐릭터 소환 패킷 보내고
-	int spawnX = _sectorXSizeTotal / 2 + rand() % 300;
-	int spawnY = _sectorYSizeTotal / 2 + rand() % 300;
+	int spawnX = GetMapXSize() / 2 + rand() % 300;
+	int spawnY = GetMapYSize() / 2 + rand() % 300;
 
 	CPacket* spawnCharacterPacket = CPacket::Alloc();
 
