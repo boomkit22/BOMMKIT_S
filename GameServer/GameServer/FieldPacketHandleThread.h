@@ -30,6 +30,12 @@ protected:
 	void HandleCharacterSkill(Player* player, CPacket* packet);
 	void HandleCharacterStop(Player* player, CPacket* packet);
 	void HnadleCharacterAttack(Player* player, CPacket* packet);
+	//void HandleCharacterNextPath(Player* player, CPacket* packet);
+	void HandleFindPath(Player* player, CPacket* packet);
+
+
+protected:
+	void HandleAsyncFindPath(Player* player);
 
 private:
 	virtual void GameRun(float deltaTime) override;
@@ -72,5 +78,11 @@ private:
 	uint8 _mapSizeX;
 	uint8 _mapSizeY;
 	JumpPointSearch* _jps;
+
+
+private:
+	// BasePacketHandleThread을(를) 통해 상속됨
+	virtual void HandleAsyncJobFinish(int64 sessionId) override;
+
 };
 

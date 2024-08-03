@@ -278,6 +278,7 @@ void GameThread::ProcessLeave()
 	}
 }
 
+
 bool GameThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
 {
 	Session* s = _netServer->GetSession(sessionId);

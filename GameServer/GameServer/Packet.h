@@ -12,6 +12,13 @@
 #define TIMEOUT_DISCONNECT 40000
 #define GAME_SERVER_NO 3
 
+
+enum ASYNC_JOB_TYPE
+{
+	JOB_FIND_PATH = 1,
+};
+
+
 enum PACKET_TYPE
 {
 	//------------------------------------------------------
@@ -336,6 +343,9 @@ enum PACKET_TYPE
 
 	PACKET_SC_GAME_DESPAWN_MONSTER = 1031,
 
+	PACKET_CS_GAME_REQ_FIND_PATH = 1032,
+
+	PACKET_SC_GAME_RES_NEXT_PATH = 1033,
 
 	//------------------------------------------------------------
 	// 채팅 서버 패킷

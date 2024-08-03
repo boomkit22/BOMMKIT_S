@@ -59,7 +59,7 @@ private:
 
 	virtual int64 GetPlayerSize() = 0;
 	virtual void HandleRecvPacket(int64 sessionId, CPacket* packet) = 0;
-	virtual void HandleAsyncJobFinish(int64 sessionId, CPacket* packet) = 0;
+	virtual void HandleAsyncJobFinish(int64 sessionId) = 0;
 
 	static unsigned __stdcall UpdateThreadStatic(void* param)
 	{

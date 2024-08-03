@@ -21,7 +21,7 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_SKILL, [this](Player* p, CPacket* packet) { HandleCharacterSkill(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_STOP, [this](Player* p, CPacket* packet) { HandleCharacterStop(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HnadleCharacterAttack(p, packet); });
-
+	RegisterPacketHandler(PACKET_CS_GAME_REQ_FIND_PATH, [this](Player* p, CPacket* packet) { HandleFindPath(p, packet); });
 	_mapSizeX = _sectorXLen * _sectorXSize;
 	_mapSizeY = _sectorYLen * _sectorYSize;
 	_jps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
@@ -47,28 +47,18 @@ void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
 
 void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
 {
-	int64 characterNo = player->playerInfo.PlayerID;
-	FVector destination;
-	FRotator startRotation;
-	*packet >> destination >> startRotation;
+	int64 pathIndex;
+	*packet >> pathIndex;
 
-	//TODO: 길찾기쓰레드에 넘기고
-	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
+	if (pathIndex >= player->_path.size())
+	{
+		__debugbreak();
+	}
 
-	Pos start = { player->Position.X, player->Position.Y };
-	Pos end = { destination.X, destination.Y };
+	FVector destination = { player->_path[pathIndex].x, player->_path[pathIndex].y, PLAYER_Z_VALUE };
+	FRotator startRotation = player->Rotation;
 
-	player->_path.clear();
-
-	//start랑 end 복사로해야하고 player 참조로해도됨
-	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
-	RequestAsyncJob(player->GetSessionId(), 
-		[start, end, &player, this]()
-		{
-			this->_jps->FindPath(start, end, player->_path);
-		}
-	);
-
+	player->HandleCharacterMove(destination, startRotation)
 	//_jps->FindPath(start, end, player->_path);
 	//player->HandleCharacterMove(destination, startRotation);
 }
@@ -106,8 +96,41 @@ void FieldPacketHandleThread::HnadleCharacterAttack(Player* player, CPacket* pac
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
 
 	player->HandleCharacterAttack(attackerType, attackerID, targetType, targetID);
+}
 
-	
+void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
+{
+	//TODO: 경로 찾고, 경로 저장해두고, 경로 사이즈 보내고
+	int64 characterNo = player->playerInfo.PlayerID;
+	FVector destination;
+	FRotator startRotation;
+	*packet >> destination >> startRotation;
+
+	//TODO: 길찾기쓰레드에 넘기고
+	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
+
+	Pos start = { player->Position.X, player->Position.Y };
+	Pos end = { destination.X, destination.Y };
+
+	player->_path.clear();
+	player->_asyncJobRequests.push(JOB_FIND_PATH);
+	//start랑 end 복사로해야하고 player 참조로해도됨
+	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
+	RequestAsyncJob(player->GetSessionId(),
+		[start, end, &player, this]()
+		{
+			this->_jps->FindPath(start, end, player->_path);
+		}
+	);
+}
+
+
+void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
+{
+	//길찾기 끝났으면
+	//패킷 보내야지
+	//무엇을 보내나?
+	//처음 세개정도 route랑 전체 route사이즈?
 }
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
@@ -277,6 +300,35 @@ Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
 	return monster;
 }
 
+void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
+{
+	Player* player = nullptr;
+	auto it = _playerMap.find(sessionId);
+	if (it == _playerMap.end())
+	{
+		//TODO: Disconnect Player
+		__debugbreak();
+		DisconnectPlayer(sessionId);
+		LOG(L"BasePacketHandleThread", LogLevel::Debug, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
+		return;
+	}
+
+	player = it->second;
+	uint8 jobType = player->_asyncJobRequests.front();
+
+	switch (jobType)
+	{
+	case JOB_FIND_PATH:
+	{
+		HandleAsyncFindPath(player);
+	}
+	break;
+
+	default:
+		__debugbreak();
+	}
+
+}
 
 void FieldPacketHandleThread::InitializeSector()
 {
@@ -738,21 +790,10 @@ Sector* FieldPacketHandleThread::GetSector(uint16 newSectorY, uint16 newSectorX)
 
 void FieldPacketHandleThread::InitializeMap()
 {
-	map = new uint8*[mapSizeY];
-	for (int y = 0; y < mapSizeY; y++)
+	_map = new uint8*[_mapSizeY];
+	for (int y = 0; y < _mapSizeY; y++)
 	{
-		map[y] = new uint8[mapSizeX];
+		_map[y] = new uint8[_mapSizeX];
 	}
 }
-
-void FieldPacketHandleThread::JumpPointSearch(Player* p, FVector destination)
-{
-
-}
-
-
-
-
-
-
 

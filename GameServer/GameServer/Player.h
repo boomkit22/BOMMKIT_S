@@ -70,5 +70,6 @@ private:
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
 	std::vector<Pos> _path;
+	std::queue<uint8> _asyncJobRequests;
 };
 
