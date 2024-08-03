@@ -29,17 +29,14 @@ GameServer::GameServer()
 	_loginGameThread = new LoginGameThread(this, LOGIN_THREAD, 100);
 	//TODO: 여기서 맵 로딩하고
 	//TODO: GameThread만들때 맵데이터 넘기고
-	uint8** map;
-	map = new uint8 * [12000];
-	for (int i = 0; i < 12000; i++)
-	{
-		map[i] = new uint8[12000];
-		memset(map[i], 0, 12000);
-	}
+	
+	uint8** lobbyMap = LoadMapData("LobbyMap.dat", 12000, 12000);
+	uint8** guardianMap = LoadMapData("GuardianMap.dat", 12000, 12000);
+	uint8** spiderMap = LoadMapData("SpiderMap.dat", 12000, 12000);
 
-	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 15, 15, 800, 800, map);
-	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 15, 15, 800, 800, map);
-	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER, 100, 15, 15, 800, 800, map);
+	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 15, 15, 800, 800, lobbyMap);
+	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 15, 15, 800, 800, guardianMap);
+	_SpiderFieldThread = new SpiderFieldThread(this, FIELD_SPIDER, 100, 15, 15, 800, 800, spiderMap);
 	
 	_loginGameThread->Start();
 	_LobbyFieldThread->Start();

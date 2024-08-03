@@ -105,5 +105,9 @@ private:
 	uint16 clientPacketCode = Data::clientPacketCode;
 	void MP_SS_MONITOR_LOGIN(CPacket* packet, int& serverNo);
 	void MP_SC_MONITOR_TOOL_DATA_UPDATE(CPacket* packet, uint8& dataType, int& dataValue, int& timeStamp);
+
+private:
+	uint8** LoadMapData(std::string filePath, uint32 mapYSize, uint32 mapXSize);
+
 };
 
