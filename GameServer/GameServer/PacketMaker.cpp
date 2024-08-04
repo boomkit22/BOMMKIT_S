@@ -290,7 +290,7 @@ void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId)
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_FIND_PATH(CPacket* packet, std::vector<Pos>& paths)
+void MP_SC_FIND_PATH(CPacket* packet, uint16 pathSize)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -298,12 +298,7 @@ void MP_SC_FIND_PATH(CPacket* packet, std::vector<Pos>& paths)
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_FIND_PATH;
-	*packet << type << (uint8)paths.size();
-
-	for (auto& pos : paths)
-	{
-		*packet << pos;
-	}
+	*packet << type << pathSize;
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

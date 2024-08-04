@@ -128,9 +128,21 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
 {
 	CPacket* packet = CPacket::Alloc();
-	MP_SC_FIND_PATH(packet, player->_path);
+	uint16 pathSize = player->_path.size();
+	
+	MP_SC_FIND_PATH(packet, pathSize);
 	SendPacket_Unicast(player->GetSessionId(), packet);
 	CPacket::Free(packet);
+
+	
+	if (pathSize > 0)
+	{
+		//첫번째로 이동까지 시킴
+		Pos firstPos = player->_path[0];
+		FVector destination = { firstPos.x, firstPos.y, PLAYER_Z_VALUE };
+
+		player->HandleCharacterMove(destination, player->Rotation);
+	}
 }
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
