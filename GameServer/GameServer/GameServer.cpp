@@ -30,9 +30,9 @@ GameServer::GameServer()
 	//TODO: 여기서 맵 로딩하고
 	//TODO: GameThread만들때 맵데이터 넘기고
 	
-	uint8** lobbyMap = LoadMapData("LobbyMap.dat", 12000, 12000);
-	uint8** guardianMap = LoadMapData("GuardianMap.dat", 12000, 12000);
-	uint8** spiderMap = LoadMapData("SpiderMap.dat", 12000, 12000);
+	uint8** lobbyMap = LoadMapData("map/LobbyMap.dat", 12000, 12000);
+	uint8** guardianMap = LoadMapData("map/GuardianMap.dat", 12000, 12000);
+	uint8** spiderMap = LoadMapData("map/SpiderMap.dat", 12000, 12000);
 
 	_LobbyFieldThread = new LobbyFieldThread(this, FIELD_LOBBY, 100, 15, 15, 800, 800, lobbyMap);
 	_GuardianFieldThread = new GuardianFieldThread(this, FIELD_GUARDIAN, 100, 15, 15, 800, 800, guardianMap);
@@ -49,8 +49,6 @@ GameServer::GameServer()
 
 GameServer::~GameServer()
 {
-
-
 	_GuardianFieldThread->Stop();
 	_loginGameThread->Stop();
 

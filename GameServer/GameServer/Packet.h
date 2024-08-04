@@ -103,9 +103,8 @@ enum PACKET_TYPE
 
 	//------------------------------------------------------------
 	// {
-	//		WORD	Type
-	//		FVector Destination
-	//      FRotator StartRotation
+	//		WORD	 Type
+	// 	    uint16   PathIndex;
 	//	}
 	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_CHARACTER_MOVE = 1009,
@@ -340,12 +339,27 @@ enum PACKET_TYPE
 	//		int64		MonsterID
 	//	}
 	//------------------------------------------------------------
-
 	PACKET_SC_GAME_DESPAWN_MONSTER = 1031,
 
+
+	//------------------------------------------------------------
+	// {
+	//		WORD		Type
+	//		FVector		Destination
+	//	}
+	//------------------------------------------------------------
 	PACKET_CS_GAME_REQ_FIND_PATH = 1032,
 
-	PACKET_SC_GAME_RES_NEXT_PATH = 1033,
+
+	//------------------------------------------------------------
+	// {
+	//		WORD		Type
+	//		uint16		PathCount
+	//		vector<Pos>	Paths
+	//	}
+	//------------------------------------------------------------
+	PACKET_SC_GAME_RES_FIND_PATH = 1033,
+
 
 	//------------------------------------------------------------
 	// 채팅 서버 패킷

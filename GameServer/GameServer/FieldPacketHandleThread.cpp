@@ -127,10 +127,10 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 
 void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
 {
-	//길찾기 끝났으면
-	//패킷 보내야지
-	//무엇을 보내나?
-	//처음 세개정도 route랑 전체 route사이즈?
+	CPacket* packet = CPacket::Alloc();
+	MP_SC_FIND_PATH(packet, player->_path);
+	SendPacket_Unicast(player->GetSessionId(), packet);
+	CPacket::Free(packet);
 }
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
@@ -315,6 +315,7 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
 
 	player = it->second;
 	uint8 jobType = player->_asyncJobRequests.front();
+	player->_asyncJobRequests.pop();
 
 	switch (jobType)
 	{

@@ -5,6 +5,8 @@
 #include "SerializeBuffer.h"
 #include <vector>
 
+struct Pos;
+
 void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status, uint16& fieldID);
 void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo& playerInfo, FVector& spawnLocation, FRotator& SpawnRotation);
 void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo& playerInfo, FVector& spawnLocation, FRotator& SpawnRotation);
@@ -27,3 +29,4 @@ void MP_SC_PLAYER_LIST(CPacket* packet, std::vector<PlayerInfo>& playerInfos);
 void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
 void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo& playerInfo);
 void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId);
+void MP_SC_FIND_PATH(CPacket* packet, std::vector<Pos>& paths);

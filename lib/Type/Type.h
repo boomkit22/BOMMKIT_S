@@ -61,3 +61,48 @@ struct MonsterInfo
 
 CPacket& operator<<(CPacket& packet, MonsterInfo& info);
 CPacket& operator>>(CPacket& packet, MonsterInfo& info);
+
+struct Pos {
+	int y;
+	int x;
+
+	Pos& operator=(const Pos& other)
+	{
+		x = other.x;
+		y = other.y;
+		return *this;
+	}
+
+	Pos operator+(const Pos& other) {
+		Pos ret;
+		ret.y = y + other.y;
+		ret.x = x + other.x;
+		return ret;
+	}
+
+	Pos operator-(const Pos& other)
+	{
+		Pos ret;
+		ret.y = y + other.y;
+		ret.x = x + other.x;
+		return ret;
+	}
+
+	bool operator<(const Pos& other) const {
+		if (y < other.y) return true;
+		if (y > other.y) return false;
+		// y가 같을 경우 x를 비교
+		return x < other.x;
+	}
+
+	bool operator==(const Pos& other) const {
+		return y == other.y && x == other.x;
+	}
+
+	bool operator!=(const Pos& other) const {
+		return y != other.y || x != other.x;
+	}
+};
+
+CPacket& operator<<(CPacket& packet, Pos& pos);
+CPacket& operator>>(CPacket& packet, Pos& pos);

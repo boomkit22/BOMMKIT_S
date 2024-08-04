@@ -39,6 +39,19 @@ CPacket& operator>>(CPacket& packet, MonsterInfo& info)
 	return packet;
 }
 
+
+CPacket& operator>>(CPacket& packet, Pos& pos)
+{
+	packet >> pos.y >> pos.x;
+	return packet;
+}
+
+CPacket& operator<<(CPacket& packet, Pos& pos)
+{
+	packet << pos.y << pos.x;
+	return packet;
+}
+
 CPacket& operator<<(CPacket& packet, FVector& vec)
 {
 	packet << vec.X << vec.Y << vec.Z;

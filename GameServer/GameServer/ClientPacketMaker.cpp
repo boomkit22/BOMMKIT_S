@@ -33,6 +33,7 @@ uint8** GameServer::LoadMapData(string filePath, uint32 mapYSize, uint32 mapXSiz
 	fopen_s(&f, filePath.c_str(), "rb");
 	if (f == nullptr)
 	{
+		printf("Cannot open file : %s\n", filePath.c_str());
 		LOG(L"GameServer", LogLevel::Error, L"Cannot open file : %s", filePath.c_str());
 		return nullptr;
 	}

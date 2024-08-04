@@ -2,6 +2,7 @@
 #include "Type.h"
 #include <list>
 #include <vector>
+#include "Type.h"
 
 enum CellValue {
 	NONE = 0,
@@ -13,48 +14,6 @@ enum CellValue {
 	ROUTE = 6,
 	BRESENHAM = 10,
 	CHECK = 20,
-};
-
-struct Pos {
-	int y;
-	int x;
-
-	Pos& operator=(const Pos& other)
-	{
-		x = other.x;
-		y = other.y;
-		return *this;
-	}
-
-	Pos operator+(const Pos& other) {
-		Pos ret;
-		ret.y = y + other.y;
-		ret.x = x + other.x;
-		return ret;
-	}
-
-	Pos operator-(const Pos& other)
-	{
-		Pos ret;
-		ret.y = y + other.y;
-		ret.x = x + other.x;
-		return ret;
-	}
-
-	bool operator<(const Pos& other) const {
-		if (y < other.y) return true;
-		if (y > other.y) return false;
-		// y가 같을 경우 x를 비교
-		return x < other.x;
-	}
-
-	bool operator==(const Pos& other) const {
-		return y == other.y && x == other.x;
-	}
-
-	bool operator!=(const Pos& other) const {
-		return y != other.y || x != other.x;
-	}
 };
 
 struct Node {
