@@ -7,6 +7,7 @@
 #include "Sector.h"
 #include "FieldPacketHandleThread.h"
 #include <utility>
+#include "Util.h"
 using namespace std;
 
 Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionId) :FieldObject(field, objectType)
@@ -17,6 +18,7 @@ Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionI
 	playerInfo.Hp = 100;
 	Position = { 0, 0,  PLAYER_Z_VALUE };
 	playerInfos.clear();
+	_path.clear();
 }
 
 void Player::Update(float deltaTime)
@@ -114,11 +116,12 @@ void Player::OnFieldChange()
 	_currentSector->fieldObjectVector.push_back(this);
 }
 
-void Player::HandleCharacterMove(FVector destination, FRotator startRotation)
+void Player::HandleCharacterMove(FVector destination)
 {
     CPacket* movePacket = CPacket::Alloc();
     int64 playerId = playerInfo.PlayerID;
-    MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, playerId, destination, startRotation);
+	Rotation.Yaw = Util::CalculateRotation(Position, destination);
+    MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, playerId, destination, Rotation);
     //브로드케스팅
     SendPacket_Around(movePacket);
     CPacket::Free(movePacket);

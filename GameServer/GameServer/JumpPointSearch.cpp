@@ -46,7 +46,6 @@ JumpPointSearch::JumpPointSearch(uint8** map, int32 mapYSize, int32 mapXSize)
 		_jpsMap[i] = new uint8[_mapXSize];
 		memset(_jpsMap[i], 0, sizeof(uint8) * _mapXSize);
 	}
-
 }
 
 JumpPointSearch::~JumpPointSearch()
@@ -64,16 +63,27 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 	{
 		return;
 	}
+	_start = start;
+	_dest = end;
+	if(_originMap[_dest.y][_dest.x] == OBSTACLE)
+	{
+		return;
+	}
 
 	std::vector<Pos> path;
 	//First : 맵 초기화하고
-	memcpy(_jpsMap, _originMap, sizeof(uint8) * _mapYSize * _mapXSize);
+	for (int i = 0; i < _mapYSize; ++i)
+	{
+		memcpy(_jpsMap[i], _originMap[i], sizeof(uint8) * _mapXSize);
+	}
 
 	Node* startNode = CreateStartNode(_start);
+
+	uint32 findRange = (abs(_start.x - _dest.x) + abs(_start.y - _dest.y)) * 1.5;
 	//시작지점은  8방향 검사하고
 	for (int i = 0; i < DIRECTION_NUM; i++)
 	{
-		CheckAndMakeCorner(startNode, _start, i);
+		CheckAndMakeCorner(startNode, _start, i, findRange);
 	}
 	
 	if (openList.size() == 0)
@@ -86,6 +96,12 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 	{
 		//정렬 하고
 		openList.sort(NodeComparator());
+		if(openList.size() == 0)
+		{
+			ClearNode();
+			return;
+		}
+
 		Node* nodeNow = openList.front();
 		Pos posNow = nodeNow->_pos;
 
@@ -107,7 +123,6 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 			return;
 		}
 		// 아니면
-		openList.pop_front();
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -116,9 +131,11 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 				continue;
 			}
 			// 이번 노드의 탐색방향으로 탐색
-			if (CheckAndMakeCorner(nodeNow, posNow, i))
+			uint32 findRangeNodeNow = (abs(posNow.x - _dest.x) + abs(posNow.y - _dest.y)) * 1.5;
+			if (CheckAndMakeCorner(nodeNow, posNow, i, findRangeNodeNow))
 				break;
 		}
+		openList.pop_front();
 		SetMap(posNow, CLOSE);
 		closeList.push_back(nodeNow);
 	}
@@ -421,7 +438,7 @@ int JumpPointSearch::CheckLeftUp(Pos pos)
 	return ret;
 }
 
-bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
+bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction, uint32 findRange)
 {
 	Pos originPos;
 	originPos = pos;
@@ -445,7 +462,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	case df_DIR_U:
 	{
 		int distance = 0;
-		while (true)
+		for(int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_U];
 			distance += 10;
@@ -489,7 +506,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	{
 
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_R];
 			distance += 10;
@@ -537,7 +554,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	{
 
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_D];
 			distance += 10;
@@ -586,7 +603,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	{
 
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_L];
 			distance += 10;
@@ -635,7 +652,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	case df_DIR_UR:
 	{
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_UR];
 
@@ -686,7 +703,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 위 쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toUpPos = toUpPos + dir[df_DIR_U];
 
@@ -746,7 +763,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 오른쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toRightPos = toRightPos + dir[df_DIR_R];
 
@@ -807,7 +824,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	case df_DIR_RD:
 	{
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_RD];
 
@@ -857,7 +874,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 아래 쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toDownPos = toDownPos + dir[df_DIR_D];
 
@@ -920,7 +937,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 오른쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					// 현재좌표로 부터 오른쪽으로 진행
 					toRightPos = toRightPos + dir[df_DIR_R];
@@ -983,7 +1000,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	{
 
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_LD];
 			distance += 14;
@@ -1031,7 +1048,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 아래 쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toDownPos = toDownPos + dir[df_DIR_D];
 					// 아래쪽진행로직인데
@@ -1092,7 +1109,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 왼쪽  진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toLeftPos = toLeftPos + dir[df_DIR_L];
 
@@ -1154,7 +1171,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 	{
 
 		int distance = 0;
-		while (true)
+		for (int i = 0; i < findRange; i++)
 		{
 			pos = pos + dir[df_DIR_LU];
 			distance += 14;
@@ -1200,7 +1217,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                위 쪽 진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toUpPos = toUpPos + dir[df_DIR_U];
 					// 아래쪽진행로직인데
@@ -1259,7 +1276,7 @@ bool JumpPointSearch::CheckAndMakeCorner(Node* p, Pos pos, int direction)
 				*                 왼쪽  진 행 로 직
 				*
 				* ****************************************************/
-				while (true)
+				for (int i = 0; i < findRange; i++)
 				{
 					toLeftPos = toLeftPos + dir[df_DIR_L];
 
@@ -1391,8 +1408,8 @@ void JumpPointSearch::FindShortestPath(vector<Pos>& path, vector<Pos>& result)
 		__debugbreak();
 	}
 
-	//시작노드넣고
-	result.push_back(path[0]);
+	//시작노드넣으면안되지
+	//result.push_back(path[0]);
 
 	int pathSize = (int)path.size();
 	int nodeFromIndex = 0;
@@ -1403,10 +1420,16 @@ void JumpPointSearch::FindShortestPath(vector<Pos>& path, vector<Pos>& result)
 		
 		Pos nodeFromPos = path[nodeFromIndex];
 		Pos nodeToPos = path[nodeToIndex];
+
 		if (!CalculateBresenham(nodeFromPos, nodeToPos))
 		{
 			// 장애물 있으면
-			result.push_back(path[nodeToIndex - 1]);
+			uint32 distance = abs(nodeFromPos.y - nodeToPos.y) + abs(nodeFromPos.x - nodeToPos.x);
+			if (distance > OMIT_RANGE)
+			{
+				result.push_back(path[nodeToIndex - 1]);
+			}
+
 			nodeFromIndex = nodeToIndex - 1;
 			nodeToIndex = nodeFromIndex + 2;
 		}

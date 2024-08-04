@@ -24,6 +24,7 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_FIND_PATH, [this](Player* p, CPacket* packet) { HandleFindPath(p, packet); });
 	_mapSizeX = _sectorXLen * _sectorXSize;
 	_mapSizeY = _sectorYLen * _sectorYSize;
+	_map = map;
 	_jps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
 }
 
@@ -47,7 +48,7 @@ void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
 
 void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
 {
-	int64 pathIndex;
+	uint16 pathIndex;
 	*packet >> pathIndex;
 
 	if (pathIndex >= player->_path.size())
@@ -56,9 +57,7 @@ void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet
 	}
 
 	FVector destination = { player->_path[pathIndex].x, player->_path[pathIndex].y, PLAYER_Z_VALUE };
-	FRotator startRotation = player->Rotation;
-
-	player->HandleCharacterMove(destination, startRotation);
+	player->HandleCharacterMove(destination);
 	//_jps->FindPath(start, end, player->_path);
 	//player->HandleCharacterMove(destination, startRotation);
 }
@@ -109,15 +108,16 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	//TODO: 길찾기쓰레드에 넘기고
 	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
 
-	Pos start = { player->Position.X, player->Position.Y };
-	Pos end = { destination.X, destination.Y };
+	Pos start = {player->Position.Y, player->Position.X};
+	Pos end = {destination.Y, destination.X};
+	
 
 	player->_path.clear();
 	player->_asyncJobRequests.push(JOB_FIND_PATH);
-	//start랑 end 복사로해야하고 player 참조로해도됨
+	//start랑 end 복사로해야하고
 	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
 	RequestAsyncJob(player->GetSessionId(),
-		[start, end, &player, this]()
+		[start, end, player, this]()
 		{
 			this->_jps->FindPath(start, end, player->_path);
 		}
@@ -140,8 +140,7 @@ void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
 		//첫번째로 이동까지 시킴
 		Pos firstPos = player->_path[0];
 		FVector destination = { firstPos.x, firstPos.y, PLAYER_Z_VALUE };
-
-		player->HandleCharacterMove(destination, player->Rotation);
+		player->HandleCharacterMove(destination);
 	}
 }
 
@@ -340,7 +339,6 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
 	default:
 		__debugbreak();
 	}
-
 }
 
 void FieldPacketHandleThread::InitializeSector()
@@ -609,7 +607,7 @@ void FieldPacketHandleThread::InitializeSector()
 		_sector[y][_sectorXLen - 1].left[1] = &_sector[y + dy[MOVE_DIR_LL]][_sectorXLen - 1 + dx[MOVE_DIR_LL]];
 		_sector[y][_sectorXLen - 1].left[2] = &_sector[y + dy[MOVE_DIR_LD]][_sectorXLen - 1 + dx[MOVE_DIR_LD]];
 		// 오른쪽 이동 설정
-		_sector[y][0].rightSectorNum = 0;
+		_sector[y][_sectorXLen - 1].rightSectorNum = 0;
 		// 위쪽 이동 설정
 		_sector[y][_sectorXLen - 1].upSectorNum = 2;
 		_sector[y][_sectorXLen - 1].up[0] = &_sector[y + dy[MOVE_DIR_UU]][_sectorXLen - 1 + dx[MOVE_DIR_UU]];

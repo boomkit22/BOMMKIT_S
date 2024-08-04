@@ -4,6 +4,7 @@
 #include <vector>
 #include "Type.h"
 
+#define OMIT_RANGE  100
 enum CellValue {
 	NONE = 0,
 	OBSTACLE = 1,
@@ -81,7 +82,7 @@ private:
 	int CheckRightDown(Pos pos);
 	int CheckLeftDown(Pos pos);
 	int CheckLeftUp(Pos pos);
-	bool CheckAndMakeCorner(Node* p, Pos pos, int direction);
+	bool CheckAndMakeCorner(Node* p, Pos pos, int direction,uint32 findRange);
 	Node* CreateNode(Pos pos, Node* parent, int direction, int distanceFromParent);
 	void CheckAndChangeParent(Node* newParent, Node* exist, int distance);
 	int GetH(Pos& pos, Pos& dest);

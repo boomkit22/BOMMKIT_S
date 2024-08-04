@@ -11,4 +11,3 @@
 #define FIELD_GUARDIAN 2
 #define FIELD_SPIDER 3
 
-#define PI 3.141592653589

@@ -42,6 +42,14 @@ void GameThread::Start()
 		__debugbreak();
 	}
 	_runningThread++;
+
+	_hAsyncJobThread = (HANDLE)_beginthreadex(NULL, 0, AsyncJobThreadStatic, this, 0, NULL);
+	if (_hAsyncJobThread == NULL)
+	{
+		errorCode = WSAGetLastError();
+		__debugbreak();
+	}
+	_runningThread++;
 }
 
 unsigned __stdcall GameThread::UpdateThread()
@@ -336,8 +344,8 @@ void GameThread::Stop()
 {
 	AcquireSRWLockExclusive(&_gameThreadInfoMapLock);
 	_gameThreadInfoMap.erase(_gameThreadID);
-
 	ReleaseSRWLockExclusive(&_gameThreadInfoMapLock);
+
 	_running = false;
 }
 
@@ -353,7 +361,7 @@ bool GameThread::CheckDead()
 	{
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -369,6 +377,12 @@ void GameThread::Kill()
 	{
 		TerminateThread(_hMonitorThread, 0);
 	}
+
+	if (WaitForSingleObject(_hAsyncJobThread, 0) == WAIT_TIMEOUT)
+	{
+		TerminateThread(_hAsyncJobThread, 0);
+	}
+			
 }
 
 int64 GameThread::GetSessionNum()

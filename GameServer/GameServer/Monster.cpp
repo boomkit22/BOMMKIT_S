@@ -1,5 +1,4 @@
 #include "Monster.h"
-#include <cmath>
 #include "Player.h"
 #include "GameData.h"
 #include <algorithm>
@@ -8,6 +7,7 @@
 #include "BasePAcketHandleThread.h"
 #include "Sector.h"
 #include "FieldPacketHandleThread.h"
+#include "Util.h"
 
 
 Monster::Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType) : FieldObject(field, objectType)
@@ -166,7 +166,7 @@ void Monster::AttackPlayer(float deltaTime)
 
 			if (_attackTimer >= _attackCooldown)
 			{
-				CalculateRotation(_position, _targetPlayer->Position);
+				_rotation.Yaw = Util::CalculateRotation(_position, _targetPlayer->Position);
 				//일단 Stop을 해야하네
 				
 				//Stop Packet도 그냥 보냅시다
@@ -268,7 +268,8 @@ void Monster::SetDestination(FVector dest)
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
 	SendPacket_Around(packet);
 	CPacket::Free(packet);
-	CalculateRotation(_position, _destination);
+	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+
 }
 
 void Monster::SetRandomDestination()
@@ -284,7 +285,7 @@ void Monster::SetRandomDestination()
 
 	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize) - 100);
 	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize) - 100);
-	CalculateRotation(_position, _destination);
+	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
 
 
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
@@ -323,18 +324,6 @@ float Monster::GetDistanceToPlayer(Player* player)
 	float dirX = player->Position.X - _position.X;
 	float dirY = player->Position.Y - _position.Y;
 	return sqrt(dirX * dirX + dirY * dirY);
-}
-
-FRotator Monster::CalculateRotation(const FVector& oldPosition, const FVector& newPosition)
-{
-	double dx = newPosition.X - oldPosition.X;
-	double dy = newPosition.Y - oldPosition.Y;
-	if (dx != 0 || dy != 0) { 
-		// 움직임이 있을 경우에만 calculate rotation
-		_rotation.Yaw = std::atan2(dy, dx) * 180 / PI; // 라디안에서 도, 언리얼 degree
-	}
-
-	return FRotator{0, _rotation.Yaw, 0 };
 }
 
 void Monster::OnSpawn()

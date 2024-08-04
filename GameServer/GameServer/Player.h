@@ -45,7 +45,7 @@ public:
 
 	int64 GetSessionId() { return _sessionId; };
 public:
-	void HandleCharacterMove(FVector destination, FRotator startRotation);
+	void HandleCharacterMove(FVector destination);
 	void HandleCharacterSkill(FVector startLocation, FRotator startRotation, int32 skillId);
 	void HandleCharacterStop(FVector position, FRotator rotation);
 	void HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 targetType, int64 targetId);

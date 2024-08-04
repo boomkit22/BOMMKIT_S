@@ -75,8 +75,8 @@ private:
 	//HandleCharacterMove 요청왔을때 길찾기하는 쓰레드 만들기
 	uint8** _map;
 	void InitializeMap();
-	uint8 _mapSizeX;
-	uint8 _mapSizeY;
+	uint32 _mapSizeX;
+	uint32 _mapSizeY;
 	JumpPointSearch* _jps;
 
 
