@@ -82,14 +82,12 @@ private:
 	int CheckLeftDown(Pos pos);
 	int CheckLeftUp(Pos pos);
 	bool CheckAndMakeCorner(Node* p, Pos pos, int direction);
-
 	Node* CreateNode(Pos pos, Node* parent, int direction, int distanceFromParent);
-	void ReopenNode(Node* n);
 	void CheckAndChangeParent(Node* newParent, Node* exist, int distance);
 	int GetH(Pos& pos, Pos& dest);
-
 	void FindShortestPath(std::vector<Pos>& path, std::vector<Pos>& reuslt);
 	bool CalculateBresenham(Pos start, Pos end);
+	void ClearNode();
 
 private:
 	uint8** _originMap;
@@ -99,7 +97,9 @@ private:
 	int32 _mapXSize;
 	
 	std::list<Node*> openList;
+	std::list<Node*> closeList;
 	Pos _start;
 	Pos _dest;
+
 };
 

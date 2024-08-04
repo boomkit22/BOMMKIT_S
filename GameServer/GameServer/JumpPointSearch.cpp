@@ -60,17 +60,22 @@ JumpPointSearch::~JumpPointSearch()
 
 void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnPath)
 {
+	if (start == end)
+	{
+		return;
+	}
+
 	std::vector<Pos> path;
 	//First : 맵 초기화하고
 	memcpy(_jpsMap, _originMap, sizeof(uint8) * _mapYSize * _mapXSize);
+
 	Node* startNode = CreateStartNode(_start);
 	//시작지점은  8방향 검사하고
 	for (int i = 0; i < DIRECTION_NUM; i++)
 	{
 		CheckAndMakeCorner(startNode, _start, i);
 	}
-	delete startNode;
-
+	
 	if (openList.size() == 0)
 	{
 		//길 못찾음
@@ -98,19 +103,11 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 			}
 			std::reverse(path.begin(), path.end());
 			FindShortestPath(path, returnPath);
-
-			for (;;)
-			{
-				Node* n = openList.front();
-				openList.pop_front();
-				delete n;
-			}
-
+			ClearNode();
 			return;
 		}
 		// 아니면
 		openList.pop_front();
-		delete nodeNow;
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -123,6 +120,7 @@ void JumpPointSearch::FindPath(Pos start, Pos end, OUT std::vector<Pos>& returnP
 				break;
 		}
 		SetMap(posNow, CLOSE);
+		closeList.push_back(nodeNow);
 	}
 }
 
@@ -1370,12 +1368,15 @@ Node* JumpPointSearch::CreateNode(Pos pos, Node* parent, int direction, int dist
 	return n;
 }
 
-void JumpPointSearch::ReopenNode(Node* n)
-{
-}
-
 void JumpPointSearch::CheckAndChangeParent(Node* newParent, Node* exist, int distance)
 {
+	if (newParent->_g + distance < exist->_g)
+	{
+		//변경할 필요있으면 변경하고
+		exist->_parent = newParent;
+		exist->_g = newParent->_g + distance;
+		exist->_f = exist->_g + exist->_h;
+	}
 }
 
 int JumpPointSearch::GetH(Pos& pos, Pos& dest)
@@ -1491,5 +1492,20 @@ bool JumpPointSearch::CalculateBresenham(Pos start, Pos end)
 	}
 
 	return true;
+}
+
+void JumpPointSearch::ClearNode()
+{
+	for (auto it = openList.begin(); it != openList.end(); ++it)
+	{
+		delete* it;
+	}
+	openList.clear();
+
+	for (auto it = closeList.begin(); it != closeList.end(); ++it)
+	{
+		delete* it;
+	}
+	closeList.clear();
 }
 
