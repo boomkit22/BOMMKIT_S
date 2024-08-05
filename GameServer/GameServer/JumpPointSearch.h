@@ -66,7 +66,7 @@ public:
 public:
 	//std::vector<Pos> FindPath(Pos start, Pos end);
 	void FindPath(Pos start, Pos end, std::vector<Pos>& path);
-
+	void FindFirstPath(Pos start, Pos end, Pos& firstPath);
 
 private:
 	Node* CreateStartNode(Pos pos);

@@ -260,29 +260,30 @@ void Monster::ChasePlayer(float deltaTime)
 				SetDestination(Destination);
 				MoveToDestination(deltaTime);
 			}
+			else if (_path.size() > 0 && _pathIndex < _path.size())
+			{
+				//길찾기 요청해서 path가 있는 상황이면
+				// path로 이동
+				Pos nextPos = _path[_pathIndex];
+				FVector nextDestination = { nextPos.x, nextPos.y, _position.Z };
+				SetDestination(nextDestination);
+				MoveToDestination(deltaTime);
+				_pathIndex++;
+			}
 			else {
+				_pathIndex = 0;
+				_path.clear();
 				//길찾기 요청
 				//길찾기 요청 패킷 보내기
-				GetField()->RequestAsyncJob();
-				Pos start = { _position.X, _position.Y };
-				Pos end = { Destination.X, Destination.Y };
-
-				//jps->FindFirstPath 이런것도 넣으면 좋겠는데
-				GetField()->RequestAsyncJob(GetObjectId(),
-					[start, end, this ,findedPath]()
-					{
-						this->_jps->FindPath(start, end, player->_path);
-					}
-				);
-
-
-				CPacket* packet = CPacket::Alloc();
-				MP_SC_GAME_REQ_FIND_PATH(packet, _monsterInfo.MonsterID, _position, Destination);
-				SendPacket_Around(packet);
-				CPacket::Free(packet);
+				//GetField()->RequestAsyncJob();
+				Pos start = {_position.Y, _position.X};
+				Pos end = {Destination.Y, Destination.X};
+				GetField()->RequestMonsterPath(this, start, end);
+				//CPacket* packet = CPacket::Alloc();
+				//MP_SC_GAME_REQ_FIND_PATH(packet, _monsterInfo.MonsterID, _position, Destination);
+				//SendPacket_Around(packet);
+				//CPacket::Free(packet);
 			}
-
-
 			//SetDestination(Destination);
 			//MoveToDestination(deltaTime);
 		}
@@ -299,6 +300,18 @@ void Monster::SetDestination(FVector dest)
 	SendPacket_Around(packet);
 	CPacket::Free(packet);
 	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+
+}
+
+void Monster::HandleAsyncFindPath()
+{
+	// 이거 일단 chase 상태에서만 작동해야함
+	if(_state != MonsterState::MS_CHASING)
+	{
+		__debugbreak();
+	}
+
+	//TODO:
 
 }
 

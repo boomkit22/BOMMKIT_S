@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "FieldObject.h"
 #include "JumpPointSearch.h"
+#include <vector>
 
 class Sector;
 class CPacket;
@@ -45,7 +46,7 @@ public:
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
-
+	void HandleAsyncFindPath();
 	/// <summary>
 	/// 
 	/// </summary>
@@ -87,7 +88,7 @@ private:
 	float _maxChaseTime; // 최대 추적시간
 
 	//
-	int _damage = 5;
+	int _damage = 5;	
 	float _defaultIdleTime = 10;
 
 private:
@@ -96,6 +97,7 @@ private:
 	void RemoveSector(Sector* newSector);
 
 private:
-	Pos findedPath;
+	std::vector<Pos> _path;
+	uint16 _pathIndex = 0;
 };
 

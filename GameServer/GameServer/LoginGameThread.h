@@ -45,7 +45,7 @@ private:
 
 private:
 	// BasePacketHandleThread을(를) 통해 상속됨
-	void HandleAsyncJobFinish(int64 sessionId) override;
+	void HandleAsyncJobFinish(void* ptr, uint16 jobType) override;
 
 };
 

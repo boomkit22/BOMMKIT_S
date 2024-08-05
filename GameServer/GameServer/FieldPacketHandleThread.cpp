@@ -114,14 +114,13 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	player->bMoving = false;
 	player->_path.clear();
 	player->_pathIndex = 0;
-	player->_asyncJobRequests.push(JOB_FIND_PATH);
 	//start랑 end 복사로해야하고
 	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
-	RequestAsyncJob(player->GetSessionId(),
+	RequestAsyncJob(player,
 		[start, end, player, this]()
 		{
 			this->_jps->FindPath(start, end, player->_path);
-		}
+		}, ASYNC_JOB_THREAD_INDEX_ONE, JOB_PLAYER_FIND_PATH
 	);
 }
 
@@ -298,51 +297,68 @@ Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
 	return monster;
 }
 
-void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
+//void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
+//{
+//	Player* player = nullptr;
+//	auto it = _playerMap.find(sessionId);
+//	if (it == _playerMap.end())
+//	{
+//		//TODO: Disconnect Player
+//		__debugbreak();
+//		DisconnectPlayer(sessionId);
+//		LOG(L"BasePacketHandleThread", LogLevel::Debug, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
+//		return;
+//	}
+//
+//	player = it->second;
+//	uint8 jobType = player->_asyncJobRequests.front();
+//	player->_asyncJobRequests.pop();
+//
+//	switch (jobType)
+//	{
+//	case JOB_PLAYER_FIND_PATH:
+//	{
+//		HandleAsyncFindPath(player);
+//	}
+//	break;
+//
+//	default:
+//		__debugbreak();
+//	}
+//}
+
+void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
 {
-	Player* player = nullptr;
-	auto it = _playerMap.find(sessionId);
-	if (it == _playerMap.end())
-	{
-		//TODO: Disconnect Player
-		__debugbreak();
-		DisconnectPlayer(sessionId);
-		LOG(L"BasePacketHandleThread", LogLevel::Debug, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
-		return;
-	}
-
-	player = it->second;
-	uint8 jobType = player->_asyncJobRequests.front();
-	player->_asyncJobRequests.pop();
-
-	switch (jobType)
-	{
-	case JOB_FIND_PATH:
-	{
-		HandleAsyncFindPath(player);
-	}
-	break;
-
-	default:
-		__debugbreak();
-	}
-}
-
-
-
-void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, int64 objectId, Pos start, Pos dest)
-{
-	RequestAsyncJob(monster->GetObjectId(),
+	RequestAsyncJob(monster,
 		[monster, start, dest, this]()
 		{
-			_jps->FindPath(start, dest, monster->_path);
-		}
+			this->_jps->FindPath(start, dest, monster->_path);
+		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
 	);
 }
 
-void FieldPacketHandleThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
+void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 {
-	RequestAsyncJob(sessionId, job);
+	switch (jobType)
+	{
+		case JOB_PLAYER_FIND_PATH:
+		{
+			Player* player = (Player*)ptr;
+			player->HandleAsyncFindPath();
+			//HandleAsyncFindPath(player);
+		}
+		break;
+
+		case JOB_MONSTER_FIND_PATH:
+		{
+			Monster* monster = (Monster*)ptr;
+			monster->HandleAsyncFindPath();
+		}
+		break;
+
+		default:
+			__debugbreak();
+	}
 }
 
 void FieldPacketHandleThread::InitializeSector()

@@ -82,7 +82,8 @@ void LoginGameThread::GameRun(float deltaTime)
 
 }
 
-void LoginGameThread::HandleAsyncJobFinish(int64 sessionId)
+
+void LoginGameThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 {
 }
 

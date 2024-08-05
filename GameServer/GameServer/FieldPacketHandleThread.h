@@ -16,6 +16,7 @@ class FieldObject;
 //  ReqCharacterSkill
 //  ReqCharacterStop
 
+
 class FieldPacketHandleThread : public BasePacketHandleThread
 {
 public:
@@ -82,11 +83,13 @@ private:
 
 private:
 	// BasePacketHandleThread을(를) 통해 상속됨
-	virtual void HandleAsyncJobFinish(int64 sessionId) override;
+	//virtual void HandleAsyncJobFinish(int64 sessionId) override;
 
 public:
 	//void RequestFindPath(int64 objectId, Pos start, Pos dest);
-	void RequestMonsterPath(Monster* monster, int64 objectId, Pos start, Pos dest);
-	void RequestAsyncJob(int64 sessionId, std::function<void()> job);
+	void RequestMonsterPath(Monster* monster, Pos start, Pos dest);
+
+	// BasePacketHandleThread을(를) 통해 상속됨
+	void HandleAsyncJobFinish(void* ptr, uint16 jobType) override;
 };
 
