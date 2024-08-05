@@ -67,7 +67,6 @@ void  Monster::Update(float deltaTime)
 			{
 				// idle 시간이 다 되었으면
 				SetRandomDestination();
-				_state = MonsterState::MS_MOVING;
 			}
 		}
 		break;
@@ -107,9 +106,11 @@ void Monster::MoveToDestination(float deltaTime)
 	float dirY = _destination.Y - _position.Y;
 	float distance = sqrt(dirX * dirX + dirY * dirY);
 
-	if (distance < 10.0f)
+	if (distance < 50.0f)
 	{
 		// 목적지에 도착했으면
+		_position.X = _destination.X;
+		_position.Y = _destination.Y;
 		_state = MonsterState::MS_IDLE;
 		_idleTime = 5.0f;
 	}
@@ -233,6 +234,8 @@ void Monster::ChasePlayer(float deltaTime)
 		float distance = GetDistanceToPlayer(_targetPlayer);
 		if (distance <= _attackRange)
 		{
+			_position.Y = _destination.Y;
+			_position.X = _destination.X;
 			_state = MonsterState::MS_ATTACKING;
 
 		}
@@ -273,10 +276,35 @@ void Monster::ChasePlayer(float deltaTime)
 			else {
 				_pathIndex = 0;
 				_path.clear();
-				//길찾기 요청
-				//길찾기 요청 패킷 보내기
-				//GetField()->RequestAsyncJob();
 				Pos start = {_position.Y, _position.X};
+				//이거 start가 장애물에있는상태면 길찾기못하는데
+				bool bFindValidPos = true;
+				uint16 tryFindCount = 0;
+				while (GetField()->CheckValidPos(start) == false)
+				{
+					// 방향으로 조금씩 이동하면서
+					start.y += dirY * 5; 
+					start.x += dirX * 5;
+					tryFindCount++;
+
+					if (tryFindCount > 20)
+					{
+						bFindValidPos = false;
+						__debugbreak();
+						break;
+					}
+
+				}
+
+				if (bFindValidPos == false)
+				{
+					//못찾았으면
+					//그냥 이동
+					SetDestination(Destination);
+					MoveToDestination(deltaTime);
+					return;
+				}
+
 				Pos end = {Destination.Y, Destination.X};
 				GetField()->RequestMonsterPath(this, start, end);
 				//CPacket* packet = CPacket::Alloc();
@@ -306,12 +334,12 @@ void Monster::SetDestination(FVector dest)
 void Monster::HandleAsyncFindPath()
 {
 	// 이거 일단 chase 상태에서만 작동해야함
-	if(_state != MonsterState::MS_CHASING)
+	/*if(_state != MonsterState::MS_CHASING)
 	{
 		__debugbreak();
-	}
-
+	}*/
 	//TODO:
+	bRequestPath = false;
 
 }
 
@@ -322,20 +350,26 @@ void Monster::SetRandomDestination()
 	float range = REQUEST_FIND_PATH_THRESHOLD; // 범위 설정
 	_destination.X = _position.X + (rand() % static_cast<int>(range * 2)) - range;
 	_destination.Y = _position.Y + (rand() % static_cast<int>(range * 2)) - range;
-
 	uint32 mapXSize = GetField()->GetMapXSize();
 	uint32 mapYSize = GetField()->GetMapYSize();
-
 	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize) - 100);
 	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize) - 100);
+	
+	if (!GetField()->CheckValidPos({ (int)_destination.Y, (int)_destination.X }))
+	{
+		//목적지 잘못찝었으면
+		return;
+	}
+	
+	
 	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
-
-
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
 	SendPacket_Around(packet);
 	CPacket::Free(packet);
+
+	_state = MonsterState::MS_MOVING;
 }
 
 bool Monster::TakeDamage(int damage, Player* attacker)

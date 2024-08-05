@@ -25,7 +25,8 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	_mapSizeX = _sectorXLen * _sectorXSize;
 	_mapSizeY = _sectorYLen * _sectorYSize;
 	_map = map;
-	_jps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
+	_playerJps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
+	_monsterJps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
 }
 
 FieldPacketHandleThread::~FieldPacketHandleThread()
@@ -35,7 +36,8 @@ FieldPacketHandleThread::~FieldPacketHandleThread()
 		delete[] _sector[i];
 	}
 	delete[] _sector;
-	delete _jps;
+	delete _playerJps;
+	delete _monsterJps;
 }
 
 void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
@@ -109,6 +111,11 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
 
 	Pos start = {player->Position.Y, player->Position.X};
+	if (_map[start.y][start.x] == OBSTACLE)
+	{
+		//시작지점이 장애물인경우
+		return;
+	}
 	Pos end = {destination.Y, destination.X};
 	
 	player->bMoving = false;
@@ -119,7 +126,7 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	RequestAsyncJob(player,
 		[start, end, player, this]()
 		{
-			this->_jps->FindPath(start, end, player->_path);
+			this->_playerJps->FindPath(start, end, player->_path);
 		}, ASYNC_JOB_THREAD_INDEX_ONE, JOB_PLAYER_FIND_PATH
 	);
 }
@@ -332,7 +339,7 @@ void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Po
 	RequestAsyncJob(monster,
 		[monster, start, dest, this]()
 		{
-			this->_jps->FindPath(start, dest, monster->_path);
+			this->_monsterJps->FindPath(start, dest, monster->_path);
 		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
 	);
 }
@@ -817,6 +824,20 @@ void FieldPacketHandleThread::InitializeSector()
 Sector* FieldPacketHandleThread::GetSector(uint16 newSectorY, uint16 newSectorX)
 {
 	return &_sector[newSectorY][newSectorX];
+}
+
+bool FieldPacketHandleThread::CheckValidPos(Pos pos)
+{
+	if (pos.x < 0 || pos.x >= _mapSizeX || pos.y < 0 || pos.y >= _mapSizeY)
+	{
+		return false;
+	}
+	if (_map[pos.y][pos.x] == OBSTACLE)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void FieldPacketHandleThread::InitializeMap()

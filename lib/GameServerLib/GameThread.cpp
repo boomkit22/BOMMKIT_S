@@ -307,6 +307,7 @@ void GameThread::ProcessLeave()
 bool GameThread::RequestAsyncJob(void* ptr, std::function<void()> job, uint16 queueIndex, uint16 jobType)
 {
 	_asyncJobQueue[queueIndex].Enqueue({ptr, job, jobType});
+	SetEvent(_hAsyncJobThreadEvent[queueIndex]);
 	return true;
 }
 

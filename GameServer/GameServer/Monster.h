@@ -99,5 +99,6 @@ private:
 private:
 	std::vector<Pos> _path;
 	uint16 _pathIndex = 0;
+	bool bRequestPath = false;
 };
 

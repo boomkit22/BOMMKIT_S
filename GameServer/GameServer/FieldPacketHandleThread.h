@@ -71,14 +71,16 @@ public:
 	Sector* GetSector(uint16 newSectorY, uint16 newSectorX);
 	uint32 GetMapXSize() { return _mapSizeX; };
 	uint32 GetMapYSize() { return _mapSizeY; };
-
+	bool CheckValidPos(Pos pos);
 private:
 	//HandleCharacterMove 요청왔을때 길찾기하는 쓰레드 만들기
 	uint8** _map;
 	void InitializeMap();
 	uint32 _mapSizeX;
 	uint32 _mapSizeY;
-	JumpPointSearch* _jps;
+	JumpPointSearch* _playerJps;
+	JumpPointSearch* _monsterJps;
+
 
 
 private:
@@ -91,5 +93,7 @@ public:
 
 	// BasePacketHandleThread을(를) 통해 상속됨
 	void HandleAsyncJobFinish(void* ptr, uint16 jobType) override;
+
+
 };
 
