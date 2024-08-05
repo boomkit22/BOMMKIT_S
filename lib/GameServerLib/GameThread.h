@@ -11,6 +11,20 @@
 #define TPS_ARR_NUM 5
 #define GAMETHREAD_MAX_SESSION_NUM 6000
 
+#define ASYNC_JOB_THRAED_INDEX_ONE 0
+#define ASYNC_JOB_THREAD_INDEX_TWO 1
+
+#define ASYNC_JOG_THRAED_NUM 2
+
+
+struct AsyncJob
+{
+	void* ptr;
+	std::function<void()> job;
+	uint16 jobType;
+
+};
+
 struct MoveThreadInfo
 {
 	int64 sessionId;
@@ -59,7 +73,7 @@ private:
 
 	virtual int64 GetPlayerSize() = 0;
 	virtual void HandleRecvPacket(int64 sessionId, CPacket* packet) = 0;
-	virtual void HandleAsyncJobFinish(int64 sessionId) = 0;
+	virtual void HandleAsyncJobFinish(void* ptr, uint16 jobType) = 0;
 
 	static unsigned __stdcall UpdateThreadStatic(void* param)
 	{
@@ -83,8 +97,11 @@ private:
 		return pThis->AsyncJobThread();
 	}
 	unsigned int __stdcall AsyncJobThread();
-	HANDLE _hAsyncJobThread;
-	HANDLE _hAsyncJobThreadEvent;
+
+	HANDLE _hAsyncJobThread[ASYNC_JOG_THRAED_NUM];
+	HANDLE _hAsyncJobThreadEvent[ASYNC_JOG_THRAED_NUM];
+	/*HANDLE _hAsyncJobThread;
+	HANDLE _hAsyncJobThreadEvent;*/
 
 	int64 _packetTps[TPS_ARR_NUM] = { 0, };
 	int64 _updateTps = 0;
@@ -130,7 +147,7 @@ protected:
 	void ProcessEnter();
 	void ProcessLeave();
 	//TODO: lambda 넣을 수 있게
-	bool RequestAsyncJob(int64 sessionId, std::function<void()> job);
+	bool RequestAsyncJob(void* ptr, std::function<void()> job, uint16 queueIndex, uint16 jobType);
 	
 
 public:
@@ -148,7 +165,7 @@ private:
 	bool _running = true;
 	bool _isAlive = true;
 	int _runningThread = 0;
-	LockFreeQueue<std::pair<Session*, std::function<void()>>> _asyncJobQueue;
-
+	LockFreeQueue<AsyncJob> _asyncJobQueue[ASYNC_JOG_THRAED_NUM];
+	int asyncThreadIndex = 0;
 };
 

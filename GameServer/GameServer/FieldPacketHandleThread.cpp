@@ -102,8 +102,8 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	//TODO: 경로 찾고, 경로 저장해두고, 경로 사이즈 보내고
 	int64 characterNo = player->playerInfo.PlayerID;
 	FVector destination;
-	FRotator startRotation;
-	*packet >> destination >> startRotation;
+	//FRotator startRotation;
+	*packet >> destination;
 
 	//TODO: 길찾기쓰레드에 넘기고
 	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
@@ -111,8 +111,9 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	Pos start = {player->Position.Y, player->Position.X};
 	Pos end = {destination.Y, destination.X};
 	
-
+	player->bMoving = false;
 	player->_path.clear();
+	player->_pathIndex = 0;
 	player->_asyncJobRequests.push(JOB_FIND_PATH);
 	//start랑 end 복사로해야하고
 	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
@@ -325,6 +326,23 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
 	default:
 		__debugbreak();
 	}
+}
+
+
+
+void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, int64 objectId, Pos start, Pos dest)
+{
+	RequestAsyncJob(monster->GetObjectId(),
+		[monster, start, dest, this]()
+		{
+			_jps->FindPath(start, dest, monster->_path);
+		}
+	);
+}
+
+void FieldPacketHandleThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
+{
+	RequestAsyncJob(sessionId, job);
 }
 
 void FieldPacketHandleThread::InitializeSector()

@@ -19,8 +19,11 @@ GameThread::GameThread(int threadId, int msPerFram) : _msPerFrame(msPerFram)
 	
 	_gameThreadID = threadId;
 
-	_hAsyncJobThreadEvent = 
-		CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	for (int i = 0; i < ASYNC_JOG_THRAED_NUM; i++)
+	{
+		_hAsyncJobThreadEvent[i] = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	}
+	
 }
 
 void GameThread::Start()
@@ -43,13 +46,17 @@ void GameThread::Start()
 	}
 	_runningThread++;
 
-	_hAsyncJobThread = (HANDLE)_beginthreadex(NULL, 0, AsyncJobThreadStatic, this, 0, NULL);
-	if (_hAsyncJobThread == NULL)
+
+	for (int i = 0; i < ASYNC_JOG_THRAED_NUM; i++)
 	{
-		errorCode = WSAGetLastError();
-		__debugbreak();
+		_hAsyncJobThread[i] = (HANDLE)_beginthreadex(NULL, 0, AsyncJobThreadStatic, this, 0, NULL);
+		if (_hAsyncJobThread[i] == NULL)
+		{
+			errorCode = WSAGetLastError();
+			__debugbreak();
+		}
+		_runningThread++;
 	}
-	_runningThread++;
 }
 
 unsigned __stdcall GameThread::UpdateThread()
@@ -103,26 +110,36 @@ unsigned int __stdcall GameThread::MonitorThread()
 
 unsigned int __stdcall GameThread::AsyncJobThread()
 {
+	thread_local int threadIndex = asyncThreadIndex++;
+
 	while (_running)
 	{
-		WaitForSingleObject(_hAsyncJobThreadEvent, INFINITE);
+		WaitForSingleObject(_hAsyncJobThreadEvent[threadIndex], INFINITE);
 
 		for (;;)
 		{
-			std::pair<Session*, std::function<void()>> asyncJob;
-			bool dequeueSucceed = _asyncJobQueue.Dequeue(asyncJob);
+			AsyncJob asyncJob;
+			bool dequeueSucceed = _asyncJobQueue[threadIndex].Dequeue(asyncJob);
 			if (!dequeueSucceed)
 			{
 				break;
 			}
-			Session* s = asyncJob.first;
-			//호출해주고
-			asyncJob.second();
-			CPacket* packet = CPacket::Alloc();
-			HandleAsyncJobFinish(s->_sessionId);
-			CPacket::Free(packet);
-			InterlockedDecrement(&s->_bProcessingAsyncJobNum);
-			_netServer->PutBackSession(s);
+			asyncJob.job();
+			HandleAsyncJobFinish(asyncJob.ptr, asyncJob.jobType);
+			/*std::pair<Session*, std::function<void()>> asyncJob;
+			bool dequeueSucceed = _asyncJobQueue[threadIndex].Dequeue(asyncJob);
+			if (!dequeueSucceed)
+			{
+				break;
+			}*/
+			//Session* s = asyncJob.first;
+			////호출해주고
+			//asyncJob.second();
+			//CPacket* packet = CPacket::Alloc();
+			//HandleAsyncJobFinish(s->_sessionId);
+			//CPacket::Free(packet);
+			//InterlockedDecrement(&s->_bProcessingAsyncJobNum);
+			//_netServer->PutBackSession(s);
 
 		}
 	}
@@ -161,11 +178,11 @@ void GameThread::NetworkRun()
 		{
 			continue;
 		}
-		if(s->_bProcessingAsyncJobNum > 0)
-		{
-			_netServer->PutBackSession(s);
-			continue;
-		}
+		//if(s->_bProcessingAsyncJobNum > 0)
+		//{
+		//	_netServer->PutBackSession(s);
+		//	continue;
+		//}
 
 		if (s->_packetQueue.Size() == 0)
 		{
@@ -286,22 +303,40 @@ void GameThread::ProcessLeave()
 	}
 }
 
-
-bool GameThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
+//본인이 추가적으로 넣을 pointer랑 job이랑, queueIndex
+bool GameThread::RequestAsyncJob(void* ptr, std::function<void()> job, uint16 queueIndex, uint16 jobType)
 {
-	Session* s = _netServer->GetSession(sessionId);
-	if (s == nullptr)
-	{
-		return false;
-	}
-	InterlockedIncrement(&s->_bProcessingAsyncJobNum);
-	//s->_bProcessingAsyncJobNum++;
-	_asyncJobQueue.Enqueue({ s, job });
-	SetEvent(_hAsyncJobThreadEvent);
-	//_netServer->PutBackSession(s);
-
+	_asyncJobQueue[queueIndex].Enqueue({ptr, job, jobType});
 	return true;
 }
+
+
+//bool GameThread::RequestAsyncJob(int64 sessionId, std::function<void()> job)
+//{
+//	Session* s = _netServer->GetSession(sessionId);
+//	if (s == nullptr)
+//	{
+//		return false;
+//	}
+//	InterlockedIncrement(&s->_bProcessingAsyncJobNum);
+//
+//	int minIndex = 0;
+//	int min = INT32_MIN;
+//	for (int i = 0; i < ASYNC_JOG_THRAED_NUM; i++)
+//	{
+//		if (min > _asyncJobQueue[i].Size())
+//		{
+//			min = _asyncJobQueue[i].Size();
+//			minIndex = i;
+//		}
+//	}
+//	//s->_bProcessingAsyncJobNum++;
+//	_asyncJobQueue[minIndex].Enqueue({s, job});
+//	SetEvent(_hAsyncJobThreadEvent[minIndex]);
+//	//_netServer->PutBackSession(s);
+//
+//	return true;
+//}
 
 
 

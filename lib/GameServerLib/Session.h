@@ -62,7 +62,7 @@ struct Session
 	void ClearSendQueue();
 	void ClearPacketQueue();
 
-	long _bProcessingAsyncJobNum = 0;
+	//long _bProcessingAsyncJobNum = 0;
 };
 
 

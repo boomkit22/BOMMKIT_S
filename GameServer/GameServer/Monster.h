@@ -2,11 +2,17 @@
 #include "Type.h"
 #include <unordered_map>
 #include "FieldObject.h"
+#include "JumpPointSearch.h"
 
 class Sector;
 class CPacket;
 class Player;
 class BasePacketHandleThread;
+
+//200 이상이면 길찾기 요청
+//200 이하면 길찾기 요청안함
+
+#define REQUEST_FIND_PATH_THRESHOLD 200.0
 
 enum class MonsterState {
 	MS_IDLE,
@@ -88,5 +94,8 @@ private:
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
+
+private:
+	Pos findedPath;
 };
 

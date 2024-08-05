@@ -83,7 +83,7 @@ void Player::OnFieldChange()
 				if(otherPlayer->bMoving)
 				{
 					CPacket* ohterPlayerPathPacket = CPacket::Alloc();
-					MP_SC_FIND_PATH(ohterPlayerPathPacket, otherPlayer->_path, otherPlayer->_pathIndex);
+					MP_SC_FIND_PATH(ohterPlayerPathPacket, otherPlayer->playerInfo.PlayerID, otherPlayer->Position, otherPlayer->_path, otherPlayer->_pathIndex);
 					SendPacket_Unicast(_sessionId, ohterPlayerPathPacket);
 					CPacket::Free(ohterPlayerPathPacket);
 
@@ -226,7 +226,7 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 void Player::HandleAsyncFindPath()
 {
 	CPacket* pathPacket = CPacket::Alloc();
-	MP_SC_FIND_PATH(pathPacket, _path, _pathIndex);
+	MP_SC_FIND_PATH(pathPacket, playerInfo.PlayerID, Position, _path, _pathIndex);
 	SendPacket_Around(pathPacket); // 본인포함해서 브로드캐스팅한번햊구ㅗ
 	CPacket::Free(pathPacket);
 
@@ -244,37 +244,33 @@ void Player::Move(float deltaTime) {
 	double Distance = std::sqrt(Direction.X * Direction.X + Direction.Y * Direction.Y);
 	FVector NormalizedDirection = { Direction.X / Distance, Direction.Y / Distance, 0 };
 
-	if (Distance > 0.0) {
-		double DistanceToMove = _speed * deltaTime;
-		Position.X += NormalizedDirection.X * DistanceToMove;
-		Position.Y += NormalizedDirection.Y * DistanceToMove;
-	}
+	double DistanceToMove = _speed * deltaTime;
 
-	// 이거 범위 얼만큼해야하지
-	if (std::abs(Position.X - _destination.X) < 1.0 &&
-		std::abs(Position.Y - _destination.Y) < 1.0) {
-		Position = _destination; // 목적지에 도달했다고 간주
+	// dest에 도달
+	if (DistanceToMove >= Distance) {
+		Position = _destination; 
 
-		if(_pathIndex < _path.size())
-		{
+		_pathIndex++;
+		if (_pathIndex < _path.size()) {
 			SetDestination({ (double)_path[_pathIndex].x, (double)_path[_pathIndex].y, PLAYER_Z_VALUE });
-			_pathIndex++;
 		}
 		else {
 			bMoving = false;
 		}
+	}
+	else {
+		Position.X += NormalizedDirection.X * DistanceToMove;
+		Position.Y += NormalizedDirection.Y * DistanceToMove;
 	}
 
 	double RotationAngleRadians = std::atan2(NormalizedDirection.Y, NormalizedDirection.X);
 	double RotationAngleDegrees = RotationAngleRadians * 180 / PI; // 라디안을 도로 언리얼 degree
 	Rotation.Yaw = RotationAngleDegrees;
 
-
 	uint16 newSectorY = Position.Y / _sectorYSize;
 	uint16 newSectorX = Position.X / _sectorXSize;
 
-	if (_currentSector->Y == newSectorY && _currentSector->X == newSectorX)
-	{
+	if (_currentSector->Y == newSectorY && _currentSector->X == newSectorX) {
 		return;
 	}
 
@@ -388,7 +384,7 @@ void Player::AddSector(Sector* newSector)
 	{
 		CPacket* playerPathPacket = CPacket::Alloc();
 		MP_SC_FIND_PATH
-			(playerPathPacket, _path, _pathIndex);
+			(playerPathPacket, playerInfo.PlayerID, Position, _path, _pathIndex);
 		for (int i = 0; i < addSectorNum; i++)
 		{
 			SendPacket_Sector(addSector[i], playerPathPacket);
@@ -433,7 +429,7 @@ void Player::AddSector(Sector* newSector)
 				if (otherPlayer->bMoving)
 				{
 					CPacket* otherPlathPathPacket = CPacket::Alloc();
-					MP_SC_FIND_PATH(otherPlathPathPacket, otherPlayer->_path, otherPlayer->_pathIndex);
+					MP_SC_FIND_PATH(otherPlathPathPacket, otherPlayer->playerInfo.PlayerID, otherPlayer->Position, otherPlayer->_path, otherPlayer->_pathIndex);
 					SendPacket_Unicast(_sessionId, otherPlathPathPacket);
 					CPacket::Free(otherPlathPathPacket);
 

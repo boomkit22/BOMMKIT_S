@@ -253,8 +253,38 @@ void Monster::ChasePlayer(float deltaTime)
 				_position.Z
 			};
 
-			SetDestination(Destination);
-			MoveToDestination(deltaTime);
+			//Destination하고 현재 포지션 차이가 200.f 아래면 그냥 이동하고
+			//아니면 길찾기 요청
+			if (length < 200.f)
+			{
+				SetDestination(Destination);
+				MoveToDestination(deltaTime);
+			}
+			else {
+				//길찾기 요청
+				//길찾기 요청 패킷 보내기
+				GetField()->RequestAsyncJob();
+				Pos start = { _position.X, _position.Y };
+				Pos end = { Destination.X, Destination.Y };
+
+				//jps->FindFirstPath 이런것도 넣으면 좋겠는데
+				GetField()->RequestAsyncJob(GetObjectId(),
+					[start, end, this ,findedPath]()
+					{
+						this->_jps->FindPath(start, end, player->_path);
+					}
+				);
+
+
+				CPacket* packet = CPacket::Alloc();
+				MP_SC_GAME_REQ_FIND_PATH(packet, _monsterInfo.MonsterID, _position, Destination);
+				SendPacket_Around(packet);
+				CPacket::Free(packet);
+			}
+
+
+			//SetDestination(Destination);
+			//MoveToDestination(deltaTime);
 		}
 	}
 }
@@ -276,7 +306,7 @@ void Monster::SetRandomDestination()
 {
 	//TODO: 현재 몬스터 위치 기반으로
 	// 랜덤 목적지 정한다
-	float range = 500.0f; // 범위 설정
+	float range = REQUEST_FIND_PATH_THRESHOLD; // 범위 설정
 	_destination.X = _position.X + (rand() % static_cast<int>(range * 2)) - range;
 	_destination.Y = _position.Y + (rand() % static_cast<int>(range * 2)) - range;
 
