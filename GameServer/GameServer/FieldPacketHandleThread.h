@@ -26,7 +26,7 @@ public:
 
 protected:
 	void HandleFieldMove(Player* player, CPacket* packet);
-	void HandleChracterMove(Player* player, CPacket* packet);
+	//void HandleChracterMove(Player* player, CPacket* packet);
 	void HandleCharacterSkill(Player* player, CPacket* packet);
 	void HandleCharacterStop(Player* player, CPacket* packet);
 	void HnadleCharacterAttack(Player* player, CPacket* packet);

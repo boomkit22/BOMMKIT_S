@@ -33,7 +33,6 @@ void Player::SetDestination(const FVector& NewDestination)
 {
 	_destination = NewDestination;
 	bMoving = true;
-
 }
 
 void Player::StopMove()
@@ -83,10 +82,16 @@ void Player::OnFieldChange()
 
 				if(otherPlayer->bMoving)
 				{
-					CPacket* movePacket = CPacket::Alloc();
+					CPacket* ohterPlayerPathPacket = CPacket::Alloc();
+					MP_SC_FIND_PATH(ohterPlayerPathPacket, otherPlayer->_path, otherPlayer->_pathIndex);
+					SendPacket_Unicast(_sessionId, ohterPlayerPathPacket);
+					CPacket::Free(ohterPlayerPathPacket);
+
+
+					/*CPacket* movePacket = CPacket::Alloc();
 					MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, otherPlayer->playerInfo.PlayerID, otherPlayer->Position, otherPlayer->Rotation);
 					SendPacket_Unicast(_sessionId, movePacket);
-					CPacket::Free(movePacket);
+					CPacket::Free(movePacket);*/
 				}
 
 			}
@@ -116,17 +121,17 @@ void Player::OnFieldChange()
 	_currentSector->fieldObjectVector.push_back(this);
 }
 
-void Player::HandleCharacterMove(FVector destination)
-{
-    CPacket* movePacket = CPacket::Alloc();
-    int64 playerId = playerInfo.PlayerID;
-	Rotation.Yaw = Util::CalculateRotation(Position, destination);
-    MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, playerId, destination, Rotation);
-    //브로드케스팅
-    SendPacket_Around(movePacket);
-    CPacket::Free(movePacket);
-    SetDestination(destination);
-}
+//void Player::HandleCharacterMove(FVector destination)
+//{
+//    CPacket* movePacket = CPacket::Alloc();
+//    int64 playerId = playerInfo.PlayerID;
+//	Rotation.Yaw = Util::CalculateRotation(Position, destination);
+//    MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, playerId, destination, Rotation);
+//    //브로드케스팅
+//    SendPacket_Around(movePacket);
+//    CPacket::Free(movePacket);
+//    SetDestination(destination);
+//}
 
 void Player::HandleCharacterSkill(FVector startLocation, FRotator startRotation, int32 skillId)
 {
@@ -218,6 +223,20 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 	}
 }
 
+void Player::HandleAsyncFindPath()
+{
+	CPacket* pathPacket = CPacket::Alloc();
+	MP_SC_FIND_PATH(pathPacket, _path, _pathIndex);
+	SendPacket_Around(pathPacket); // 본인포함해서 브로드캐스팅한번햊구ㅗ
+	CPacket::Free(pathPacket);
+
+	//이동 시작
+	if (_path.size() > 0)
+	{
+		SetDestination({ (double)_path[0].x, (double)_path[0].y, PLAYER_Z_VALUE });
+	}
+}
+
 
 
 void Player::Move(float deltaTime) {
@@ -235,7 +254,15 @@ void Player::Move(float deltaTime) {
 	if (std::abs(Position.X - _destination.X) < 1.0 &&
 		std::abs(Position.Y - _destination.Y) < 1.0) {
 		Position = _destination; // 목적지에 도달했다고 간주
-		bMoving = false;
+
+		if(_pathIndex < _path.size())
+		{
+			SetDestination({ (double)_path[_pathIndex].x, (double)_path[_pathIndex].y, PLAYER_Z_VALUE });
+			_pathIndex++;
+		}
+		else {
+			bMoving = false;
+		}
 	}
 
 	double RotationAngleRadians = std::atan2(NormalizedDirection.Y, NormalizedDirection.X);
@@ -359,13 +386,24 @@ void Player::AddSector(Sector* newSector)
 	
 	if (bMoving)
 	{
-		CPacket* movingThisChracterPkt = CPacket::Alloc();
+		CPacket* playerPathPacket = CPacket::Alloc();
+		MP_SC_FIND_PATH
+			(playerPathPacket, _path, _pathIndex);
+		for (int i = 0; i < addSectorNum; i++)
+		{
+			SendPacket_Sector(addSector[i], playerPathPacket);
+		}
+		CPacket::Free(playerPathPacket);
+
+
+
+		/*CPacket* movingThisChracterPkt = CPacket::Alloc();
 		MP_SC_GAME_RES_CHARACTER_MOVE(movingThisChracterPkt, playerInfo.PlayerID, _destination, Rotation);
 		for (int i = 0; i < addSectorNum; i++)
 		{
 			SendPacket_Sector(addSector[i], movingThisChracterPkt);
-		}
-		CPacket::Free(movingThisChracterPkt);
+		}*/
+		//CPacket::Free(movingThisChracterPkt);
 	}
 
 	// 추가된 섹터에 있는 캐릭터, 몬스터들의 생성, 이동 패킷 보내기
@@ -394,10 +432,16 @@ void Player::AddSector(Sector* newSector)
 
 				if (otherPlayer->bMoving)
 				{
-					CPacket* movePacket = CPacket::Alloc();
+					CPacket* otherPlathPathPacket = CPacket::Alloc();
+					MP_SC_FIND_PATH(otherPlathPathPacket, otherPlayer->_path, otherPlayer->_pathIndex);
+					SendPacket_Unicast(_sessionId, otherPlathPathPacket);
+					CPacket::Free(otherPlathPathPacket);
+
+					/*CPacket* movePacket = CPacket::Alloc();
+
 					MP_SC_GAME_RES_CHARACTER_MOVE(movePacket, otherPlayer->playerInfo.PlayerID, otherPlayer->Position, otherPlayer->Rotation);
 					SendPacket_Unicast(_sessionId, movePacket);
-					CPacket::Free(movePacket);
+					CPacket::Free(movePacket);*/
 				}
 
 			}

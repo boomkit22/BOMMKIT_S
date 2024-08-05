@@ -44,20 +44,20 @@ void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo& playerInfo, FVecto
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation)
-{
-	NetHeader header;
-	header._code = Data::serverPacketCode;
-	header._randKey = rand();
-	packet->PutData((char*)&header, sizeof(NetHeader));
-
-	uint16 type = PACKET_SC_GAME_RES_CHARACTER_MOVE;
-	*packet << type << charaterNo << Destination << StartRotation;
-
-	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
-	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
-}
-
+//void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation)
+//{
+//	NetHeader header;
+//	header._code = Data::serverPacketCode;
+//	header._randKey = rand();
+//	packet->PutData((char*)&header, sizeof(NetHeader));
+//
+//	uint16 type = PACKET_SC_GAME_RES_CHARACTER_MOVE;
+//	*packet << type << charaterNo << Destination << StartRotation;
+//
+//	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+//	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+//}
+//
 
 
 void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType, int64& TargetID, int32& Damage)
@@ -290,7 +290,7 @@ void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId)
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_FIND_PATH(CPacket* packet, uint16 pathSize)
+void MP_SC_FIND_PATH(CPacket* packet, uint16 startIndex, std::vector<Pos>& path)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
@@ -298,7 +298,33 @@ void MP_SC_FIND_PATH(CPacket* packet, uint16 pathSize)
 	packet->PutData((char*)&header, sizeof(NetHeader));
 
 	uint16 type = PACKET_SC_GAME_RES_FIND_PATH;
+	*packet << type << (uint16)path.size() << startIndex;
+	//*packet << type << startIndex << (uint16)path.size();
+
+	for (auto& pos : path)
+	{
+		*packet << pos;
+	}
+
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+
+}
+
+void MP_SC_FIND_PATH(CPacket* packet, uint16 pathSize, std::vector<Pos>& path)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+	
+	uint16 type = PACKET_SC_GAME_RES_FIND_PATH;
 	*packet << type << pathSize;
+
+	for (auto& pos : path)
+	{
+		*packet << pos;
+	}
 
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));

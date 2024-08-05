@@ -17,7 +17,7 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	InitializeSector();
 	InitializeMap();
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_FIELD_MOVE, [this](Player* p, CPacket* packet) { HandleFieldMove(p, packet); });
-	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_MOVE, [this](Player* p, CPacket* packet) { HandleChracterMove(p, packet); });
+	//RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_MOVE, [this](Player* p, CPacket* packet) { HandleChracterMove(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_SKILL, [this](Player* p, CPacket* packet) { HandleCharacterSkill(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_STOP, [this](Player* p, CPacket* packet) { HandleCharacterStop(p, packet); });
 	RegisterPacketHandler(PACKET_CS_GAME_REQ_CHARACTER_ATTACK, [this](Player* p, CPacket* packet) { HnadleCharacterAttack(p, packet); });
@@ -46,21 +46,21 @@ void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
 	MoveGameThread(fieldID, player->GetSessionId(), player);
 }
 
-void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
-{
-	uint16 pathIndex;
-	*packet >> pathIndex;
-
-	if (pathIndex >= player->_path.size())
-	{
-		__debugbreak();
-	}
-
-	FVector destination = { player->_path[pathIndex].x, player->_path[pathIndex].y, PLAYER_Z_VALUE };
-	player->HandleCharacterMove(destination);
-	//_jps->FindPath(start, end, player->_path);
-	//player->HandleCharacterMove(destination, startRotation);
-}
+//void FieldPacketHandleThread::HandleChracterMove(Player* player, CPacket* packet)
+//{
+//	uint16 pathIndex;
+//	*packet >> pathIndex;
+//
+//	if (pathIndex >= player->_path.size())
+//	{
+//		__debugbreak();
+//	}
+//
+//	FVector destination = { player->_path[pathIndex].x, player->_path[pathIndex].y, PLAYER_Z_VALUE };
+//	player->HandleCharacterMove(destination);
+//	//_jps->FindPath(start, end, player->_path);
+//	//player->HandleCharacterMove(destination, startRotation);
+//}
 
 void FieldPacketHandleThread::HandleCharacterSkill(Player* player, CPacket* packet)
 {
@@ -127,21 +127,7 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 
 void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
 {
-	CPacket* packet = CPacket::Alloc();
-	uint16 pathSize = player->_path.size();
-	
-	MP_SC_FIND_PATH(packet, pathSize);
-	SendPacket_Unicast(player->GetSessionId(), packet);
-	CPacket::Free(packet);
-
-	
-	if (pathSize > 0)
-	{
-		//첫번째로 이동까지 시킴
-		Pos firstPos = player->_path[0];
-		FVector destination = { firstPos.x, firstPos.y, PLAYER_Z_VALUE };
-		player->HandleCharacterMove(destination);
-	}
+	player->HandleAsyncFindPath();
 }
 
 void FieldPacketHandleThread::GameRun(float deltaTime)

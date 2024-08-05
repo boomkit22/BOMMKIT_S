@@ -10,7 +10,7 @@ struct Pos;
 void MP_SC_FIELD_MOVE(CPacket* packet, uint8& status, uint16& fieldID);
 void MP_SC_SPAWN_MY_CHARACTER(CPacket* packet, PlayerInfo& playerInfo, FVector& spawnLocation, FRotator& SpawnRotation);
 void MP_SC_SPAWN_OTHER_CHARACTER(CPacket* packet, PlayerInfo& playerInfo, FVector& spawnLocation, FRotator& SpawnRotation);
-void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation);
+//void MP_SC_GAME_RES_CHARACTER_MOVE(CPacket* packet, int64& charaterNo, FVector& Destination, FRotator& StartRotation);
 void MP_SC_GAME_RES_DAMAGE(CPacket* packet, int32& AttackerType, int64& AttackerID, int32& targetType,
 	int64& TargetID, int32& Damage);
 void MP_SC_GAME_RES_CHARACTER_SKILL(CPacket* packet, int64& CharacterID,
@@ -29,4 +29,4 @@ void MP_SC_PLAYER_LIST(CPacket* packet, std::vector<PlayerInfo>& playerInfos);
 void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
 void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo& playerInfo);
 void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId);
-void MP_SC_FIND_PATH(CPacket* packet, uint16 pathSize);
+void MP_SC_FIND_PATH(CPacket* packet, std::vector<Pos>& path, uint16 startIndex);

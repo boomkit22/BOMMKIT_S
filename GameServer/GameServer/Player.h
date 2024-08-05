@@ -45,11 +45,11 @@ public:
 
 	int64 GetSessionId() { return _sessionId; };
 public:
-	void HandleCharacterMove(FVector destination);
+	//void HandleCharacterMove(FVector destination);
 	void HandleCharacterSkill(FVector startLocation, FRotator startRotation, int32 skillId);
 	void HandleCharacterStop(FVector position, FRotator rotation);
 	void HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 targetType, int64 targetId);
-
+	void HandleAsyncFindPath();
 private:
 	FVector _destination;
 	float _speed = 300.0f;
@@ -71,5 +71,6 @@ private:
 	void RemoveSector(Sector* newSector);
 	std::vector<Pos> _path;
 	std::queue<uint8> _asyncJobRequests;
+	uint16 _pathIndex = 0;
 };
 
