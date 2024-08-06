@@ -12,6 +12,8 @@ const double PLAYER_Z_VALUE = 95.2f;
 
 class Player : public FieldObject
 {
+	friend class Monster;
+
 	friend class GameServer;
 	friend class BasePacketHandleThread;
 	friend class GuardianFieldThread;
@@ -52,7 +54,7 @@ public:
 	void HandleAsyncFindPath();
 private:
 	FVector _destination;
-	float _speed = 300.0f;
+	float _speed;
 	bool bMoving = false;
 	void Move(float deltaTime);
 
@@ -70,6 +72,7 @@ private:
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
 	std::vector<Pos> _path;
+	std::vector<Pos> _requestPath;
 	uint16 _pathIndex = 0;
 };
 

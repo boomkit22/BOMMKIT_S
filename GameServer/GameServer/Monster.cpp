@@ -57,46 +57,47 @@ void  Monster::Update(float deltaTime)
 	// 공격 쿨타임 계산
 	_attackTimer += deltaTime;
 
-	switch(_state)
+	switch (_state)
 	{
-		case MonsterState::MS_IDLE:
+	case MonsterState::MS_IDLE:
+	{
+		// idle 상태였으면
+		_idleTime -= deltaTime;
+		if (_idleTime <= 0)
 		{
-			// idle 상태였으면
-			_idleTime -= deltaTime;
-			if(_idleTime <= 0)
-			{
-				// idle 시간이 다 되었으면
-				SetRandomDestination();
-			}
+			// idle 시간이 다 되었으면
+			SetRandomDestination();
+			_state = MonsterState::MS_MOVING;
 		}
-		break;
+	}
+	break;
 
-		case MonsterState::MS_MOVING:
-		{
-			MoveToDestination(deltaTime);
-		}
-		break;
+	case MonsterState::MS_MOVING:
+	{
+		MoveToDestination(deltaTime);
+	}
+	break;
 
-		case MonsterState::MS_ATTACKING:
-		{
-			AttackPlayer(deltaTime);
-		}
-		break;
+	case MonsterState::MS_ATTACKING:
+	{
+		AttackPlayer(deltaTime);
+	}
+	break;
 
-		case MonsterState::MS_CHASING:
-		{
-			ChasePlayer(deltaTime);
-		}
-		break;
+	case MonsterState::MS_CHASING:
+	{
+		ChasePlayer(deltaTime);
+	}
+	break;
 
-		case MonsterState::MS_DEATH:
-		{
-			//TODO: 얘 아무것도 할거 없고
-		}
-		break;
+	case MonsterState::MS_DEATH:
+	{
+		//TODO: 얘 아무것도 할거 없고
+	}
+	break;
 
-		default:
-			__debugbreak();
+	default:
+		__debugbreak();
 	}
 }
 
@@ -106,11 +107,9 @@ void Monster::MoveToDestination(float deltaTime)
 	float dirY = _destination.Y - _position.Y;
 	float distance = sqrt(dirX * dirX + dirY * dirY);
 
-	if (distance < 50.0f)
+	if (distance < 10.0f)
 	{
 		// 목적지에 도착했으면
-		_position.X = _destination.X;
-		_position.Y = _destination.Y;
 		_state = MonsterState::MS_IDLE;
 		_idleTime = 5.0f;
 	}
@@ -137,7 +136,7 @@ void Monster::MoveToDestination(float deltaTime)
 	uint16 newSectorY = _position.Y / _sectorYSize;
 	uint16 newSectorX = _position.X / _sectorXSize;
 
-	if(newSectorY >= 50 || newSectorX >= 50)
+	if (newSectorY >= 50 || newSectorX >= 50)
 	{
 		__debugbreak();
 	}
@@ -169,7 +168,7 @@ void Monster::AttackPlayer(float deltaTime)
 			{
 				_rotation.Yaw = Util::CalculateRotation(_position, _targetPlayer->Position);
 				//일단 Stop을 해야하네
-				
+
 				//Stop Packet도 그냥 보냅시다
 	/*			CPacket*  monsterStopPacket = CPacket::Alloc();
 				MP_SC_GAME_RES_MONSTER_STOP(monsterStopPacket, _monsterInfo.MonsterID, _position, _rotation);
@@ -187,7 +186,7 @@ void Monster::AttackPlayer(float deltaTime)
 
 				/*_PacketHandleThread->SendPacket_BroadCast(monsterSkilPacket);
 				CPacket::Free(monsterSkilPacket);*/
-				
+
 				//데미지 패킷 전송
 				//공격했으면 데미지 패킷 보내여지
 				CPacket* resDamagePacket = CPacket::Alloc();
@@ -234,8 +233,6 @@ void Monster::ChasePlayer(float deltaTime)
 		float distance = GetDistanceToPlayer(_targetPlayer);
 		if (distance <= _attackRange)
 		{
-			_position.Y = _destination.Y;
-			_position.X = _destination.X;
 			_state = MonsterState::MS_ATTACKING;
 
 		}
@@ -250,70 +247,23 @@ void Monster::ChasePlayer(float deltaTime)
 			dirY /= length;
 
 			// attackRagne곱해서
-			FVector Destination{
-				_targetPlayer->Position.X - dirX * (_attackRange - 10), // 범위 안에서
-				_targetPlayer->Position.Y - dirY * (_attackRange - 10),
-				_position.Z
-			};
+			//FVector Destination{
+			//	_targetPlayer->Position.X - dirX * (_attackRange - 10), // 범위 안에서
+			//	_targetPlayer->Position.Y - dirY * (_attackRange - 10),
+			//	_position.Z
+			//};
 
-			//Destination하고 현재 포지션 차이가 200.f 아래면 그냥 이동하고
-			//아니면 길찾기 요청
-			if (length < 200.f)
+			FVector Destination;
+			if (_targetPlayer->_path.size() > 0)
 			{
-				SetDestination(Destination);
-				MoveToDestination(deltaTime);
-			}
-			else if (_path.size() > 0 && _pathIndex < _path.size())
-			{
-				//길찾기 요청해서 path가 있는 상황이면
-				// path로 이동
-				Pos nextPos = _path[_pathIndex];
-				FVector nextDestination = { nextPos.x, nextPos.y, _position.Z };
-				SetDestination(nextDestination);
-				MoveToDestination(deltaTime);
-				_pathIndex++;
+				Pos targetPlayerPos = _targetPlayer->_path[_targetPlayer->_pathIndex];
+				Destination = { (double)targetPlayerPos.x, (double)targetPlayerPos.y, _position.Z };
 			}
 			else {
-				_pathIndex = 0;
-				_path.clear();
-				Pos start = {_position.Y, _position.X};
-				//이거 start가 장애물에있는상태면 길찾기못하는데
-				bool bFindValidPos = true;
-				uint16 tryFindCount = 0;
-				while (GetField()->CheckValidPos(start) == false)
-				{
-					// 방향으로 조금씩 이동하면서
-					start.y += dirY * 5; 
-					start.x += dirX * 5;
-					tryFindCount++;
-
-					if (tryFindCount > 20)
-					{
-						bFindValidPos = false;
-						__debugbreak();
-						break;
-					}
-
-				}
-
-				if (bFindValidPos == false)
-				{
-					//못찾았으면
-					//그냥 이동
-					SetDestination(Destination);
-					MoveToDestination(deltaTime);
-					return;
-				}
-
-				Pos end = {Destination.Y, Destination.X};
-				GetField()->RequestMonsterPath(this, start, end);
-				//CPacket* packet = CPacket::Alloc();
-				//MP_SC_GAME_REQ_FIND_PATH(packet, _monsterInfo.MonsterID, _position, Destination);
-				//SendPacket_Around(packet);
-				//CPacket::Free(packet);
+				Destination = { _targetPlayer->Position.X, _targetPlayer->Position.Y, _position.Z };
 			}
-			//SetDestination(Destination);
-			//MoveToDestination(deltaTime);
+			SetDestination(Destination);
+			MoveToDestination(deltaTime);
 		}
 	}
 }
@@ -331,51 +281,39 @@ void Monster::SetDestination(FVector dest)
 
 }
 
-void Monster::HandleAsyncFindPath()
-{
-	// 이거 일단 chase 상태에서만 작동해야함
-	/*if(_state != MonsterState::MS_CHASING)
-	{
-		__debugbreak();
-	}*/
-	//TODO:
-	bRequestPath = false;
-
-}
-
 void Monster::SetRandomDestination()
 {
 	//TODO: 현재 몬스터 위치 기반으로
 	// 랜덤 목적지 정한다
-	float range = REQUEST_FIND_PATH_THRESHOLD; // 범위 설정
+	float range = 500.0f; // 범위 설정
 	_destination.X = _position.X + (rand() % static_cast<int>(range * 2)) - range;
 	_destination.Y = _position.Y + (rand() % static_cast<int>(range * 2)) - range;
+
 	uint32 mapXSize = GetField()->GetMapXSize();
 	uint32 mapYSize = GetField()->GetMapYSize();
+
 	_destination.X = std::clamp(_destination.X, (double)100, double(mapXSize) - 100);
 	_destination.Y = std::clamp(_destination.Y, (double)100, double(mapYSize) - 100);
-	
+	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+
+
 	if (!GetField()->CheckValidPos({ (int)_destination.Y, (int)_destination.X }))
 	{
-		//목적지 잘못찝었으면
 		return;
 	}
-	
-	
-	_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+
+
 	//여기서부터 이동할거니까 이동패킷 보내면 되나
 	CPacket* packet = CPacket::Alloc();
 	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
 	SendPacket_Around(packet);
 	CPacket::Free(packet);
-
-	_state = MonsterState::MS_MOVING;
 }
 
 bool Monster::TakeDamage(int damage, Player* attacker)
 {
 	bool bDeath = false;
-	if (_targetPlayer!= attacker)
+	if (_targetPlayer != attacker)
 	{
 		// 다르면
 		//할게 뭐가있지
@@ -617,5 +555,5 @@ void Monster::RemoveSector(Sector* newSector)
 		SendPacket_Sector(deleteSector[i], despawnMonsterPacket);
 	}
 	CPacket::Free(despawnMonsterPacket);
-	
+
 }

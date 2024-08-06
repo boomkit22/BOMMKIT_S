@@ -19,6 +19,7 @@ Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionI
 	Position = { 0, 0,  PLAYER_Z_VALUE };
 	playerInfos.clear();
 	_path.clear();
+	_speed = 300.f;
 }
 
 void Player::Update(float deltaTime)
@@ -225,12 +226,24 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 
 void Player::HandleAsyncFindPath()
 {
+	_path.clear();
+	_pathIndex = 0;
+	_path = _requestPath;
+
 	CPacket* pathPacket = CPacket::Alloc();
 	MP_SC_FIND_PATH(pathPacket, playerInfo.PlayerID, Position, _path, _pathIndex);
 	SendPacket_Around(pathPacket); // 본인포함해서 브로드캐스팅한번햊구ㅗ
 	CPacket::Free(pathPacket);
 
+
 	//이동 시작
+
+	for(int i = 0 ; i < _path.size(); i++)
+	{
+		printf("path[%d] : %d, %d\n", i, _path[i].x, _path[i].y);
+	}
+
+
 	if (_path.size() > 0)
 	{
 		SetDestination({ (double)_path[0].x, (double)_path[0].y, PLAYER_Z_VALUE });
@@ -246,6 +259,7 @@ void Player::Move(float deltaTime) {
 
 	double DistanceToMove = _speed * deltaTime;
 
+	printf("Move %f %f\n", Position.Y, Position.X);
 	// dest에 도달
 	if (DistanceToMove >= Distance) {
 		Position = _destination; 
@@ -256,6 +270,8 @@ void Player::Move(float deltaTime) {
 		}
 		else {
 			bMoving = false;
+			_path.clear();
+			_pathIndex = 0;
 		}
 	}
 	else {

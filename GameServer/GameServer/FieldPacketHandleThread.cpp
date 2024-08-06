@@ -119,14 +119,14 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	Pos end = {destination.Y, destination.X};
 	
 	player->bMoving = false;
-	player->_path.clear();
-	player->_pathIndex = 0;
+	player->_requestPath.clear();
+
 	//start랑 end 복사로해야하고
 	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
 	RequestAsyncJob(player,
 		[start, end, player, this]()
 		{
-			this->_playerJps->FindPath(start, end, player->_path);
+			this->_playerJps->FindPath(start, end, player->_requestPath);
 		}, ASYNC_JOB_THREAD_INDEX_ONE, JOB_PLAYER_FIND_PATH
 	);
 }
@@ -334,15 +334,15 @@ Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
 //	}
 //}
 
-void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
-{
-	RequestAsyncJob(monster,
-		[monster, start, dest, this]()
-		{
-			this->_monsterJps->FindPath(start, dest, monster->_path);
-		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
-	);
-}
+//void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
+//{
+//	RequestAsyncJob(monster,
+//		[monster, start, dest, this]()
+//		{
+//			this->_monsterJps->FindPath(start, dest, monster->_path);
+//		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
+//	);
+//}
 
 void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 {
@@ -356,12 +356,12 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 		}
 		break;
 
-		case JOB_MONSTER_FIND_PATH:
+		/*case JOB_MONSTER_FIND_PATH:
 		{
 			Monster* monster = (Monster*)ptr;
 			monster->HandleAsyncFindPath();
 		}
-		break;
+		break;*/
 
 		default:
 			__debugbreak();

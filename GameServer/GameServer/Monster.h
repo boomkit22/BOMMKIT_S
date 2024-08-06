@@ -46,7 +46,7 @@ public:
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
-	void HandleAsyncFindPath();
+	//void HandleAsyncFindPath();
 	/// <summary>
 	/// 
 	/// </summary>
@@ -95,10 +95,10 @@ private:
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
-
-private:
-	std::vector<Pos> _path;
-	uint16 _pathIndex = 0;
-	bool bRequestPath = false;
+//
+//private:
+//	std::vector<Pos> _path;
+//	uint16 _pathIndex = 0;
+//	bool bRequestPath = false;
 };
 

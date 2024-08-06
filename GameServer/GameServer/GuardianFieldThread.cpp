@@ -46,7 +46,6 @@ void GuardianFieldThread::FrameUpdate(float deltaTime)
 
 void GuardianFieldThread::SpawnMonster()
 {
-
 	uint32 mapXSize = GetMapXSize();
 	uint32 mapYSize = GetMapYSize();
 	int spawnX  = rand() % mapXSize;
