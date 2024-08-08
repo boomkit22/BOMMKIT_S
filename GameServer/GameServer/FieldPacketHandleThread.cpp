@@ -334,15 +334,15 @@ Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
 //	}
 //}
 
-//void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
-//{
-//	RequestAsyncJob(monster,
-//		[monster, start, dest, this]()
-//		{
-//			this->_monsterJps->FindPath(start, dest, monster->_path);
-//		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
-//	);
-//}
+void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
+{
+	RequestAsyncJob(monster,
+		[monster, start, dest, this]()
+		{
+			this->_monsterJps->FindPath(start, dest, monster->_requestPath);
+		}, ASYNC_JOB_THREAD_INDEX_TWO, JOB_MONSTER_FIND_PATH
+	);
+}
 
 void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 {
@@ -356,12 +356,12 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 		}
 		break;
 
-		/*case JOB_MONSTER_FIND_PATH:
+		case JOB_MONSTER_FIND_PATH:
 		{
 			Monster* monster = (Monster*)ptr;
 			monster->HandleAsyncFindPath();
 		}
-		break;*/
+		break;
 
 		default:
 			__debugbreak();

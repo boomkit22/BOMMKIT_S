@@ -89,7 +89,7 @@ private:
 
 public:
 	//void RequestFindPath(int64 objectId, Pos start, Pos dest);
-	//void RequestMonsterPath(Monster* monster, Pos start, Pos dest);
+	void RequestMonsterPath(Monster* monster, Pos start, Pos dest);
 
 	// BasePacketHandleThread을(를) 통해 상속됨
 	void HandleAsyncJobFinish(void* ptr, uint16 jobType) override;

@@ -244,6 +244,9 @@ void Player::HandleAsyncFindPath()
 	}
 
 
+	// bMove를 여기서바꿔야함
+	// 필드나 섹터 변경될때 이동중이었으면 패스 보내는데
+	// path를 셋팅한다음에 bMove를 변경해야 정상적인 path 보낼수있음
 	if (_path.size() > 0)
 	{
 		SetDestination({ (double)_path[0].x, (double)_path[0].y, PLAYER_Z_VALUE });

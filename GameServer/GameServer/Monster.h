@@ -43,6 +43,7 @@ public:
 public:
 	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType);
 	Monster(FieldPacketHandleThread* field, uint16 objectType, uint16 monsterType, FVector spawnPosition);
+	void Init(uint16 monsterType);
 	MonsterState GetState() { return _state; };
 	void Update(float deltaTime);
 	void SetDestination(FVector destination);
@@ -54,12 +55,14 @@ public:
 	/// <param name="attacker"></param>
 	/// <returns>return true when death</returns>
 	bool TakeDamage(int damage, Player* attacker);
-	void MoveToDestination(float deltaTime);
+	bool MoveToDestination(float deltaTime);
 	void AttackPlayer(float deltaTime);
 	void ChasePlayer(float deltaTime);
-	void SetRandomDestination();
+	bool SetRandomDestination();
 	float GetDistanceToPlayer(Player* targetPlayer);
 	void OnSpawn();
+	bool IsMoving() { return bMoving; }
+
 
 //private:
 //	void SendIdlePacket();
@@ -96,9 +99,19 @@ private:
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
 //
-//private:
-//	std::vector<Pos> _path;
-//	uint16 _pathIndex = 0;
+private:
+	//std::vector<Pos> _path;
+	//uint16 _pathIndex = 0;
 //	bool bRequestPath = false;
+
+	std::vector<Pos> _path;
+	std::vector<Pos> _requestPath;
+	uint16 _pathIndex = 0;
+	bool bRequestPath = false;
+	bool bMoving = false;
+	void HandleAsyncFindPath();
+
+	uint32 mapXSize = 0;
+	uint32 mapYSize = 0;
 };
 
