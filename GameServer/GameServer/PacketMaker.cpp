@@ -310,3 +310,17 @@ void MP_SC_FIND_PATH(CPacket* packet, int64 characterNo,  FVector& currentPos, s
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+void MP_SC_GAME_RES_EXP_CHANGE(CPacket* packet, uint16 Level, uint32 Exp)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+	
+	uint16 type = PACKET_SC_GAME_RES_EXP_CHANGE;
+	*packet << type << Level << Exp;
+	
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+

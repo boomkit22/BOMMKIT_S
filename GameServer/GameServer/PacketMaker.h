@@ -30,3 +30,4 @@ void MP_SC_SELECT_PLAYER(CPacket* packet, uint8& Status);
 void MP_SC_CREATE_PLAYER(CPacket* packet, uint8& Status, PlayerInfo& playerInfo);
 void MP_SC_GAME_DESPAWN_MONSTER(CPacket* packet, int64& monsterId);
 void MP_SC_FIND_PATH(CPacket* packet, int64 characterNo, FVector& currentPos, std::vector<Pos>& path, uint16& startIndex);
+void MP_SC_GAME_RES_EXP_CHANGE(CPacket* packet, uint16 Level, uint32 Exp);

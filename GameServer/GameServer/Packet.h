@@ -368,7 +368,6 @@ enum PACKET_TYPE
 	//------------------------------------------------------------
 	// {
 	//		WORD		Type
-	//		int64       CharacterId
 	//		uint16       Level
 	//		uint32       Exp
 	//	}

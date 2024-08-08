@@ -250,6 +250,13 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 				playerInfo.Level = newLevel;
 			}
 
+			//패킷 주고
+			CPacket* expChangePacket = CPacket::Alloc();
+			MP_SC_GAME_RES_EXP_CHANGE(expChangePacket, playerInfo.Exp, playerInfo.Level);
+			SendPacket_Unicast(_sessionId, expChangePacket);
+			CPacket::Free(expChangePacket);
+
+			//db 비동기로 저장하고
 			GetField()->AddDBJob([this]() {
 
 				char updateQuery[256];
@@ -259,7 +266,7 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 				{
 					__debugbreak();
 				}
-				});
+			});
 
 		}
 	}
