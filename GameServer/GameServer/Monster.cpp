@@ -229,13 +229,6 @@ void Monster::ChasePlayer(float deltaTime)
 
 		if (_chaseTime > _maxChaseTime)
 		{
-			//idle상태라고 보내기 MonsterStop 패킷
-			/*CPacket* idlePacket = CPacket::Alloc();
-			MP_SC_GAME_RES_MONSTER_STOP(idlePacket, _monsterInfo.MonsterID, _position, _rotation);
-			_GuardianFieldThread->SendPacket_BroadCast(idlePacket);
-			CPacket::Free(idlePacket)*/;
-
-			// maxChaseTime 초과하면
 			_state = MonsterState::MS_IDLE;
 			_idleTime = 5.0f;
 			_targetPlayer = nullptr;
@@ -257,24 +250,6 @@ void Monster::ChasePlayer(float deltaTime)
 				FVector newDestination{ _targetPlayer->Position.X, _targetPlayer->Position.Y, _position.Z };
 				SetDestination(newDestination);
 			}
-			//플에이어 몬스터 사이 거리
-			//float dirX = _targetPlayer->Position.X - _position.X;
-			//float dirY = _targetPlayer->Position.Y - _position.Y;
-			//float length = sqrt(dirX * dirX + dirY * dirY);
-
-			//정규화 하고
-			// attackRagne곱해서
-			/*FVector Destination;
-			if (_targetPlayer->_path.size() > 0)
-			{
-				Pos targetPlayerPos = _targetPlayer->_path[_targetPlayer->_pathIndex];
-				Destination = { (double)targetPlayerPos.x, (double)targetPlayerPos.y, _position.Z };
-			}
-			else {
-				Destination = { _targetPlayer->Position.X, _targetPlayer->Position.Y, _position.Z };
-			}*/
-			//SetDestination(Destination);
-			//MoveToDestination(deltaTime);
 		}
 	}
 }
@@ -282,10 +257,6 @@ void Monster::ChasePlayer(float deltaTime)
 
 void Monster::SetDestination(FVector dest)
 {
-	//현재 위치가 장애물이면?
-	// 장애물 아닌곳까지 직선으로 찾아서 강제로 이동
-	// 경로대로 이동해도 중간에 생략한 경로 있어서 장애물에 낄수도 있음
-
 	Pos start = { (int)_position.Y, (int)_position.X };
 	Pos end = { (int)dest.Y, (int)dest.X };
 
@@ -293,25 +264,20 @@ void Monster::SetDestination(FVector dest)
 	if (!GetField()->CheckValidPos(start) || !GetField()->CheckValidPos(end))
 	{
 		_destination = dest;
+		_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+		SendMovePacket();
 		return;
 	}
-
 	//_destination = dest;
 	//TODO: 클라이언트에 몬스터 이동 패킷 전송
 	bRequestPath = true;
 	_requestPath.clear();
 	GetField()->RequestMonsterPath(this, start, end);
-	/*CPacket* packet = CPacket::Alloc();
-	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, dest, _rotation);
-	SendPacket_Around(packet);
-	CPacket::Free(packet);
-	_rotation.Yaw = Util::CalculateRotation(_position, _destination);*/
+
 }
 
 bool Monster::SetRandomDestination()
 {
-	//TODO: 현재 몬스터 위치 기반으로
-	// 랜덤 목적지 정한다
 	float range = 500.0f; // 범위 설정
 
 	FVector RandomDestination;
@@ -328,11 +294,25 @@ bool Monster::SetRandomDestination()
 	SetDestination(RandomDestination);
 
 	return true;
-	//여기서부터 이동할거니까 이동패킷 보내면 되나
-	//CPacket* packet = CPacket::Alloc();
-	//MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
-	//SendPacket_Around(packet);
-	//CPacket::Free(packet);
+}
+
+void Monster::HandleAsyncFindPath()
+{
+	_path.clear();
+	_pathIndex = 0;
+	_path = _requestPath;
+
+	if (_path.size() > 0)
+	{
+		_destination = { (double)_path[0].x, (double)_path[0].y, _position.Z };
+		_rotation.Yaw = Util::CalculateRotation(_position, _destination);
+		bRequestPath = false;
+		SendMovePacket();
+	}
+	else if (_path.size() == 0)
+	{
+		__debugbreak();
+	}
 }
 
 bool Monster::TakeDamage(int damage, Player* attacker)
@@ -583,20 +563,12 @@ void Monster::RemoveSector(Sector* newSector)
 
 }
 
-void Monster::HandleAsyncFindPath()
+void Monster::SendMovePacket()
 {
-	_path.clear();
-	_pathIndex = 0;
-	_path = _requestPath;
-	
-	if (_path.size() > 0)
-	{
-		_destination = { (double)_path[0].y, (double)_path[0].x, _position.Z };
-		bMoving = true;
-		bRequestPath = false;
-	}
-	else if (_path.size() == 0)
-	{
-		__debugbreak();
-	}
+	CPacket* packet = CPacket::Alloc();
+	MP_SC_MONSTER_MOVE(packet, _monsterInfo.MonsterID, _destination, _rotation);
+	SendPacket_Around(packet);
+	CPacket::Free(packet);
 }
+
+

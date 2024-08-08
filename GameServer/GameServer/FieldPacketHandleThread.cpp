@@ -304,35 +304,6 @@ Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
 	return monster;
 }
 
-//void FieldPacketHandleThread::HandleAsyncJobFinish(int64 sessionId)
-//{
-//	Player* player = nullptr;
-//	auto it = _playerMap.find(sessionId);
-//	if (it == _playerMap.end())
-//	{
-//		//TODO: Disconnect Player
-//		__debugbreak();
-//		DisconnectPlayer(sessionId);
-//		LOG(L"BasePacketHandleThread", LogLevel::Debug, L"Cannot find sessionId : %lld, HandleRecvPacket", sessionId);
-//		return;
-//	}
-//
-//	player = it->second;
-//	uint8 jobType = player->_asyncJobRequests.front();
-//	player->_asyncJobRequests.pop();
-//
-//	switch (jobType)
-//	{
-//	case JOB_PLAYER_FIND_PATH:
-//	{
-//		HandleAsyncFindPath(player);
-//	}
-//	break;
-//
-//	default:
-//		__debugbreak();
-//	}
-//}
 
 void FieldPacketHandleThread::RequestMonsterPath(Monster* monster, Pos start, Pos dest)
 {

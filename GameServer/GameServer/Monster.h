@@ -62,6 +62,7 @@ public:
 	float GetDistanceToPlayer(Player* targetPlayer);
 	void OnSpawn();
 	bool IsMoving() { return bMoving; }
+	
 
 
 //private:
@@ -98,6 +99,7 @@ private:
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
+	void SendMovePacket();
 //
 private:
 	//std::vector<Pos> _path;
