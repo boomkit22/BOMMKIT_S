@@ -2,6 +2,12 @@
 #include "BasePacketHandleThread.h"
 #include "Type.h"
 #include "JumpPointSearch.h"
+#include <thread>
+#include <condition_variable>
+#include "mysql.h"
+#include "Data.h"
+#include <queue>
+
 
 class CPacket;
 class Player;
@@ -94,6 +100,25 @@ public:
 	// BasePacketHandleThread을(를) 통해 상속됨
 	void HandleAsyncJobFinish(void* ptr, uint16 jobType) override;
 
-
+	//DB
+public:
+	void AddDBJob(std::function<void()> job);
+	MYSQL* GetDBConnection() { return &_conn; };
+private:
+	bool bThreadRun = true;
+	std::thread _dbThread;
+	std::condition_variable _dbCV;
+	std::mutex _dbMutex;
+	void DBThreadFunc();
+	std::queue<std::function<void()>> _dbJobQueue;
+	//mysql
+	//TODO: 비밀번호 ip config로 뺴기
+	MYSQL _conn;
+	MYSQL* _connection;
+	const char* host = "127.0.0.1";
+	const char* user = "root";
+	const char* password = "boomkit22";
+	const char* database = "mmo";
+	int port = Data::DBPort;
 };
 

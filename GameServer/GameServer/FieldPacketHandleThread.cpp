@@ -13,6 +13,12 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	uint16 _sectorYLen, uint16 _sectorXLen, uint16 _sectorYSize, uint16 _sectorXSize, uint8** map) :
 	BasePacketHandleThread(gameServer, threadId, msPerFrame), _sectorYLen(_sectorYLen), _sectorXLen(_sectorXLen), _sectorYSize(_sectorYSize), _sectorXSize(_sectorXSize), _map(map)
 {
+	mysql_init(&_conn);
+	_connection = mysql_real_connect(&_conn, host, user, password, database, port, NULL, 0);
+	if (_connection == NULL) {
+		fprintf(stderr, "Mysql connection error  %s\n", mysql_error(&_conn));
+		__debugbreak();
+	}
 
 	InitializeSector();
 	InitializeMap();
@@ -27,6 +33,8 @@ FieldPacketHandleThread::FieldPacketHandleThread(GameServer* gameServer, int thr
 	_map = map;
 	_playerJps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
 	_monsterJps = new JumpPointSearch(_map, _mapSizeX, _mapSizeY);
+
+	_dbThread = std::thread(&FieldPacketHandleThread::DBThreadFunc, this);
 }
 
 FieldPacketHandleThread::~FieldPacketHandleThread()
@@ -38,6 +46,13 @@ FieldPacketHandleThread::~FieldPacketHandleThread()
 	delete[] _sector;
 	delete _playerJps;
 	delete _monsterJps;
+
+	bThreadRun = false;
+	if (_dbThread.joinable())
+	{
+		_dbThread.join();
+	}
+	mysql_close(_connection);
 }
 
 void FieldPacketHandleThread::HandleFieldMove(Player* player, CPacket* packet)
@@ -337,6 +352,32 @@ void FieldPacketHandleThread::HandleAsyncJobFinish(void* ptr, uint16 jobType)
 		default:
 			__debugbreak();
 	}
+}
+
+void FieldPacketHandleThread::DBThreadFunc()
+{
+	std::function<void()> job;
+
+	while (bThreadRun) {
+		
+		std::unique_lock<std::mutex> lock(_dbMutex);
+		_dbCV.wait(lock, [this] { return !_dbJobQueue.empty(); });
+		job = _dbJobQueue.front();
+		_dbJobQueue.pop();
+		
+		job();
+	}
+
+	return;
+}
+
+void FieldPacketHandleThread::AddDBJob(std::function<void()> job)
+{
+	{
+		std::lock_guard<std::mutex> lock(_dbMutex);
+		_dbJobQueue.push(job);
+	}
+	_dbCV.notify_one();
 }
 
 void FieldPacketHandleThread::InitializeSector()

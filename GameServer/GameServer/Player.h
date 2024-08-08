@@ -13,7 +13,6 @@ const double PLAYER_Z_VALUE = 95.2f;
 class Player : public FieldObject
 {
 	friend class Monster;
-
 	friend class GameServer;
 	friend class BasePacketHandleThread;
 	friend class GuardianFieldThread;

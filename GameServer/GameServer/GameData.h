@@ -11,3 +11,6 @@
 #define FIELD_GUARDIAN 2
 #define FIELD_SPIDER 3
 
+#define SPIDER_EXP 10
+#define GUARDIAN_EXP 5
+#define EXP_PER_LEVEL 100

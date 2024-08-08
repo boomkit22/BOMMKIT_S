@@ -30,6 +30,7 @@ private:
 
 private:
 	//mysql
+	//TODO: 비밀번호 ip config로 뺴기
 	MYSQL _conn;
 	MYSQL* _connection;
 	const char* host = "127.0.0.1";

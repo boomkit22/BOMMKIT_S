@@ -220,6 +220,47 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 			MP_SC_GAME_RES_MONSTER_DEATH(monsterDeathPacket, targetId, monsterPosition, monsterRotation);
 			SendPacket_Around(monsterDeathPacket);
 			CPacket::Free(monsterDeathPacket);
+
+			uint16 monsterType  = targetMonster->GetMonsterInfo().Type;
+			switch (monsterType)
+			{
+				case MONSTER_TYPE_GUARDIAN:
+				{
+					//보상
+					playerInfo.Exp += GUARDIAN_EXP;
+				}
+				break;
+
+				case MONSTER_TYPE_SPIDER:
+				{
+					//보상
+					playerInfo.Exp += SPIDER_EXP;
+				}
+				break;
+			}
+
+			// Level변경됐는지 확인
+			// 처음이 1레벨이니까
+			// exp가 100되면 1레벨되는거고
+			// exp가 200되면 2레벨되는거고
+			// exp가 201에서 400되면 400되는거고
+			uint16 newLevel = playerInfo.Exp / 100 + 1;
+			if (newLevel > playerInfo.Level)
+			{
+				playerInfo.Level = newLevel;
+			}
+
+			GetField()->AddDBJob([this]() {
+
+				char updateQuery[256];
+				sprintf_s(updateQuery, "UPDATE player SET exp = %d, level = %d WHERE PlayerID = %lld", playerInfo.Exp, playerInfo.Level, playerInfo.PlayerID);
+
+				if (mysql_query(GetField()->GetDBConnection(), updateQuery))
+				{
+					__debugbreak();
+				}
+				});
+
 		}
 	}
 }
