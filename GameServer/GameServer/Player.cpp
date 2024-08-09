@@ -248,13 +248,19 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 			if (newLevel > playerInfo.Level)
 			{
 				playerInfo.Level = newLevel;
+				//레벨 변경됐으면
+				CPacket* levelUpPacket = CPacket::Alloc();
+				MP_SC_GAME_LEVEL_UP_OTHER_CHARACTER(levelUpPacket, playerInfo.PlayerID, playerInfo.Level);
+				SendPacket_Around(levelUpPacket, false); // 자신 빼고
+				CPacket::Free(levelUpPacket);
 			}
-
-			//패킷 주고
+			//본인에게 경험치, 레벨 패킷 보내고
 			CPacket* expChangePacket = CPacket::Alloc();
 			MP_SC_GAME_RES_EXP_CHANGE(expChangePacket, playerInfo.Exp, playerInfo.Level);
 			SendPacket_Unicast(_sessionId, expChangePacket);
 			CPacket::Free(expChangePacket);
+
+			
 
 			//db 비동기로 저장하고
 			GetField()->AddDBJob([this]() {
