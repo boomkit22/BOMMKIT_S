@@ -257,6 +257,31 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 
 	player->OnLeave();
 
+	//맵에서 삭제
+	int deletedNum = _playerMap.erase(sessionId);
+	if (deletedNum == 0)
+	{
+		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
+	}
+
+	//섹터에서 삭제
+	auto vectorIt = std::find(player->_currentSector->fieldObjectVector.begin(), player->_currentSector->fieldObjectVector.end(), (FieldObject*)player);
+	if (vectorIt == player->_currentSector->fieldObjectVector.end())
+	{
+		__debugbreak();
+	}
+	player->_currentSector->fieldObjectVector.erase(vectorIt);
+
+
+	//필드 오브젝트 맵에서 삭제
+	int64 objectId = player->GetObjectId();
+	size_t size = _fieldObjectMap.erase(objectId);
+	if (size == 0)
+	{
+		__debugbreak();
+	}
+
+	//나간거면 free player
 	if (disconnect)
 	{
 		FreePlayer(sessionId);
@@ -266,14 +291,6 @@ void FieldPacketHandleThread::OnLeaveThread(int64 sessionId, bool disconnect)
 		LOG(L"GuardianFieldThread", LogLevel::Error, L"no disconnect : %lld, OnLeaveThread", sessionId);
 	}
 
-	int deletedNum = _playerMap.erase(sessionId);
-	if (deletedNum == 0)
-	{
-		LOG(L"GuardianFieldThread", LogLevel::Error, L"Cannot find sessionId : %lld, OnLeaveThread", sessionId);
-	}
-
-	int64 objectId = player->GetObjectId();
-	_fieldObjectMap.erase(objectId);
 }
 
 FieldObject* FieldPacketHandleThread::FindFieldObject(int64 objectId)
