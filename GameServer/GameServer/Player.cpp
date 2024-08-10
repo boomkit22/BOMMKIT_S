@@ -257,7 +257,7 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 			}
 			//본인에게 경험치, 레벨 패킷 보내고
 			CPacket* expChangePacket = CPacket::Alloc();
-			MP_SC_GAME_RES_EXP_CHANGE(expChangePacket, playerInfo.Exp, playerInfo.Level);
+			MP_SC_GAME_RES_EXP_CHANGE(expChangePacket, playerInfo.Level, playerInfo.Exp);
 			SendPacket_Unicast(_sessionId, expChangePacket);
 			CPacket::Free(expChangePacket);
 
@@ -271,6 +271,9 @@ void Player::HandleCharacterAttack(int32 attackerType, int64 attackerId, int32 t
 
 				if (mysql_query(GetField()->GetDBConnection(), updateQuery))
 				{
+					// MySQL 오류 메시지를 출력
+					const char* errorMessage = mysql_error(GetField()->GetDBConnection());
+					printf("MySQL Error: %s\n", errorMessage);
 					__debugbreak();
 				}
 			});
