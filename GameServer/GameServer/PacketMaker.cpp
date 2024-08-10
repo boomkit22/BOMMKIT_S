@@ -324,3 +324,17 @@ void MP_SC_GAME_RES_EXP_CHANGE(CPacket* packet, uint16 Level, uint32 Exp)
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
+void MP_SC_GAME_LEVEL_UP_OTHER_CHARACTER(CPacket* packet, int64& characterNO, uint16& Level)
+{
+	NetHeader header;
+	header._code = Data::serverPacketCode;
+	header._randKey = rand();
+	packet->PutData((char*)&header, sizeof(NetHeader));
+	
+	uint16 type = PACKET_SC_GAME_RES_LEVEL_UP_OTHER_CHARACTER;
+	*packet << type << characterNO << Level;
+	
+	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
+	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
+}
+
