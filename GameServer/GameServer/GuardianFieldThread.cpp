@@ -33,13 +33,18 @@ void GuardianFieldThread::FrameUpdate(float deltaTime)
 		//printf("Spawn Monster\n");
 	}
 
-	for (auto it = _monsterMap.begin(); it != _monsterMap.end(); it++)
+	for (auto it = _monsterMap.begin(); it != _monsterMap.end();)
 	{
-		//죽었으면 일단 풀에 집어넣고
 		MonsterState state = (*it).second->GetState();
 		if (state == MonsterState::MS_DEATH)
 		{
+
 			ReturnFieldObject((*it).first);
+			it = _monsterMap.erase(it);
+		}
+		else
+		{
+			it++;
 		}
 	}
 }

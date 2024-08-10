@@ -39,6 +39,7 @@ void Monster::Init(uint16 monsterType)
 	_damage = 5;
 	_rotation = { 0,0,0 };
 	_targetPlayer = nullptr;
+	bErase = false;
 }
 
 void  Monster::Update(float deltaTime)
@@ -259,6 +260,11 @@ void Monster::SetDestination(FVector dest)
 {
 	Pos start = { (int)_position.Y, (int)_position.X };
 	Pos end = { (int)dest.Y, (int)dest.X };
+
+	if (start == end)
+	{
+		return;
+	}
 
 	//start나 end가 장애물이면 end까지 강제로 이동
 	if (!GetField()->CheckValidPos(start) || !GetField()->CheckValidPos(end))

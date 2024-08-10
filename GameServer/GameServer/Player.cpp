@@ -20,6 +20,7 @@ Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionI
 	playerInfos.clear();
 	_path.clear();
 	_speed = 300.f;
+	bErase = false;
 }
 
 void Player::Update(float deltaTime)

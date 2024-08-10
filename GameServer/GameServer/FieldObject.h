@@ -36,5 +36,6 @@ protected:
 	FieldPacketHandleThread* _field;
 	uint16 _sectorYSize;
 	uint16 _sectorXSize;
+	bool bErase = false;
 };
 

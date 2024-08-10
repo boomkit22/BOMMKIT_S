@@ -154,11 +154,26 @@ void FieldPacketHandleThread::HandleAsyncFindPath(Player* player)
 
 void FieldPacketHandleThread::GameRun(float deltaTime)
 {
-	for(auto it = _fieldObjectMap.begin() ; it != _fieldObjectMap.end(); it++)
+	for(auto it = _fieldObjectMap.begin(); it != _fieldObjectMap.end();)
 	{
 		FieldObject* fieldObject = it->second;
-		fieldObject->Update(deltaTime);
+		if (fieldObject->bErase)
+		{
+			it = _fieldObjectMap.erase(it);
+		}
+		else
+		{
+			fieldObject->Update(deltaTime);
+			it++;
+		}
 	}
+
+
+	//for(auto it = _fieldObjectMap.begin() ; it != _fieldObjectMap.end(); it++)
+	//{
+	//	FieldObject* fieldObject = it->second;
+	//	fieldObject->Update(deltaTime);
+	//}
 
 	FrameUpdate(deltaTime);
 }
@@ -280,6 +295,7 @@ void FieldPacketHandleThread::ReturnFieldObject(int64 objectId)
 	{
 		__debugbreak();
 	}
+	fieldObject->bErase = true;
 	uint16 objectType = fieldObject->GetObjectType();
 
 	switch (objectType)
@@ -294,7 +310,7 @@ void FieldPacketHandleThread::ReturnFieldObject(int64 objectId)
 	case TYPE_MONSTER:
 	{
 		_monsterPool.Free((Monster*)fieldObject);
-		_monsterMap.erase(objectId);
+		//_monsterMap.erase(objectId);
 	}
 	break;
 
@@ -302,7 +318,6 @@ void FieldPacketHandleThread::ReturnFieldObject(int64 objectId)
 		__debugbreak();
 
 	}
-	
 }
 
 Monster* FieldPacketHandleThread::AllocMonster(uint16 monsterType)
