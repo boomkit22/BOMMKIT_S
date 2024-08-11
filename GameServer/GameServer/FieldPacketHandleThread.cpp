@@ -122,6 +122,11 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 	//FRotator startRotation;
 	*packet >> destination;
 
+	if (player->_bRequestPath)
+	{
+		return;
+	}
+
 	//TODO: 길찾기쓰레드에 넘기고
 	//OnFinishFindRoute에서 player->HandleFinishFindRoute();
 
@@ -132,10 +137,10 @@ void FieldPacketHandleThread::HandleFindPath(Player* player, CPacket* packet)
 		return;
 	}
 	Pos end = {destination.Y, destination.X};
-	
+	printf("start : %d %d, end : %d %d\n", start.y, start.x, end.y, end.x);
 	player->bMoving = false;
 	player->_requestPath.clear();
-
+	player->_bRequestPath = true;
 	//start랑 end 복사로해야하고
 	//또 무엇을 넣어야 길찾기가 끝났을떄 ??
 	RequestAsyncJob(player,

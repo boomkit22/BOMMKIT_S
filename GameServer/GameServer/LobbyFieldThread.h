@@ -15,7 +15,7 @@ public:
 		uint16 sectorYLen, uint16 sectorXLen, uint16 sectorYSize, uint16 sectorXSize, uint8** map);
 
 private:
-	virtual void GameRun(float deltaTime) override;
+	//virtual void GameRun(float deltaTime) override;
 	// GameThread을(를) 통해 상속됨
 	void OnLeaveThread(int64 sessionId, bool disconnect) override;
 	void OnEnterThread(int64 sessionId, void* ptr) override;

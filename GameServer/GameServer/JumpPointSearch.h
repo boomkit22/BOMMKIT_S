@@ -4,7 +4,7 @@
 #include <vector>
 #include "Type.h"
 
-#define OMIT_RANGE  100
+#define OMIT_RANGE  10
 enum CellValue {
 	NONE = 0,
 	OBSTACLE = 1,

@@ -35,13 +35,13 @@ void LobbyFieldThread::HandleCharacterAttack(Player* p, CPacket* packet)
 	*packet >> attackerType >> attackerID >> targetType >> targetID;
 }
 
-void LobbyFieldThread::GameRun(float deltaTime)
-{
-	UpdatePlayers(deltaTime);
-
-	// Lobby Thread에는 몬스터 없고
-	//UpdateMonsters(deltaTime);
-}
+//void LobbyFieldThread::GameRun(float deltaTime)
+//{
+//	UpdatePlayers(deltaTime);
+//
+//	// Lobby Thread에는 몬스터 없고
+//	//UpdateMonsters(deltaTime);
+//}
 
 void LobbyFieldThread::UpdatePlayers(float deltaTime)
 {

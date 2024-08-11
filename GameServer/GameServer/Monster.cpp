@@ -34,7 +34,7 @@ void Monster::Init(uint16 monsterType)
 	_attackRange = 200.0f;
 	_attackCooldown = 5.0f;
 	_chaseTime = 0;
-	_maxChaseTime = 5.0f;
+	_maxChaseTime = 100.0f;
 	_aggroRange = 1000.0f;
 	_damage = 5;
 	_rotation = { 0,0,0 };
@@ -241,15 +241,20 @@ void Monster::ChasePlayer(float deltaTime)
 		if (distance <= _attackRange)
 		{
 			_state = MonsterState::MS_ATTACKING;
-
 		}
 		else {
 
 			if (MoveToDestination(deltaTime))
 			{
+				printf("chaes player destination %d %d\n", _destination.X, _destination.Y);
+				//printf("목적지 도착\n");
 				//목적지에 도착했으면
 				FVector newDestination{ _targetPlayer->Position.X, _targetPlayer->Position.Y, _position.Z };
 				SetDestination(newDestination);
+			}
+			else
+			{
+				printf("chase player now : %d %d\n", _position.X, _position.Y);
 			}
 		}
 	}

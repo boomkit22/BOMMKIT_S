@@ -73,5 +73,6 @@ private:
 	std::vector<Pos> _path;
 	std::vector<Pos> _requestPath;
 	uint16 _pathIndex = 0;
+	bool _bRequestPath = false;
 };
 

@@ -21,6 +21,7 @@ Player::Player(FieldPacketHandleThread* field, uint16 objectType, int64 sessionI
 	_path.clear();
 	_speed = 300.f;
 	bErase = false;
+	_bRequestPath = false;
 }
 
 void Player::Update(float deltaTime)
@@ -309,6 +310,7 @@ void Player::HandleAsyncFindPath()
 	{
 		SetDestination({ (double)_path[0].x, (double)_path[0].y, PLAYER_Z_VALUE });
 	}
+	_bRequestPath = false;
 }
 
 
@@ -320,10 +322,11 @@ void Player::Move(float deltaTime) {
 
 	double DistanceToMove = _speed * deltaTime;
 
-	printf("Move %f %f\n", Position.Y, Position.X);
+	//printf("Move %f %f\n", Position.Y, Position.X);
 	// dest¿¡ µµ´Þ
 	if (DistanceToMove >= Distance) {
 		Position = _destination; 
+		printf("Arrive %f %f\n", Position.Y, Position.X);
 
 		_pathIndex++;
 		if (_pathIndex < _path.size()) {
