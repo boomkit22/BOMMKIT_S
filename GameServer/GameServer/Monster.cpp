@@ -54,32 +54,32 @@ void  Monster::Update(float deltaTime)
 
 	switch (_state)
 	{
-	case MonsterState::MS_IDLE:
-	{
-		// idle 상태였으면
-		_idleTime -= deltaTime;
-		if (_idleTime <= 0)
-		{
-			// idle 시간이 다 되었으면
-			if(SetRandomDestination())
-			{
-				_state = MonsterState::MS_MOVING;
-			}
-		}
-	}
-	break;
+	//case MonsterState::MS_IDLE:
+	//{
+	//	// idle 상태였으면
+	//	_idleTime -= deltaTime;
+	//	if (_idleTime <= 0)
+	//	{
+	//		// idle 시간이 다 되었으면
+	//		if(SetRandomDestination())
+	//		{
+	//			_state = MonsterState::MS_MOVING;
+	//		}
+	//	}
+	//}
+	//break;
 
-	case MonsterState::MS_MOVING:
-	{
-		bMoving = true;
-		if (MoveToDestination(deltaTime))
-		{
-			//목적지 도착했으면
-			_state = MonsterState::MS_IDLE;
-			_idleTime = _defaultIdleTime;
-		}
-	}
-	break;
+	//case MonsterState::MS_MOVING:
+	//{
+	//	bMoving = true;
+	//	if (MoveToDestination(deltaTime))
+	//	{
+	//		//목적지 도착했으면
+	//		_state = MonsterState::MS_IDLE;
+	//		_idleTime = _defaultIdleTime;
+	//	}
+	//}
+	//break;
 
 	case MonsterState::MS_ATTACKING:
 	{
@@ -246,7 +246,7 @@ void Monster::ChasePlayer(float deltaTime)
 
 			if (MoveToDestination(deltaTime))
 			{
-				printf("chaes player destination %d %d\n", _destination.X, _destination.Y);
+				printf("chaes player destination %f %f\n", _destination.X, _destination.Y);
 				//printf("목적지 도착\n");
 				//목적지에 도착했으면
 				FVector newDestination{ _targetPlayer->Position.X, _targetPlayer->Position.Y, _position.Z };
@@ -254,7 +254,7 @@ void Monster::ChasePlayer(float deltaTime)
 			}
 			else
 			{
-				printf("chase player now : %d %d\n", _position.X, _position.Y);
+				printf("chase player now : %f %f\n", _position.X, _position.Y);
 			}
 		}
 	}
