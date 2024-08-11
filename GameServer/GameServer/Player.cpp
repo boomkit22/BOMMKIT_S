@@ -111,9 +111,9 @@ void Player::OnFieldChange()
 
 				if (monster->GetState()  == MonsterState::MS_MOVING)
 				{
-					FVector destination = monster->GetDestination();
 					CPacket* movePacket = CPacket::Alloc();
-					MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, destination, monsterRotation);
+					MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, monsterPosition, monster->_path, monster->_pathIndex);
+					//MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, destination, monsterRotation);
 					SendPacket_Unicast(_sessionId, movePacket);
 					CPacket::Free(movePacket);
 				}
@@ -326,6 +326,9 @@ void Player::Move(float deltaTime) {
 	// dest¿¡ µµ´Þ
 	if (DistanceToMove >= Distance) {
 		Position = _destination; 
+		_lastValidPosition = Position;
+		//_lastValidPos = { (uint16)Position.X, (uint16)Position.Y };
+
 		printf("Arrive %f %f\n", Position.Y, Position.X);
 
 		_pathIndex++;
@@ -534,9 +537,9 @@ void Player::AddSector(Sector* newSector)
 
 				if (monster->GetState() == MonsterState::MS_MOVING)
 				{
-					FVector destination = monster->GetDestination();
 					CPacket* movePacket = CPacket::Alloc();
-					MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, destination, monsterRotation);
+					MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, monsterPosition, monster->_path, monster->_pathIndex);
+					//MP_SC_MONSTER_MOVE(movePacket, monsterInfo.MonsterID, destination, monsterRotation);
 					SendPacket_Unicast(_sessionId, movePacket);
 					CPacket::Free(movePacket);
 				}

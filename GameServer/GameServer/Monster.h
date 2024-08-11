@@ -14,6 +14,7 @@ class BasePacketHandleThread;
 //200 이하면 길찾기 요청안함
 
 #define REQUEST_FIND_PATH_THRESHOLD 200.0
+#define MAX_ROTATION_DIFFERENCE 30.0
 
 enum class MonsterState {
 	MS_IDLE,
@@ -56,6 +57,7 @@ public:
 	/// <returns>return true when death</returns>
 	bool TakeDamage(int damage, Player* attacker);
 	bool MoveToDestination(float deltaTime);
+	bool MoveToPlayer(float deltaTime);
 	void AttackPlayer(float deltaTime);
 	void ChasePlayer(float deltaTime);
 	bool SetRandomDestination();
@@ -101,7 +103,7 @@ private:
 	void RemoveSector(Sector* newSector);
 	void SendMovePacket();
 //
-private:
+public:
 	//std::vector<Pos> _path;
 	//uint16 _pathIndex = 0;
 //	bool bRequestPath = false;

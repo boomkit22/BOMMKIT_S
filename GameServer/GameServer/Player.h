@@ -66,7 +66,7 @@ private:
 	bool TakeDamage(int32 damage);
 
 
-private:
+public:
 	void ProcessSectorChange(Sector* newSector);
 	void AddSector(Sector* newSEctor);
 	void RemoveSector(Sector* newSector);
@@ -74,5 +74,6 @@ private:
 	std::vector<Pos> _requestPath;
 	uint16 _pathIndex = 0;
 	bool _bRequestPath = false;
+	FVector _lastValidPosition;
 };
 

@@ -117,16 +117,21 @@ void MP_SC_SPAWN_MONSTER(CPacket* packet, MonsterInfo& monsterInfo, FVector& spa
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
 
-void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& Destination, FRotator& StartRotation)
+void MP_SC_MONSTER_MOVE(CPacket* packet, int64& monsterId, FVector& currentPos, std::vector<Pos>& path, uint16& startIndex)
 {
 	NetHeader header;
 	header._code = Data::serverPacketCode;
 	header._randKey = rand();
 	packet->PutData((char*)&header, sizeof(NetHeader));
-
+	
 	uint16 type = PACKET_SC_GAME_MONSTER_MOVE;
-	*packet << type << monsterId << Destination << StartRotation;
+	*packet << type << monsterId << currentPos << (uint16)path.size() << startIndex;
 
+	for (auto& pos : path)
+	{
+		*packet << pos;
+	}
+	
 	uint16 len = (uint16)(packet->GetDataSize() - sizeof(NetHeader));
 	memcpy(packet->GetBufferPtr() + NET_HEADER_SIZE_INDEX, (void*)&len, sizeof(uint16));
 }
